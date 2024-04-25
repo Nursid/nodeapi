@@ -16,7 +16,7 @@ dbConfig.PASSWORD, {
 sequelize
   .authenticate()
   .then(() => {
-    console.log("connected ....");
+    console.log("connected ........................");
   })
   .catch((error) => {
     console.log("Error" + error);
