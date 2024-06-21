@@ -76,6 +76,7 @@ const deleteNewCustomerById = async (req, res) => {
 		res.status(500).json({success: false, error: error.message});
 	}
 };
+
 const getCustomerByMobile = async (req, res) => {
 	try {
 

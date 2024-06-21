@@ -21,7 +21,7 @@ const SignupUser = async (req, res) => {
 	const data = req.body;
 
 	const image=req.file
-	data.image=image.originalname;
+	data.image=image?.originalname || '';
 
 	const newCustomer_data = {
 		"name": data.name,

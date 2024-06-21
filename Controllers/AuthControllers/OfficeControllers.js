@@ -7,10 +7,6 @@ const Empservices = db.Empservices
 const jwt = require("jsonwebtoken");
 const {isEmail, isMobileNumber, isOptValid} = require("../utils");
 
-// const generateEmployeeId = require("../misc/employeeIdGenerator");
-
-
-
 // Add the Service Provider
 const AddEmployee = async (req, res) => {
 	
