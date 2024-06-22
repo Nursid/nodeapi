@@ -176,12 +176,14 @@ const GetUpdateTheCustomer = async (req, res) => {
 	const {user_id} = req.params;
 
 	const data = req.body;
-	const image=req.file
-	data.image = (image && image.originalname) ? image.originalname : null;
+	if(req.file){
+			const image=req.file
+			data.image = (image && image.originalname) ? image.originalname : null;
+		}	
 
 	const newCustomer_data = {
-		"name": data.name,
-		"email": data.email
+		"name": data?.name || '',
+		"email": data?.email || ''
 	}
 
 	const {
@@ -190,8 +192,6 @@ const GetUpdateTheCustomer = async (req, res) => {
 		...customer_data
 	} = data;
 
-
-
 		const isUpdated_customer = await NewCustomerModel.update(newCustomer_data, {
 			where: {
 				id: user_id
@@ -199,9 +199,8 @@ const GetUpdateTheCustomer = async (req, res) => {
 		});
 
 		if (! isUpdated_customer) {
-			return res.status(404).json({error: true, message: "Updation failed ! Try again"});
+			return res.status(404).json({error: true, message: "Not User Found!"});
 		}
-
 		const isUpdated = await CustomerModel.update(customer_data, {
 			where: {
 				user_id: user_id

@@ -16,10 +16,12 @@ module.exports = (sequelize) => {
             allowNull: false
           },
           name: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            allowNull: false
           },
           mobile_no: {
-            type: DataTypes.STRING
+            type: DataTypes.STRING,
+            allowNull: false
           },
           aadhar_no: {
             type: DataTypes.STRING

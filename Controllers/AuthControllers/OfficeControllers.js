@@ -13,20 +13,22 @@ const AddEmployee = async (req, res) => {
 	try {
 		const data = req.body;
 
-		const empServiceData = JSON.parse(data.multiServices);
+		const empServiceData = JSON.parse(data?.multiServices);
 
+		if(req.files){
 		const {pan_image, adhar_image, image} = req.files;
-
 		data.pan_image = pan_image ? pan_image[0].filename : null;
 		data.adhar_image = adhar_image ? adhar_image[0].filename : null;
 		data.image = image ? image[0].filename : null;
-
+		}
+		
 		// Check if user with the provided mobile number already exists
 		const isUser = await EmployeeModel.findOne({
 			where: {
 				mobile_no: data.mobile_no
 			}
 		});
+		
 		if (isUser) {
 			return res.status(202).json({status: 202, message: "User Already Registered with this Mobile No."});
 		}
@@ -46,7 +48,8 @@ const AddEmployee = async (req, res) => {
 			);
 		} else { // If no employee found in the database, start with EMP1
 			nextEmpId = "EMP1";
-		} data.emp_id = nextEmpId;
+		} 
+		data.emp_id = nextEmpId;
 
 		// Create the new employee
 		const empData = await EmployeeModel.create(data);
@@ -56,10 +59,9 @@ const AddEmployee = async (req, res) => {
 		}
 
 		const addService = await Promise.all(empServiceData.map(async (service) => {
-			console.log(service); // Logging the service name
 			return Empservices.create({
 				service_name: service, // Directly use the string
-				emp_no: empData.mobile_no
+				mobile_no: empData?.mobile_no
 			});
 		}));
 
@@ -210,8 +212,6 @@ const GetAllEmployeeData = async (req, res) => {
 		if (! result) 
 			return res.status(400).json({error: true, message: "No Data Found"});
 		
-
-
 		res.status(200).json({status: 200, data: result});
 	} catch (error) {
 		res.status(500).json({error});
@@ -235,45 +235,82 @@ const GetEmployeeById = async (req, res) => {
 	}
 };
 
-
 const UpdateTheEmployeeData = async (req, res) => {
+    const emp_id = req.params.id;
+    const data = req.body;
 
-	try {
-		const emp_id = req.params.id;
-		const data = req.body
+    try {
+        // Check if employee exists
+        const isEmployee = await EmployeeModel.findOne({
+            where: {
+                id: emp_id
+            }
+        });
 
+        if (!isEmployee) {
+            return res.status(404).json({ status: false, message: "Employee not found!" });
+        }
 
-		const empServiceData = JSON.parse(data.multiServices);
+        // Handle file uploads if present
+        if (req.files) {
+            const { pan_image, adhar_image, image } = req.files;
 
-		const {pan_image, adhar_image, image} = req.files;
+            if (pan_image && pan_image[0]?.filename) {
+                data.pan_image = pan_image[0].filename;
+            }
 
-		data.pan_image = pan_image ? pan_image[0].filename : null;
-		data.adhar_image = adhar_image ? adhar_image[0].filename : null;
-		data.image = image ? image[0].filename : null;
-		
-		const isEmployee = await EmployeeModel.findOne({
-			where: {
-				id: emp_id
-			}
-		});
-		if (! isEmployee) {
-			return res.status(200).json({status: false, message: "Employee Not Found!"})
-		}
-		const isdata = await EmployeeModel.update(data, {
-			where: {
-				id: emp_id
-			}
-		});
+            if (adhar_image && adhar_image[0]?.filename) {
+                data.adhar_image = adhar_image[0].filename;
+            }
 
-		if (! isdata) {
-			return res.status(200).json({status: false, message: "Employee Not Updated!"})
-		}
-		return res.status(200).json({status: true, message: "Employee has been Updated!"})
+            if (image && image[0]?.filename) {
+                data.image = image[0].filename;
+            }
+        }
 
-	} catch (error) {
-		return res.status(500).json({error: true, message: "Internal Server Error "})
-	}
-}
+        // Update employee data
+        const updateResult = await EmployeeModel.update(data, {
+            where: {
+                id: emp_id
+            }
+        });
+
+        if (!updateResult || updateResult[0] === 0) {
+            return res.status(400).json({ status: false, message: "Employee data not updated!" });
+        }
+
+        // Delete existing services
+        const existingServices = await Empservices.findAll({
+            where: {
+                mobile_no: data.mobile_no // Assuming mobile_no is a unique identifier for services
+            }
+        });
+
+        if (existingServices.length > 0) {
+            await Empservices.destroy({
+                where: {
+                    mobile_no: data.mobile_no
+                }
+            });
+        }
+
+        // Add new services
+        if (data.multiServices) {
+            const empServiceData = JSON.parse(data.multiServices);
+            const addService = await Promise.all(empServiceData.map(async (service) => {
+                return Empservices.create({
+                    service_name: service,
+                    mobile_no: data.mobile_no
+                });
+            }));
+        }
+
+        return res.status(200).json({ status: true, message: "Employee data updated successfully!" });
+    } catch (error) {
+        return res.status(500).json({ error: true, message: `Internal Server Error: ${error.message}` });
+    }
+};
+
 
 // UpdateEmployeeStatus
 
