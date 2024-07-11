@@ -6,22 +6,19 @@ const db=require("../model/index")
 const VerifyModel =db.VerifyModel
 
 function generateOTP() {
-  // Generate a random number between 1000 and 9999
   const otp = Math.floor(Math.random() * 9000) + 1000;
   return otp;
 }
-
-
 
 const msgFormat = (number, otp) => {
   const query = {
     username: "technicalmadhusudan",
     pass: "a12345678",
     route: "trans1",
-    senderid: "WELLCM",
+    senderid: "INFOCS",
     ispreapproved: "1",
     numbers: number,
-    message: `Dear Customer, Your verification code is ${otp}. Please do not share it with anyone. CSPL`,
+    message: `Welcome To TECHNICAL MADHUSUDAN Please Share OTP For Checked in your OTP No is ${otp} CSPL`,
   };
 
   // Convert it to the query string
