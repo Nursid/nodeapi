@@ -17,11 +17,10 @@ const msgFormat = (number, otp) => {
     route: "trans1",
     senderid: "INFOCS",
     ispreapproved: "1",
-    numbers: number,
-    message: `Welcome To Helper. Please find OTP for login purpose only. Your OTP is ${otp} Thanks.Helper Team www.ssquickhelper.com`,
+    numbers: number, // Assuming `number` is a variable holding the recipient's number
+    message: `Welcome To HELPER. Please Share OTP For Checked in your OTP No is ${otp} CSPL`,
   };
 
-  // Convert it to the query string
   const queryString = new URLSearchParams(query).toString();
   return queryString;
 };
