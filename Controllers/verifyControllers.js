@@ -18,7 +18,7 @@ const msgFormat = (number, otp) => {
     senderid: "INFOCS",
     ispreapproved: "1",
     numbers: number,
-    message: `Welcome To TECHNICAL MADHUSUDAN Please Share OTP For Checked in your OTP No is ${otp} CSPL`,
+    message: `Welcome To Helper. Please find OTP for login purpose only. Your OTP is ${otp} Thanks.Helper Team www.ssquickhelper.com`,
   };
 
   // Convert it to the query string
