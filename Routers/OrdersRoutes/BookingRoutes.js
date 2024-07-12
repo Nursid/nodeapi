@@ -14,7 +14,8 @@ const {
 	GetOrderAssing,
 	GetOrderAssingwithStatus,
 	GetLastOrderByMobile,
-    GetOrderAssingwithSupervisor
+    GetOrderAssingwithSupervisor,
+	GetTotalSummary
 } = require("../../Controllers/ordercontroller/ordercontrollers");
 
 const router = require("express").Router();
@@ -34,15 +35,10 @@ router.get("/getorderById/:id", GetOrderByID)
 router.post("/add-complain", OrderComplain)
 router.put("/assign/:id", OrderAssing)
 router.get("/getall/service/:id", GetOrderAssing)
-
-
 router.get("/getall/supervisor/:id", GetOrderAssingwithSupervisor)
-
-// order/getall/33/4order/getall/33/4
 router.get('/getall/:sup_id/:status_id', GetOrderAssingwithStatus)
-
-
 router.get("/get-last-service", GetLastOrderByMobile)
 
+router.get("/filter-order", GetTotalSummary)
 
 module.exports = router;

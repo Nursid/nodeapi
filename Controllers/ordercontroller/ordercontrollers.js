@@ -2,10 +2,8 @@
 // const CustomerID = require("../../Models/misc/customerId");
 // const OrderModel = require("../../Models/ordermodel/ordermodel");
 const generateOrderNo = require("../misc/orderNoGenerator");
-
+const { Op } = require('sequelize');
 const db = require("../../model/index");
-const {where} = require("sequelize");
-
 const CustomerModel = db.CustomerModel
 const CustomerID = db.CustomerID
 const OrderModel = db.OrderModel
@@ -13,6 +11,7 @@ const NewCustomerModel = db.NewCustomerModel
 const OrderProcessModel = db.OrderProcessModel
 const ServiceProviderModel = db.ServiceProviderModel
 const EmployeeModel = db.EmployeeModel
+const MonthlyServiceModel = db.MonthlyServiceModel
 
 const GetOrderNow = async (req, res) => {
 	try {
@@ -375,7 +374,6 @@ const OrderAssing = async (req, res) => {
 	}
 }
 
-
 const GetOrderAssing = async (req, res) => {
 	try {
 		const serPID = req.params.id
@@ -556,6 +554,68 @@ const GetLastOrderByMobile = async (req, res) => {
 }
 
 
+const GetTotalSummary = async (req, res) => {
+    let { from, to } = req.query; // Assuming from and to are provided as query parameters
+
+    try {
+        // If from or to are not provided or are invalid, set them to fetch all data
+        if (!from || !to || isNaN(new Date(from)) || isNaN(new Date(to))) {
+            from = new Date(0); // Start of UNIX epoch (01 January 1970)
+            to = new Date();   // Current date and time
+        } else {
+            from = new Date(from);
+            to = new Date(to);
+        }
+
+        // Constructing the date range filter
+        const dateFilter = {
+            createdAt: {
+                [Op.between]: [from, to]
+            }
+        };
+
+        // Fetching orders and monthly services within the date range
+        const orders = await OrderModel.findAll({
+            where: dateFilter
+        });
+
+        const monthlyServices = await MonthlyServiceModel.findAll({
+            where: dateFilter
+        });
+
+        // Calculating totals based on status/pending
+        let totalOrders = orders.length;
+        let totalCompleted = orders.filter(order => order.pending === 3).length;
+        let totalCancel = orders.filter(order => order.pending === 5).length;
+        let totalHold = orders.filter(order => order.pending === 1).length;
+        let totalPending = orders.filter(order => order.pending === 0).length;
+
+        // Total monthly services count
+        let totalMonthlyService = monthlyServices.length;
+
+        // Constructing summary object
+        const summary = {
+            totalOrders,
+            totalCompleted,
+            totalCancel,
+            totalHold,
+            totalMonthlyService,
+            totalPending
+        };
+
+        // Sending the summary as JSON response
+        res.status(200).json({ status: 200, data: summary });
+
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+
+
+
+
 module.exports = {
 	GetAllOrders,
 	GetOrderNow,
@@ -572,5 +632,6 @@ module.exports = {
 	GetOrderAssing,
 	GetOrderAssingwithStatus,
 	GetLastOrderByMobile,
-	GetOrderAssingwithSupervisor
+	GetOrderAssingwithSupervisor,
+	GetTotalSummary
 }
