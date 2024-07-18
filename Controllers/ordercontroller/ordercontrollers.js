@@ -114,7 +114,6 @@ const OrderComplain = async (req, res) => {
 	}
 }
 
-
 // get  the order update
 const GetOrderUpdate = async (req, res) => {
 	try {
@@ -354,7 +353,6 @@ const GetOrderByID = async (req, res) => {
 	}
 }
 
-
 const OrderAssing = async (req, res) => {
 	try {
 		const orderID = req.params.id
@@ -411,7 +409,6 @@ const GetOrderAssing = async (req, res) => {
 	}
 }
 
-
 const GetOrderAssingwithSupervisor = async (req, res) => {
 	try {
 		const supvisorID = req.params.id
@@ -462,7 +459,6 @@ const GetOrderAssingwithSupervisor = async (req, res) => {
 	}
 }
 
-
 const GetOrderAssingwithStatus = async (req, res) => {
 	try {
 		const sup_id = req.params.sup_id
@@ -502,7 +498,6 @@ const GetOrderAssingwithStatus = async (req, res) => {
 		res.status(200).json("Internal Server Error");
 	}
 }
-
 
 const GetLastOrderByMobile = async (req, res) => {
 	try {
@@ -552,7 +547,6 @@ const GetLastOrderByMobile = async (req, res) => {
 		return res.status(500).json({status: false, message: "Interal Error"})
 	}
 }
-
 
 const GetTotalSummary = async (req, res) => {
     let { from, to } = req.query; // Assuming from and to are provided as query parameters
@@ -611,10 +605,6 @@ const GetTotalSummary = async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
-
-
-
-
 
 module.exports = {
 	GetAllOrders,
