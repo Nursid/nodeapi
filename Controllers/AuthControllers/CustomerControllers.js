@@ -76,6 +76,7 @@ const LoginUser = async (req, res) => {
 				mobileno: number
 			}
 		});
+
 		if (! User) {
 			return res.status(404).json({error: true, message: "NO user found"});
 		}
@@ -157,8 +158,13 @@ const GetDeleteCustomerById = async (req, res) => {
 				user_id: user_id
 			}
 		});
+		const isdeleted = await NewCustomerModel.destroy({
+			where: {
+				id: user_id
+			}
+		});
 
-		if (rowsDeleted === 0) {
+		if (rowsDeleted === 0 && isdeleted === 0) {
 			return res.status(400).json({error: true, message: "No data found with this id"});
 		}
 
