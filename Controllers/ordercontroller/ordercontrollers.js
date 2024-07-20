@@ -2,7 +2,8 @@
 // const CustomerID = require("../../Models/misc/customerId");
 // const OrderModel = require("../../Models/ordermodel/ordermodel");
 const generateOrderNo = require("../misc/orderNoGenerator");
-const { Op } = require('sequelize');
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 const db = require("../../model/index");
 const CustomerModel = db.CustomerModel
 const CustomerID = db.CustomerID
@@ -12,6 +13,8 @@ const OrderProcessModel = db.OrderProcessModel
 const ServiceProviderModel = db.ServiceProviderModel
 const EmployeeModel = db.EmployeeModel
 const MonthlyServiceModel = db.MonthlyServiceModel
+const AddExpenseModel = db.AddExpenseModel
+const AccountModel = db.Account
 
 const GetOrderNow = async (req, res) => {
 	try {
@@ -387,7 +390,9 @@ const GetOrderAssing = async (req, res) => {
 			where: {
 				servicep_id: isServiceProvider.name
 			},
-			order: [['id','DESC']]
+			order: [
+				['id', 'DESC']
+			]
 		});
 
 		const addService = await Promise.all(orders.map(async (item) => {
@@ -413,11 +418,11 @@ const GetOrderAssingwithSupervisor = async (req, res) => {
 	try {
 		const supvisorID = req.params.id
 		const status_id = req.query.status_id || undefined;
-		
-		
+
+
 		const isSupervisor = await EmployeeModel.findOne({
 			where: {
-				id: supvisorID,
+				id: supvisorID
 			}
 		});
 		if (! isSupervisor) {
@@ -426,18 +431,19 @@ const GetOrderAssingwithSupervisor = async (req, res) => {
 
 
 		const whereConditions = {
-			suprvisor_id:  isSupervisor.name,
-			};
-	
-			if (status_id !== undefined) {
-			whereConditions.pending = status_id;
-			}
+			suprvisor_id: isSupervisor.name
+		};
 
+		if (status_id !== undefined) {
+			whereConditions.pending = status_id;
+		}
 
 
 		const orders = await OrderModel.findAll({
 			where: whereConditions,
-			order: [['id','DESC']]
+			order: [
+				['id', 'DESC']
+			]
 		});
 
 		const allSupervisor = await Promise.all(orders.map(async (item) => {
@@ -455,7 +461,10 @@ const GetOrderAssingwithSupervisor = async (req, res) => {
 		res.status(200).json({status: 200, data: allSupervisor})
 
 	} catch (error) {
-		res.status(500).json({status: false, messsage:"Internal Server Error"+error});
+		res.status(500).json({
+			status: false,
+			messsage: "Internal Server Error" + error
+		});
 	}
 }
 
@@ -549,52 +558,58 @@ const GetLastOrderByMobile = async (req, res) => {
 }
 
 const GetTotalSummary = async (req, res) => {
-    let { from, to } = req.query; // Assuming from and to are provided as query parameters
+    let { from, to } = req.query;
 
     try {
-        // If from or to are not provided or are invalid, set them to fetch all data
-        if (!from || !to || isNaN(new Date(from)) || isNaN(new Date(to))) {
-            from = new Date(0); // Start of UNIX epoch (01 January 1970)
-            to = new Date();   // Current date and time
-        } else {
-            from = new Date(from);
-            to = new Date(to);
-        }
+        // Parse and validate date inputs
+        from = !from || isNaN(new Date(from)) ? new Date(0) : new Date(from);
+        to = !to || isNaN(new Date(to)) ? new Date() : new Date(to);
+        to.setHours(23, 59, 59, 999); // Set to end of the day
 
-        // Constructing the date range filter
         const dateFilter = {
             createdAt: {
                 [Op.between]: [from, to]
             }
         };
 
-        // Fetching orders and monthly services within the date range
-        const orders = await OrderModel.findAll({
-            where: dateFilter
-        });
+        // Fetching all necessary data in parallel
+        const [orders, monthlyServices, Allexpense, TotalAcount] = await Promise.all([
+            OrderModel.findAll({ where: dateFilter }),
+            MonthlyServiceModel.findAll({ where: dateFilter }),
+            AddExpenseModel.findAll({ where: dateFilter }),
+            AccountModel.findAll({
+                attributes: [
+                    [Sequelize.fn('SUM', Sequelize.col('cash')), 'total_cash'],
+                    [Sequelize.fn('SUM', Sequelize.col('upi')), 'total_upi']
+                ],
+                where: dateFilter
+            })
+        ]);
 
-        const monthlyServices = await MonthlyServiceModel.findAll({
-            where: dateFilter
-        });
-
-        // Calculating totals based on status/pending
-        let totalOrders = orders.length;
-        let totalCompleted = orders.filter(order => order.pending === 3).length;
-        let totalCancel = orders.filter(order => order.pending === 5).length;
-        let totalHold = orders.filter(order => order.pending === 1).length;
-        let totalPending = orders.filter(order => order.pending === 0).length;
-
-        // Total monthly services count
-        let totalMonthlyService = monthlyServices.length;
-
+        // Calculating totals
+        const totalOrders = orders.length;
+        const totalCompleted = orders.filter(order => order.pending === 3).length;
+        const totalCancel = orders.filter(order => order.pending === 5).length;
+        const totalHold = orders.filter(order => order.pending === 1).length;
+        const totalPending = orders.filter(order => order.pending === 0).length;
+        
+        const totalMonthlyService = monthlyServices.length;
+        const TotalserviceFees = monthlyServices.reduce((total, service) => total + parseFloat(service.serviceFees), 0);
+        
+        const TotalExpenses = Allexpense.reduce((total, expense) => total + parseFloat(expense.amount), 0);
+        
         // Constructing summary object
         const summary = {
             totalOrders,
             totalCompleted,
             totalCancel,
             totalHold,
+            totalPending,
             totalMonthlyService,
-            totalPending
+            TotalserviceFees,
+            TotalExpenses,
+			TotalCash: TotalAcount[0]?.dataValues?.total_cash || 0,
+			TotalBank: TotalAcount[0]?.dataValues?.total_upi || 0
         };
 
         // Sending the summary as JSON response
@@ -605,6 +620,11 @@ const GetTotalSummary = async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
+
+module.exports = GetTotalSummary;
+
+
+
 
 module.exports = {
 	GetAllOrders,

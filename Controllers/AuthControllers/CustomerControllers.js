@@ -167,7 +167,7 @@ const GetDeleteCustomerById = async (req, res) => {
 		if (rowsDeleted === 0 && isdeleted === 0) {
 			return res.status(400).json({error: true, message: "No data found with this id"});
 		}
-
+		
 		res.status(200).json({error: false, message: "Deleted successfully"});
 	} catch (error) {
 		console.error("Error:", error);
