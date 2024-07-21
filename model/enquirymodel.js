@@ -14,7 +14,7 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
         },
         mobileNo: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
         },
         message: {
             type: DataTypes.STRING,
@@ -22,6 +22,9 @@ module.exports = (sequelize) => {
         address: {
             type: DataTypes.STRING,
         },
+        service: {
+            type: DataTypes.STRING,
+        }
     }, {
         timestamps: true,
         tableName: 'enquiries', // You can specify the table name here

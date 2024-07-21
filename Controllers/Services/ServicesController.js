@@ -48,9 +48,9 @@ const GetSingleServiceData = async (req, res) => {
     try {
         const id = req.params.id
         // get all the services 
-        const AllServices = await ServiceModal.findOne({
+        const AllServices = await ServiceModal.findAll({
             where:{
-                id: id
+                service_role: id
             }
         })
         if (!AllServices) return res.status(200).json("No data Found")

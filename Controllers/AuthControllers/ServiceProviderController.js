@@ -92,41 +92,134 @@ const LoginServiceProvider = async (req, res) => {
 
 
 // Update the data
+// const UpdateTheServiceProvider = async (req, res) => {
+//     const updatedData = req.body;
+//     const id = req.params.id;
+//     const { image, document1, document2, document3 } = req.files;
+
+//     // Update file names in updatedData if files exist
+//     updatedData.image = image ? image[0].filename : null;
+//     updatedData.document1 = document1 ? document1[0].filename : null;
+//     updatedData.document2 = document2 ? document2[0].filename : null;
+//     updatedData.document3 = document3 ? document3[0].filename : null;
+
+//     try {
+//         // Update main service provider data
+//         const [rowsUpdated, [updatedServiceProvider]] = await ServiceProviderModel.update(updatedData, {
+//             where: { id: id },
+//             returning: true, // Return the updated row
+//         });
+
+//         if (rowsUpdated !== 1) {
+//             return res.status(400).json({ error: true, message: "Updation Failed. Retry." });
+//         }
+
+//         // Handle related services
+//         if (updatedData.multiServices) {
+//             const SpServiceData = JSON.parse(updatedData.multiServices);
+
+//             // Delete existing services
+//             await SpServicesModel.destroy({
+//                 where: {
+//                     mobile_no: updatedServiceProvider.mobile_no // Assuming mobile_no is a unique identifier
+//                 }
+//             });
+
+//             // Add new services
+//             const addService = await Promise.all(SpServiceData.map(async (service) => {
+//                 return SpServicesModel.create({
+//                     service_name: service,
+//                     mobile_no: updatedServiceProvider.mobile_no
+//                 });
+//             }));
+//         }
+
+//         res.status(200).json({ error: false, message: "Service Provider Updated Successfully" });
+//     } catch (error) {
+//         console.error('Error:', error);
+//         res.status(500).json({ error });
+//     }
+// };
+
 const UpdateTheServiceProvider = async (req, res) => {
-	const updatedData = req.body;
-	const id = req.params.id;
-	// const SpServiceData = JSON.parse(updatedData.multiServices);
+    const emp_id = req.params.id;
+    const data = req.body;
 
-	try {
-		const isUpdated = await ServiceProviderModel.update(updatedData,{
-			where:{
-				id:id
-			}
-		});
-		if (! isUpdated) {
-			return res.status(400).json({error: true, message: "Updation Failed Retry"});
-		}
-		// const isDeleted = await SpServiceData.destroy({
-		// 	where:{
-		// 		mobile_no: updatedData.mobile_no
-		// 	}
-		// })
+    try {
+        // Check if employee exists
+        const isEmployee = await ServiceProviderModel.findOne({
+            where: {
+                id: emp_id
+            }
+        });
 
-		// const addService = await Promise.all(
-		// 	SpServiceData.map(async (service) => {
-		// 		console.log(service);  // Logging the service name
-		// 		return SpServicesModel.create({
-		// 			service_name: service,  // Directly use the string
-		// 			mobile_no: updatedData.mobile_no,
-		// 		});
-		// 	})
-		// );
+        if (!isEmployee) {
+            return res.status(404).json({ status: false, message: "Service Provider not found!" });
+        }
 
-		res.status(200).json({error: false, data: "Updated Service Provider"});
-	} catch (error) {
-		res.status(500).json({error});
-	}
+        // Handle file uploads if present
+        if (req.files) {
+            const { image, document1, document2, document3 } = req.files;
+
+            if (image && image[0]?.filename) {
+                data.image = image[0].filename;
+            }
+
+            if (document1 && document1[0]?.filename) {
+                data.document1 = document1[0].filename;
+            }
+
+            if (document2 && document2[0]?.filename) {
+                data.document2 = document2[0].filename;
+            }
+            if (document3 && document3[0]?.filename) {
+                data.document3 = document3[0].filename;
+            }
+        }
+
+        // Update employee data
+        const updateResult = await ServiceProviderModel.update(data, {
+            where: {
+                id: emp_id
+            }
+        });
+
+        if (!updateResult || updateResult[0] === 0) {
+            return res.status(400).json({ status: false, message: "Service provider not updated!" });
+        }
+
+        // Delete existing services
+        const existingServices = await SpServicesModel.findAll({
+            where: {
+                mobile_no: data.mobile_no 
+            }
+        });
+
+        if (existingServices.length > 0) {
+            await SpServicesModel.destroy({
+                where: {
+                    mobile_no: data.mobile_no
+                }
+            });
+        }
+
+        // Add new services
+        if (data.multiServices) {
+            const SpServiceData = JSON.parse(data.multiServices);
+            const addService = await Promise.all(SpServiceData.map(async (service) => {
+                return SpServicesModel.create({
+                    service_name: service,
+                    mobile_no: data.mobile_no
+                });
+            }));
+        }
+
+        return res.status(200).json({ status: true, message: "Service Provider updated successfully!" });
+    } catch (error) {
+        return res.status(500).json({ error: true, message: `Internal Server Error: ${error.message}` });
+    }
 };
+
 // delete the data by id
 const DeleteTheServiceProvider = async (req, res) => {
 	const id = req.params.id;

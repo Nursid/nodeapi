@@ -23,7 +23,13 @@ router.post("/add",upload.fields([
 // Login In service provider
 router.get("/login", serviceProviderRouter.LoginServiceProvider)
 // update the service provider 
-router.post("/update/:id", serviceProviderRouter.UpdateTheServiceProvider);
+router.post("/update/:id",
+  upload.fields([
+    { name: 'image', maxCount: 1 },
+    { name: 'document1', maxCount: 1 },
+    { name: 'document2', maxCount: 1 },
+    { name: 'document3', maxCount: 1 }]),
+  serviceProviderRouter.UpdateTheServiceProvider);
 // Delete The service PRovider 
 router.get("/delete/:id", serviceProviderRouter.DeleteTheServiceProvider);
 // delete all the service provider 

@@ -2,14 +2,15 @@ const { response } = require('express');
 const EnquiryModel = require('../model/enquirymodel');
 
 const router = require('express').Router()
-const { GetRegEnquiry, GetUpdateEnquiry, DeleteEnquiryByID, GetAllEnquiry } = require('../Controllers/enquiryControllers')
+
+const enquiryControllers=require("../Controllers/enquiryControllers")
 
 // register enquiry
-router.post('/register', GetRegEnquiry);
+router.post('/register', enquiryControllers.createEnquiry);
 // get update the enquiry
-router.patch('/update/:id', GetUpdateEnquiry);
+router.post('/update/:id', enquiryControllers.updateEnquiry);
 // delete by id 
-router.get("/delete/:id", DeleteEnquiryByID);
-router.get('/getall', GetAllEnquiry);
+router.delete("/delete/:id", enquiryControllers.deleteEnquiryByID);
+router.get('/getall', enquiryControllers.getAllEnquiries);
 
 module.exports = router
