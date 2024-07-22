@@ -58,7 +58,11 @@ const deleteEnquiryByID = async (req, res) => {
 // get all enquiry 
 const getAllEnquiries = async (req, res) => {
     try {
-      const allEnquiries = await EnquiryModel.findAll();
+      const allEnquiries = await EnquiryModel.findAll({
+        order: [
+          ['id', 'DESC']
+        ]
+      });
   
       if (!allEnquiries || allEnquiries.length === 0) {
         return res.status(404).json({ error: true, message: 'No enquiries found' });
