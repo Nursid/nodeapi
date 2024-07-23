@@ -24,7 +24,7 @@ const MonthlyService=require("./Routers/AuthRouters/MonthlyServiceRouter");
 const ManageWebsite = require("./Routers/ManageWebsiteRouters/")
 const CustomerPost= require("./Routers/NewCustomerRouters/CustomerPostRouter")
 const InventoryRouter=require("./Routers/InventryRouter")
-const db = require('./model/index')
+const complain = require("./Routers/ComplainRouter")
 const app = express();
 const route= require("./Routers/index")
 
@@ -82,6 +82,7 @@ app.use("/monthly-service",MonthlyService);
 app.use("/manage-website",ManageWebsite);
 app.use("/post",CustomerPost);
 app.use("/inventry",InventoryRouter)
+app.use("/complain",complain)
 
 
 

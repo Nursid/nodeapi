@@ -59,6 +59,7 @@ db.Account= require("./AccountModel")(sequelize,DataTypes);
 db.Availability = require("./AvailabilityModel")(sequelize, DataTypes)
 db.SpServices = require("./Misc/sp_services")(sequelize, DataTypes)
 db.locality=require("./Misc/localities")(sequelize, DataTypes)
+db.ComplainModel = require("./ComplainModel")(sequelize, DataTypes)
 
 db.CustomerModel.belongsTo(db.NewCustomerModel, { foreignKey: 'user_id' });
 
