@@ -1,10 +1,15 @@
 const db = require("../model")
 
 const ComplainModel = db.ComplainModel
-
+const NewCustomerModal = db.NewCustomerModel
 const getAllComplains = async (req, res) => {
   try {
     const complains = await ComplainModel.findAll({
+      include: [
+				{
+					model: NewCustomerModal,
+				},
+			],
         order: [
             ['id', 'DESC']
         ]

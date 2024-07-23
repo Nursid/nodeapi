@@ -78,63 +78,47 @@ const deleteNewCustomerById = async (req, res) => {
 };
 
 const getCustomerByMobile = async (req, res) => {
+	const mobileno = req.params.mobileno;
+
 	try {
 
-		const mobileno = req.params.mobileno;
-
-		const GetCust_id = await NewCustomer.findOne({where: {
-				mobileno
-			}, attributes: ['id']});
-
-		if (! GetCust_id) {
-			res.status(204).json({success: false, error: "Invalid Number"})
+		
+		const GetCustId = await NewCustomer.findOne({
+			where: {
+				mobileno: mobileno
+			}
+		});
+	
+		if (!GetCustId) {
+			return res.status(202).json({ success: false, message: "User Not Found" });
 		}
+	
+		const customerData = await CustomerModel.findOne({
+			attributes: ['address','land_mark','location'],
+			include: [
+				{
+					model: NewCustomer,
+					attributes: ['name','mobileno','id']
+				},
+			],
+			where: {
+				user_id: GetCustId.id
+			}
+		});
 
-		// const data = await CustomerModel.findAll({
-		// 	include: [
-		// 		{
-		// 			model: NewCustomer
-		// 		}
-		// 	],
-		// 	where: {
-		// 		user_id: GetCust_id.id
-		// 	}
-		// });
-
-		// const orders = await OrderModel.findOne({
-		// 	order: [
-		// 		['id', 'DESC']
-		// 	],
-		// 	where:{
-		// 		cust_id: GetCust_id.id
-		// 	}
-		// });
-
-		const [customerData, latestOrder] = await Promise.all([
-			CustomerModel.findAll({
-				include: [
-					{
-						model: NewCustomer
-					}
-				],
-				where: {
-					user_id: GetCust_id.id
-				}
-			}),
-			OrderModel.findOne({
-				order: [
-					['id', 'DESC']
-				],
-				where: {
-					cust_id: GetCust_id.id
-				}
-			})
-		]);
-
-
-
-
-		res.status(200).json({data: customerData,...latestOrder});
+		const recentOrder = await OrderModel.findAll({
+			attributes: ['order_no','service_name','service_address'],
+			where: {
+				cust_id: GetCustId.id
+			}
+		});
+	
+		const finalData = {
+			customerData,
+			recentOrder
+		};
+	
+		res.status(200).json({ status: true, data: finalData });
 	} catch (error) {
 		res.status(404).json({success: false, error: error.message})
 	}
