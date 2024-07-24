@@ -101,6 +101,24 @@ const deleteComplain = async (req, res) => {
   }
 };
 
+const ComplainAssing = async (req, res) => {
+	try {
+		const id = req.params.id
+		const data = req.body
+		const isUpdated = await ComplainModel.update(data, {
+			where: {
+				id: id
+			}
+		})
+		if (! isUpdated) {
+			return res.status(400).json({error: true, message: 'Updation Failed ! Try again'})
+		}
+		res.status(200).json({status: 200, message: "Assign Successfull!"})
+	} catch (error) {
+		res.status(200).json("Internal Server Error");
+	}
+}
+
 module.exports = {
-  getAllComplains, createComplain, deleteComplain,getComplainById ,updateComplain
+  getAllComplains, createComplain, deleteComplain,getComplainById ,updateComplain,ComplainAssing
  }

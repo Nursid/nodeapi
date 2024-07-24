@@ -19,4 +19,8 @@ router.post('/update/:id', complainController.updateComplain);
 // DELETE a complain by ID
 router.delete('/delete/:id', complainController.deleteComplain);
 
+router.put('/assing/:id', complainController.ComplainAssing);
+
+
+
 module.exports = router;
