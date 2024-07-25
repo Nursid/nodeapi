@@ -43,37 +43,36 @@ const GetOrderNow = async (req, res) => {
 			OrderNo = 50825;
 		} else {
 			OrderNo = parseInt(lastOrder.order_no) + 1;
-		} formdata.order_no = OrderNo
+		} 
+		formdata.order_no = OrderNo
+		formdata.registered_id = id
 
 		const isSubmit = await OrderProcessModel.create(formdata);
 		if (! isSubmit) {
 			return res.status(400).json({error: true, message: "order not placed i! Try again"})
 		}
 
-		const currentDate = new Date().toLocaleDateString('en-US');
-		const currentTime = new Date().toLocaleTimeString('en-US', {
-			hour12: false,
-			hour: '2-digit',
-			minute: '2-digit'
-		});
-
 		const OrderData = {
+			// service_name: formdata.service_name,
+			// user_type: formdata?.user_type,
+			// bookdate: formdata?.bookdate,
+			// booktime: formdata?.booktime,
+			// problem_des: formdata?.problem_des,
+			...formdata,
 			create_date: isSubmit.serviceDateTime,
-			cust_id: isSubmit.registered_id,
+			cust_id: id,
 			city: isSubmit.city,
-			service_name: isSubmit.services,
 			suprvisor_id: isSubmit.supervisor_name,
 			pending: 0,
 			order_no: OrderNo,
-			bookdate: currentDate,
-			booktime: currentTime
+			service_address: isSubmit.address
 		}
 		const data = await OrderModel.create(OrderData);
 		if (! data) {
 			return res.status(400).json({error: true, message: "order not placed i! Try again"})
 		}
 
-		res.status(200).json({message: "successfully ordered", data: isSubmit})
+		res.status(200).json({message: "successfully ordered", data: data})
 	} catch (error) {
 		res.status(500).json(error)
 	}
@@ -263,19 +262,37 @@ const GetByStatus = async (req, res) => {
 	}
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const GetCancel = async (req, res) => {
 	try {
 		const order_no = req.params.order_no
 		const data = req.body;
-		const isUpdated = await OrderModel.update({
-			data
-		}, {
+		console.log(data)
+		const isUpdated = await OrderModel.update(data, {
 			where: {
 				order_no: order_no
 			}
 		});
+
 		if (! isUpdated) {
-			res.status(404).json({error: "please Try again"});
+			res.status(202).json({massage: "please Try again"});
 		}
 		res.status(200).json({massage: "Your Order has Cancelled"});
 	} catch (error) {
