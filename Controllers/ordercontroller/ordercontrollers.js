@@ -52,12 +52,15 @@ const GetOrderNow = async (req, res) => {
 			return res.status(400).json({error: true, message: "order not placed i! Try again"})
 		}
 
+		if (formdata?.serviceDateTime) {
+			const dateTime = new Date(formdata.serviceDateTime)
+			const bookdate = dateTime.toISOString().split('T')[0]
+			const booktime = dateTime.toTimeString().slice(0, 5)
+			formdata.bookdate = bookdate
+			formdata.booktime = booktime
+		}
+
 		const OrderData = {
-			// service_name: formdata.service_name,
-			// user_type: formdata?.user_type,
-			// bookdate: formdata?.bookdate,
-			// booktime: formdata?.booktime,
-			// problem_des: formdata?.problem_des,
 			...formdata,
 			create_date: isSubmit.serviceDateTime,
 			cust_id: id,

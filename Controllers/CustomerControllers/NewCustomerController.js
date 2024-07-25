@@ -94,11 +94,11 @@ const getCustomerByMobile = async (req, res) => {
 		}
 	
 		const customerData = await CustomerModel.findOne({
-			attributes: ['address','land_mark','location'],
+			attributes: ['address','land_mark','location', 'age'],
 			include: [
 				{
 					model: NewCustomer,
-					attributes: ['name','mobileno','id']
+					attributes: ['name','mobileno','id', 'email']
 				},
 			],
 			where: {
@@ -107,7 +107,7 @@ const getCustomerByMobile = async (req, res) => {
 		});
 
 		const recentOrder = await OrderModel.findAll({
-			attributes: ['order_no','service_name','service_address'],
+			attributes: ['order_no','service_name','service_address','createdAt'],
 			where: {
 				cust_id: GetCustId.id
 			}

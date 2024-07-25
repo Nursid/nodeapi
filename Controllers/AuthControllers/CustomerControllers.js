@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const db = require("../../model/index");
 const CustomerModel = db.CustomerModel;
 const NewCustomerModel = db.NewCustomerModel
+const ServiceProviderModel = db.ServiceProviderModel
+const EmployeeModel = db.EmployeeModel
 
 const {isEmail, isMobileNumber, isOptValid} = require("../utils");
 
@@ -17,11 +19,10 @@ const generateOrderNo = db.OrderNo
 require("dotenv").config;
 
 const SignupUser = async (req, res) => {
-
 	const data = req.body;
 
-	const image=req.file
-	data.image=image?.originalname || '';
+	const image = req.file;
+	data.image = image?.originalname || '';
 
 	const newCustomer_data = {
 		"name": data.name,
@@ -36,24 +37,43 @@ const SignupUser = async (req, res) => {
 	} = data;
 
 	try {
+		const isServiceProvider = await ServiceProviderModel.findOne({
+			where: {
+				mobile_no: data.mobile
+			}
+		});
+
+		if (isServiceProvider) {
+			return res.status(200).json({status: false, message: 'User Already Exists!'});
+		}
+
+		const isSupervisor = await EmployeeModel.findOne({
+			where: {
+				mobile_no: data.mobile
+			}
+		});
+
+		if (isSupervisor) {
+			return res.status(200).json({status: false, message: 'User Already Exists!'});
+		}
 
 		const newCustomer = await NewCustomerModel.create(newCustomer_data);
 
-		if (! newCustomer) {
-			res.status(500).json({error: 'Your Customer Not Added!'});
+		if (!newCustomer) {
+			return res.status(200).json({status: false, message: 'Your Customer Not Added!'});
 		}
 
-		const user_id = newCustomer.id; // replace "your_user_id_here" with the actual user ID
+		const user_id = newCustomer.id;
 
 		customer_data.user_id = user_id;
 
 		const formdata = await CustomerModel.create(customer_data);
 
-		res.status(200).json({status: 200, data: formdata});
+		return res.status(200).json({status: true, data: formdata, message: "Customer Added Successfully!"});
 
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({error: 'Internal Server Error'});
+		return res.status(500).json({error: 'Internal Server Error'});
 	}
 };
 
@@ -179,47 +199,69 @@ const GetDeleteCustomerById = async (req, res) => {
 const GetUpdateTheCustomer = async (req, res) => {
 	
 	try {
-	const {user_id} = req.params;
+		const {user_id} = req.params;
+		const data = req.body;
 
-	const data = req.body;
-	if(req.file){
-			const image=req.file
+		if(req.file){
+			const image = req.file;
 			data.image = (image && image.originalname) ? image.originalname : null;
 		}	
 
-	const newCustomer_data = {
-		"name": data?.name || '',
-		"email": data?.email || ''
-	}
+		const newCustomer_data = {
+			"name": data?.name || '',
+			"email": data?.email || ''
+		}
 
-	const {
-		email,
-		name,
-		...customer_data
-	} = data;
+		const {
+			email,
+			name,
+			...customer_data
+		} = data;
 
-		const isUpdated_customer = await NewCustomerModel.update(newCustomer_data, {
+		const isServiceProvider = await ServiceProviderModel.findOne({
+			where:{
+				mobile_no: data.mobile
+			}
+		});
+
+		if (isServiceProvider) {
+			return res.status(200).json({status:false, message: 'User Already Exists as Service Provider!'});
+		}
+
+		const isSupervisor = await EmployeeModel.findOne({
+			where:{
+				mobile_no: data.mobile
+			}
+		})
+
+		if (isSupervisor) {
+			return res.status(200).json({status:false, message: 'User Already Exists as Supervisor!'});
+		}
+
+		const [updatedCustomerRows] = await NewCustomerModel.update(newCustomer_data, {
 			where: {
 				id: user_id
 			}
 		});
 
-		if (! isUpdated_customer) {
-			return res.status(404).json({error: true, message: "Not User Found!"});
+		if (updatedCustomerRows === 0) {
+			return res.status(404).json({status: false, message: "User Not Found!"});
 		}
-		const isUpdated = await CustomerModel.update(customer_data, {
+
+		const [updatedRows] = await CustomerModel.update(customer_data, {
 			where: {
 				user_id: user_id
 			}
 		});
 
-		if (! isUpdated) {
-			return res.status(404).json({error: true, message: "Updation failed ! Try again"});
+		if (updatedRows === 0) {
+			return res.status(400).json({status: false, message: "Update failed! Try again"});
 		}
-		res.status(200).json({status: 200, message: "updated successfully"});
+
+		return res.status(200).json({status: true, message: "Updated successfully"});
 
 	} catch (error) {
-		res.status(500).json({status: false, message: "Internal Server Error"+error});
+		return res.status(500).json({status: false, message: "Internal Server Error: " + error.message});
 	}
 };
 
