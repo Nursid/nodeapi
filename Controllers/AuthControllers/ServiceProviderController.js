@@ -1,6 +1,8 @@
 const db = require("../../model/index");
 const ServiceProviderModel = db.ServiceProviderModel;
 const SpServicesModel = db.SpServices
+const EmployeeModel = db.EmployeeModel
+const NewCustomerModel = db.NewCustomerModel
 const {isOptValid} = require("../utils");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
@@ -29,8 +31,30 @@ const AddServiceProvider = async (req, res) => {
 		});
 	
 		if (isUser) {
-			 res.status(409).json({error: true, message: "User Already Registered with this Mobile No."});
+			 res.status(200).json({status: false, message: "User Already Registered with this Mobile No."});
 		}
+
+		
+		const isSupervisor = await EmployeeModel.findOne({
+			where:{
+				mobile_no: formData.mobile_no
+			}
+		})
+
+		if (isSupervisor) {
+			return res.status(200).json({status:false, message: 'User Already Exists as Supervisor!'});
+		}
+
+		const isCustomer = await NewCustomerModel.findOne({
+			where:{
+				mobileno: formData.mobile_no
+			}
+		});
+
+		if (isCustomer) {
+			return res.status(200).json({status:false, message: 'Mobile No. Already Exists in Customer!'});
+		}
+
 		const CreateServiceProvider = await ServiceProviderModel.create(formData);
 
 		if (! CreateServiceProvider) {
@@ -47,7 +71,7 @@ const AddServiceProvider = async (req, res) => {
 			})
 		);
 
-		res.status(200).json({status: true, data: "Add Service Provider Successfully!"});
+		res.status(200).json({status: true, message: "Add Service Provider Successfully!"});
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({error});
@@ -157,6 +181,26 @@ const UpdateTheServiceProvider = async (req, res) => {
             return res.status(404).json({ status: false, message: "Service Provider not found!" });
         }
 
+		const isSupervisor = await EmployeeModel.findOne({
+			where:{
+				mobile_no: data.mobile_no
+			}
+		})
+
+		if (isSupervisor) {
+			return res.status(200).json({status:false, message: 'User Already Exists as Supervisor!'});
+		}
+
+		const isCustomer = await NewCustomerModel.findOne({
+			where:{
+				mobileno: data.mobile_no
+			}
+		});
+
+		if (isCustomer) {
+			return res.status(200).json({status:false, message: 'Mobile No. Already Exists in Customer!'});
+		}
+
         // Handle file uploads if present
         if (req.files) {
             const { image, document1, document2, document3 } = req.files;
@@ -216,7 +260,7 @@ const UpdateTheServiceProvider = async (req, res) => {
 
         return res.status(200).json({ status: true, message: "Service Provider updated successfully!" });
     } catch (error) {
-        return res.status(500).json({ error: true, message: `Internal Server Error: ${error.message}` });
+        return res.status(500).json({ status: false, message: `Internal Server Error: ${error.message}` });
     }
 };
 

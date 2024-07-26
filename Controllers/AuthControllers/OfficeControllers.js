@@ -4,6 +4,8 @@ const EmployeeModel = db.EmployeeModel;
 const DepartmentModel = db.DepartmentsModel
 const DesignationModel = db.DesignationModel
 const Empservices = db.Empservices
+const ServiceProviderModel = db.ServiceProviderModel
+const NewCustomerModel = db.NewCustomerModel
 const jwt = require("jsonwebtoken");
 const {isEmail, isMobileNumber, isOptValid} = require("../utils");
 
@@ -28,10 +30,31 @@ const AddEmployee = async (req, res) => {
 				mobile_no: data.mobile_no
 			}
 		});
-		
+
 		if (isUser) {
-			return res.status(202).json({status: 202, message: "User Already Registered with this Mobile No."});
+			return res.status(202).json({status: 202, message: "Employee Already Registered with this Mobile No."});
 		}
+
+		const isServiceProvider = await ServiceProviderModel.findOne({
+			where:{
+				mobile_no: data.mobile_no
+			}
+		});
+
+		if (isServiceProvider) {
+			return res.status(200).json({status:false, message: 'Mobile No. Already Exists in Service Provider!'});
+		}
+
+		const isCustomer = await NewCustomerModel.findOne({
+			where:{
+				mobileno: data.mobile_no
+			}
+		});
+
+		if (isCustomer) {
+			return res.status(200).json({status:false, message: 'Mobile No. Already Exists in Customer!'});
+		}
+
 
 		// Find the last employee to generate the next employee ID
 		const lastEmp = await EmployeeModel.findOne({
@@ -248,8 +271,28 @@ const UpdateTheEmployeeData = async (req, res) => {
         });
 
         if (!isEmployee) {
-            return res.status(404).json({ status: false, message: "Employee not found!" });
+            return res.status(200).json({ status: false, message: "Employee not found!" });
         }
+
+		const isServiceProvider = await ServiceProviderModel.findOne({
+			where:{
+				mobile_no: data.mobile_no
+			}
+		});
+
+		if (isServiceProvider) {
+			return res.status(200).json({status:false, message: 'Mobile No. Already Exists in Service Provider!'});
+		}
+
+		const isCustomer = await NewCustomerModel.findOne({
+			where:{
+				mobileno: data.mobile_no
+			}
+		});
+
+		if (isCustomer) {
+			return res.status(200).json({status:false, message: 'Mobile No. Already Exists in Customer!'});
+		}
 
         // Handle file uploads if present
         if (req.files) {

@@ -257,8 +257,7 @@ const GetUpdateTheCustomer = async (req, res) => {
 				user_id: user_id
 			}
 		});
-		console.log("---",updatedRows)
-
+		
 		if (!updatedRows) {
 			return res.status(200).json({status: false, message: "Update failed! Try again"});
 		}
