@@ -8,10 +8,19 @@ const createEnquiry = async (req, res) => {
   const formData = req.body;
 
   try {
+    const existingEnquiry = await EnquiryModel.findOne({
+      where: {
+        mobileNo: formData?.mobileNo
+      }
+    });
+
+    if (existingEnquiry) {
+      return res.status(200).json({ status: false, message: 'Enquiry already exists with this mobile number' });
+    }
+
     const newEnquiry = await EnquiryModel.create(formData);
-    res.status(200).json({ error: false, message: 'Enquiry submitted successfully', data: newEnquiry });
-  } catch (error) {
-    res.status(500).json({ error });
+    res.status(200).json({ status: true, message: 'Thank you for your enquiry. We appreciate your interest and will respond promptly.', data: newEnquiry });  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 

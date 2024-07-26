@@ -209,12 +209,14 @@ const GetUpdateTheCustomer = async (req, res) => {
 
 		const newCustomer_data = {
 			"name": data?.name || '',
-			"email": data?.email || ''
+			"email": data?.email || '',
+			"mobileno": data?.mobile || ''
 		}
 
 		const {
 			email,
 			name,
+			mobileno,
 			...customer_data
 		} = data;
 
@@ -238,24 +240,27 @@ const GetUpdateTheCustomer = async (req, res) => {
 			return res.status(200).json({status:false, message: 'User Already Exists as Supervisor!'});
 		}
 
-		const [updatedCustomerRows] = await NewCustomerModel.update(newCustomer_data, {
+		const updatedCustomerRows = await NewCustomerModel.update(newCustomer_data, {
 			where: {
 				id: user_id
 			}
 		});
 
-		if (updatedCustomerRows === 0) {
-			return res.status(404).json({status: false, message: "User Not Found!"});
+		console.log(updatedCustomerRows)
+
+		if (!updatedCustomerRows) {
+			return res.status(200).json({status: false, message: "User Not Found!"});
 		}
 
-		const [updatedRows] = await CustomerModel.update(customer_data, {
+		const updatedRows = await CustomerModel.update(customer_data, {
 			where: {
 				user_id: user_id
 			}
 		});
+		console.log("---",updatedRows)
 
-		if (updatedRows === 0) {
-			return res.status(400).json({status: false, message: "Update failed! Try again"});
+		if (!updatedRows) {
+			return res.status(200).json({status: false, message: "Update failed! Try again"});
 		}
 
 		return res.status(200).json({status: true, message: "Updated successfully"});

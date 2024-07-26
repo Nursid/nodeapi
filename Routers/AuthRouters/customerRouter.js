@@ -12,31 +12,31 @@ const storage = multer.diskStorage({
     },
   });
 
-  const compressImageIfLarge = (req, res, next) => {
-    if (req.file && req.file.size > 500 * 1024  ) {
-      sharp(req.file.path)
-        .rotate() 
-        .resize({ width: 1080, height: 1920, withoutEnlargement: true })
-        .jpeg({ quality: 40 })
-        .toBuffer((err, data, info) => {
-          if (err) {
-            return next(err);
-          }
-          fs.writeFile(req.file.path, data, (err) => {
-            if (err) {
-              return next(err);
-            }
-            next();
-          });
-        });
-    } else {
-      next();
-    }
-  };
+  // const compressImageIfLarge = (req, res, next) => {
+  //   if (req.file && req.file.size > 500 * 1024  ) {
+  //     sharp(req.file.path)
+  //       .rotate() 
+  //       .resize({ width: 1080, height: 1920, withoutEnlargement: true })
+  //       .jpeg({ quality: 40 })
+  //       .toBuffer((err, data, info) => {
+  //         if (err) {
+  //           return next(err);
+  //         }
+  //         fs.writeFile(req.file.path, data, (err) => {
+  //           if (err) {
+  //             return next(err);
+  //           }
+  //           next();
+  //         });
+  //       });
+  //   } else {
+  //     next();
+  //   }
+  // };
   
 const upload = multer({ storage: storage });
 
-router.post("/signup", upload.single('image'),compressImageIfLarge, customerRouter.SignupUser);
+router.post("/signup", upload.single('image'),customerRouter.SignupUser);
 // login the user 
 router.get("/login",customerRouter.LoginUser);
 // delete all 

@@ -379,7 +379,8 @@ const GetOrderByID = async (req, res) => {
 const OrderAssing = async (req, res) => {
 	try {
 		const orderID = req.params.id
-		const data = req.body
+		let data = req.body
+		data.pending=4
 		const isUpdated = await OrderModel.update(data, {
 			where: {
 				order_no: orderID
