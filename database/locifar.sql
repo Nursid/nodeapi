@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306:3306
--- Generation Time: Jul 26, 2024 at 06:17 AM
+-- Generation Time: Jul 28, 2024 at 08:31 AM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.6
 
@@ -742,7 +742,7 @@ INSERT INTO `accounts` (`id`, `payment_mode`, `transection_id`, `upi`, `cash`, `
 (2878, 'upi', 'TR-54345', '6579', NULL, '2024-05-14 20:01:59', '2024-05-31 19:09:25'),
 (2879, 'upi', 'TR-434532432', '4000', NULL, '2024-05-16 17:59:42', '2024-05-31 19:09:12'),
 (2880, 'cash', NULL, NULL, '5000', '2024-05-16 17:59:54', '2024-05-16 17:59:54'),
-(2881, 'debit', 'TR-434532433232', '1000', NULL, '2024-06-06 18:32:52', '2024-06-06 18:32:52');
+(2881, 'debit', 'TR-434532433232', '2000', NULL, '2024-06-06 18:32:52', '2024-07-28 02:53:55');
 
 -- --------------------------------------------------------
 
@@ -1349,7 +1349,7 @@ INSERT INTO `customers` (`id`, `user_id`, `gender`, `age`, `address`, `land_mark
 (339, 119, 'Male', 21, 'M 3/569 SECTOR.  H LDA COLONY LUCKNOW', 'GURUNANAK ELECTRICAIS', 'Aashiyana, Lucknow, Uttar Pradesh, India', '8188998330', 9026818462, '', 9936796260, 8195, '', '', 'yes', '0000-00-00 00:00:00', '', '', '', '0000-00-00 00:00:00', '0000-00-00', '0000-00-00 00:00:00', '', '0', 1000, 0, 1000, 0, 'Cash', 0, 0, 0, 0, 0, 0, 'KAIF', NULL, NULL, NULL, 1, '', 0, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-01-06 06:43:32', '2024-01-10 09:09:32'),
 (343, 120, 'Male', 31, 'D3 /408,, sector H  aashiyana lucknow', 'ashiyana lko', 'Aashiyana, Lucknow, Uttar Pradesh, India', '9936426342', 0, '', 0, 600759899499, 'Retd.', '********', 'yes', '0000-00-00 00:00:00', '11/02/1985', '', '', '0000-00-00 00:00:00', '0000-00-00', '0000-00-00 00:00:00', '', '0', 1000, 0, 1000, 0, 'Cash', 0, 0, 0, 0, 0, 0, 'MANO', NULL, NULL, NULL, 1, '', 0, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-01-06 06:43:32', '2024-01-10 09:09:32'),
 (606, 218, 'Male', 55, 'A,1628  SEC  i  lda colony kanpur road lucknow.', 'Judge  park', '', '9415795677', 0, '', 7233060062, 251077696064, '', '', 'yes', '0000-00-00 00:00:00', '', '', '', '0000-00-00 00:00:00', '0000-00-00', '0000-00-00 00:00:00', '', 'r_k__singh.jpg', 1000, 0, 1000, 0, 'Cash', 0, 0, 0, 0, 0, 0, 'R.K.', NULL, NULL, NULL, 1, '', 0, '0000-00-00 00:00:00', '0000-00-00 00:00:00', '2024-01-06 06:43:32', '2024-01-10 09:09:43'),
-(608, 941, 'Male', 21, 'lucknow', 'polytechnoc', 'Lucknow', '7081002501', 4323233223, '3242432323', 324232323, 398742749879, 'MERN Stack Developer', 'Software Developer', 'rented_house', '2024-02-19 00:00:00', '2024-02-18', 'test', 'test', NULL, 'test', NULL, NULL, 'IMG_4305.JPG', 1000, 100, NULL, 120, 'online_mode', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Sujeet', 'new_member', NULL, 'HM20021', 1, NULL, NULL, '2024-02-18 18:19:21', '2024-06-15 16:10:07'),
+(608, 941, 'Male', 21, 'lucknow', 'polytechnoc', 'Lucknow', '7081002501', 4323233223, '3242432323', 324232323, 943249823798, 'MERN Stack Developer', 'Software Developer', 'rented_house', '2024-02-19 00:00:00', '2024-02-18', 'test', 'test', NULL, 'test', NULL, NULL, 'IMG_4310.JPG', 1000, 100, NULL, 120, 'online_mode', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, 'Sujeet', 'new_member', NULL, 'HM20021', 1, NULL, NULL, '2024-02-18 18:19:21', '2024-07-26 18:51:02'),
 (609, 942, 'Male', 21, 'BR Electric Works, Bhitoli Khurd', '', '', '7081002598', 0, '', 0, 0, '', '', 'undefined', '0000-00-00 00:00:00', '', '', '', NULL, '', NULL, NULL, NULL, 1000, 0, NULL, 0, 'undefined', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, '', 'new_member', NULL, '', NULL, NULL, NULL, '2024-03-17 18:59:07', '2024-03-17 18:59:07'),
 (610, 947, '', 0, 'BR Electric Works, Bhitoli Khurd', '', '', '9832742383', 0, '', 0, 0, '', '', 'undefined', '0000-00-00 00:00:00', '', '', '', NULL, '', NULL, NULL, 'INNER .png', 1000, 0, NULL, 0, 'offline_mode', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, '', 'new_member', NULL, '', NULL, NULL, NULL, '2024-03-17 19:10:37', '2024-03-17 19:10:37'),
 (611, 948, '', 0, 'BR Electric Works, Bhitoli Khurd', '', '', '9832742212', 0, '', 0, 0, '', '', 'undefined', '0000-00-00 00:00:00', '', '', '', NULL, '', NULL, NULL, 'INNER .png', 1000, 0, NULL, 0, 'offline_mode', 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, '', 'new_member', NULL, '', NULL, NULL, NULL, '2024-03-17 19:10:53', '2024-03-17 19:10:53'),
@@ -1360,7 +1360,8 @@ INSERT INTO `customers` (`id`, `user_id`, `gender`, `age`, `address`, `land_mark
 (618, 955, 'Other', 21, 'Lucknow', NULL, NULL, '7648263872', NULL, NULL, NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, '2024-07-25 14:56:58', '2024-07-25 14:56:58'),
 (619, 956, 'Female', 21, 'kushinage', NULL, NULL, '7054837183', NULL, NULL, NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, '2024-07-25 19:15:00', '2024-07-25 19:15:00'),
 (620, 957, 'Female', 12, 'cdscs', NULL, NULL, '8934888873', NULL, NULL, NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, '2024-07-25 19:16:51', '2024-07-25 19:16:51'),
-(621, 958, 'Other', 32, 'vfdvd', NULL, NULL, '9879878952', NULL, NULL, NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'undefined', NULL, NULL, NULL, NULL, NULL, '2024-07-25 19:21:52', '2024-07-25 19:21:52');
+(621, 958, 'Male', 32, 'Bihar', '', '', '9879878952', 0, '', 0, 0, '', '', 'undefined', '0000-00-00 00:00:00', '', NULL, NULL, NULL, NULL, NULL, NULL, 'null', 0, 0, NULL, 0, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', '', 'undefined', NULL, '', NULL, NULL, NULL, '2024-07-25 19:21:52', '2024-07-26 15:35:53'),
+(622, 959, 'Male', 25, 'Gajipur', '', '', '8763864732', 0, '', 0, 0, '', '', 'undefined', '0000-00-00 00:00:00', '', NULL, NULL, NULL, NULL, NULL, NULL, 'IMG_4286.JPG', 0, 0, NULL, 0, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', '', 'new_member', NULL, 'HM104', NULL, NULL, NULL, '2024-07-26 16:19:39', '2024-07-26 16:34:42');
 
 -- --------------------------------------------------------
 
@@ -1491,15 +1492,15 @@ INSERT INTO `employees` (`id`, `department_id`, `designation_id`, `user_id`, `na
 (15, 1, 3, 223, 'mr. Umesh shukla', '8736083122', '723741399299', '1111111', '0000-00-00 00:00:00', 'user.png', ' krishna nagar', 'EMP875', 1, 'admin', '', '', '', '', '', '', 0, '', '', 1, '2024-01-06 10:08:47', '2024-03-15 18:13:56'),
 (17, 1, 3, 224, 'umesh shukla', '9795856527', '843114780990', 'DMPPS3929J', '0000-00-00 00:00:00', 'we_logo1.png', ' c-5353 sector 13 rajajipuram,  lucknow', 'EMP503', 1, '', 'na', 'WhatsApp_Image_2019-08-07_at_1_56_20_PM4.jpeg', 'na', 'WhatsApp_Image_2019-08-07_at_1_56_20_PM5.jpeg', 'na', 'WhatsApp_Image_2019-08-07_at_1_56_20_PM6.jpeg', 0, '', '', 1, '2024-01-06 10:08:47', '2024-01-30 05:13:53'),
 (18, 1, 2, 225, 'MR. UMESH SHUKLA', '8934888872', '87784732746', 'NA', '2024-06-19 00:00:00', 'NURSID.jpg', ' E-91 SECTOR C1 L.D.A COLONY KANPUR ROAD LUCKNOW', 'EMP901', 1, ' E-91 SECTOR C1 L.D.A COLONY KANPUR ROAD LUCKNOW', 'NA', NULL, 'NA', NULL, 'NA', 'WhatsApp_Image_2019-08-07_at_1_56_20_PM10.jpeg', 1000, '8 hours', '4', 0, '2024-01-06 10:08:47', '2024-06-19 16:54:53'),
-(24, 1, 8, 0, 'Ram', '7081002501', '98765423732', '82839128j', '2024-03-14 00:00:00', NULL, 'csdjc', 'EMP902', 0, 'bsdj', NULL, NULL, NULL, NULL, NULL, NULL, 0, '', '', 0, '2024-03-14 18:25:26', '2024-03-15 18:13:58'),
-(26, 3, 8, 0, 'test', '7398248932', '323232', '2322323', '0000-00-00 00:00:00', NULL, 'alaska', 'EMP904', 0, '', NULL, '3.jpg', NULL, '1.jpg', NULL, NULL, 0, '', '', 0, '2024-03-17 14:11:22', '2024-03-17 14:11:22'),
 (30, 3, 2, 0, 'jhsdcbjh', '3982764243', '992878678855', '82839128j', '2024-05-03 00:00:00', NULL, 'Fazilnagar', 'EMP905', 0, 'kjbs', NULL, NULL, NULL, NULL, NULL, NULL, 0, '', '', 0, '2024-04-30 19:47:38', '2024-04-30 19:47:38'),
 (31, 3, 2, 0, 'Ram', '8764324324', ' 372342746322', ' 82839128j', '2024-05-02 18:30:00', NULL, ' BR Electric Works, Bhitoli Khurd', 'EMP906', 0, ' sncdsc', NULL, NULL, NULL, NULL, NULL, NULL, 0, '', '', 1, '2024-05-01 19:01:55', '2024-06-07 19:45:38'),
 (32, 2, 2, 0, 'Asta', '8764878723', '992878678855', '82839128j', '2024-05-02 00:00:00', NULL, 'Fazilnagar', 'EMP907', 0, 'this is employee', NULL, NULL, NULL, NULL, NULL, NULL, 0, '', '', 0, '2024-05-01 19:03:21', '2024-05-01 19:03:21'),
 (33, 2, 2, 0, 'Sweeti Singh', '9486374876', '992878678855', '828391csd', '2024-05-02 00:00:00', 'IMG_4326.JPG', 'alaska', 'EMP908', 0, 'alaska', NULL, NULL, NULL, NULL, NULL, NULL, 10000, '8 hours', '4', 1, '2024-05-01 19:06:46', '2024-06-10 20:24:18'),
-(34, 1, 2, 0, 'Irfan', '9879843432', '643472683432', '82839128J', '2024-06-11 00:00:00', 'im.jpg', 'Fazilnagar', 'EMP909', 0, 'Fazilnagar', NULL, NULL, NULL, NULL, NULL, NULL, 1000, '8 hours', '4', 0, '2024-06-10 20:06:08', '2024-06-10 20:23:28'),
 (35, 1, 2, 0, 'Irfan', '8687643271', '34672634234', '82839128j', '2024-06-11 00:00:00', 'download.png', 'Fazilnagar', 'EMP910', 0, 'Fazilnagar', NULL, '34672634234', NULL, '82839128j', NULL, NULL, 10000, '8 hours', '4', 0, '2024-06-10 20:09:01', '2024-06-22 20:25:20'),
-(43, 2, 0, 0, 'Aftab', '9874593232', '876376274323', '', '0000-00-00 00:00:00', 'Screenshot 2024-05-06 002534.png', 'BR Electric Works, Bhitoli Khurd', 'EMP911', 0, 'BR Electric Works, Bhitoli Khurd', NULL, '876376274323', NULL, '', NULL, NULL, 0, '', '', 0, '2024-06-22 19:32:42', '2024-07-21 07:13:18');
+(43, 2, 0, 0, 'Aftab', '9874593232', '876376274323', '', '0000-00-00 00:00:00', 'Screenshot 2024-05-06 002534.png', 'BR Electric Works, Bhitoli Khurd', 'EMP911', 0, 'BR Electric Works, Bhitoli Khurd', NULL, '876376274323', NULL, '', NULL, NULL, 0, '', '', 0, '2024-06-22 19:32:42', '2024-07-21 07:13:18'),
+(44, 1, 2, 0, 'Sumit', '9670061091', '', '', '2024-07-26 00:00:00', 'IMG_4286.JPG', '', 'EMP912', 0, '', NULL, NULL, NULL, NULL, NULL, NULL, 20000, '8', '1', 0, '2024-07-26 18:10:26', '2024-07-26 18:10:26'),
+(46, 3, 0, 0, 'Shubham', '9874987982', '', '', '0000-00-00 00:00:00', NULL, '', 'EMP914', 0, '', NULL, NULL, NULL, NULL, NULL, NULL, 0, '', '', 0, '2024-07-26 18:25:47', '2024-07-26 18:25:47'),
+(47, 3, 3, 0, 'Japhar ', '7868768763', '', '', '2024-07-28 00:00:00', 'data_analyst_assistant.png', 'BR Electric Works, Bhitoli Khurd', 'EMP915', 0, 'BR Electric Works, Bhitoli Khurd', NULL, '', NULL, '', NULL, NULL, 20000, '8', '1', 0, '2024-07-28 02:27:11', '2024-07-28 02:28:17');
 
 -- --------------------------------------------------------
 
@@ -1532,7 +1533,13 @@ INSERT INTO `empservices` (`id`, `service_name`, `mobile_no`, `createdAt`, `upda
 (20, 'Fabricators ', '9874593232', '2024-07-21 07:13:18', '2024-07-21 07:13:18'),
 (21, 'Day to Day Supply', '9874593232', '2024-07-21 07:13:18', '2024-07-21 07:13:18'),
 (22, 'Gardening', '9874593232', '2024-07-21 07:13:18', '2024-07-21 07:13:18'),
-(23, 'Pest Control ', '9874593232', '2024-07-21 07:13:18', '2024-07-21 07:13:18');
+(23, 'Pest Control ', '9874593232', '2024-07-21 07:13:18', '2024-07-21 07:13:18'),
+(24, 'Day to Day Supply', '8768712736', '2024-07-26 18:25:12', '2024-07-26 18:25:12'),
+(25, 'Gardening', '8768712736', '2024-07-26 18:25:12', '2024-07-26 18:25:12'),
+(26, 'Travels & Driver', '9874987982', '2024-07-26 18:25:47', '2024-07-26 18:25:47'),
+(27, 'Medicine', '9874987982', '2024-07-26 18:25:47', '2024-07-26 18:25:47'),
+(30, 'Doctors', '7868768763', '2024-07-28 02:28:17', '2024-07-28 02:28:17'),
+(31, 'Beautician', '7868768763', '2024-07-28 02:28:17', '2024-07-28 02:28:17');
 
 -- --------------------------------------------------------
 
@@ -1559,7 +1566,12 @@ CREATE TABLE `enquiries` (
 
 INSERT INTO `enquiries` (`id`, `name`, `email`, `refName`, `mobileNo`, `message`, `address`, `service`, `createdAt`, `updatedAt`) VALUES
 (9, 'Shuruti', 'shuruti@gmail.com', 'Nursid ', '9872348632', 'this is for testing ', 'BR Electric Works, Bhitoli Khurd', 'Travels & Driver', '2024-07-21 18:48:36', '2024-07-21 18:48:36'),
-(12, 'Shuruti', 'pradeep001@yopmail.com', 'Nursid ', '8604459870', 'this is for testing ', 'alaska', 'Beautician', '2024-07-22 15:58:13', '2024-07-22 18:39:54');
+(12, 'Shuruti', 'pradeep001@yopmail.com', 'Nursid ', '8604459870', 'this is for testing ', 'alaska', 'Beautician', '2024-07-22 15:58:13', '2024-07-22 18:39:54'),
+(13, 'Rohit', '', 'Nursid', '987234863', 'This sis', '', 'Pest Control ', '2024-07-26 15:44:16', '2024-07-26 15:44:16'),
+(14, 'Afjal', '', '', '8604459871', '', '', 'water tank cleaning ', '2024-07-26 16:07:41', '2024-07-26 16:07:41'),
+(15, 'Nursid ', '', 'Shyam', '7081002501', 'this is for testingn', '', 'HOME DUSTING ', '2024-07-26 16:11:45', '2024-07-26 16:11:45'),
+(16, 'Abhi', '', 'Nursid', '8768764324', 'this is for testing', '', 'HOME DUSTING ', '2024-07-26 16:13:33', '2024-07-26 16:13:33'),
+(17, 'sujeet', '', 'Nursid ', '8763864732', 'This is for testing ', '', 'water tank cleaning ', '2024-07-26 16:15:42', '2024-07-26 16:15:42');
 
 -- --------------------------------------------------------
 
@@ -1607,7 +1619,7 @@ CREATE TABLE `expense_heads` (
 --
 
 INSERT INTO `expense_heads` (`id`, `name`, `status`, `createdAt`, `updatedAt`) VALUES
-(1, 'Tea', 1, '2023-12-27 16:45:34', '2024-03-21 17:43:27'),
+(1, 'Tea', 1, '2023-12-27 16:45:34', '2024-07-28 02:53:39'),
 (2, 'GPN', 1, '2023-12-27 16:45:34', '2023-12-27 16:46:17'),
 (4, 'office expenss', 1, '2023-12-27 16:45:34', '2023-12-27 16:46:17'),
 (5, 'Book', 1, '2023-12-27 16:45:34', '2023-12-27 16:46:17'),
@@ -2818,7 +2830,8 @@ INSERT INTO `new_customers` (`id`, `name`, `ref_name`, `email`, `mobileno`, `pas
 (955, 'Abhi', '', '', '7648263872', 'Abhi', '', '', 0, 0, 0, '', 0, 0, 0, '2024-07-25 14:56:58'),
 (956, 'shruti', '', '', '7054837183', 'shruti', '', '', 0, 0, 0, '', 0, 0, 0, '2024-07-25 19:15:00'),
 (957, 'cdsjk', '', '', '8934888873', 'cdsjk', '', '', 0, 0, 0, '', 0, 0, 0, '2024-07-25 19:16:51'),
-(958, 'jkbdjkvbs', '', '', '9879878952', 'jkbdjkvbs', '', '', 0, 0, 0, '', 0, 0, 0, '2024-07-25 19:21:52');
+(958, 'mobasshir  hussain', '', '', '9879878952', 'jkbdjkvbs', '', '', 0, 0, 0, '', 0, 0, 0, '2024-07-26 15:35:53'),
+(959, 'Sujeet yadaw', '', 'sujeet@gmail.com', '8763864732', 'Sujeet', '', '', 0, 0, 0, '', 0, 0, 0, '2024-07-26 16:34:42');
 
 -- --------------------------------------------------------
 
@@ -2924,9 +2937,11 @@ INSERT INTO `orders` (`id`, `order_no`, `user_type`, `booktime`, `bookdate`, `se
 (3, '50827', 'regular', '01:18', '2024-07-25', 'Dog Walk', NULL, 'lucknow', NULL, NULL, 'this is for testing', '941', '2024-07-25 17:45:59', NULL, NULL, NULL, 'MR. UMESH SHUKLA', NULL, NULL, 'Online', '800', '200', '1000', NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, 'this is for test ', NULL, NULL, NULL, NULL, NULL, NULL, 'polytechnoc', NULL, '2024-07-25 17:45:59', '2024-07-25 18:03:40'),
 (4, '50828', 'urgent', '02:20', '2024-07-25', 'bathroom cleaning ', NULL, 'lucknow', NULL, NULL, 'i want to clean my bathroom ', '941', '2024-07-25 17:46:43', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, NULL, NULL, NULL, NULL, NULL, NULL, 'we are not available', NULL, NULL, NULL, NULL, NULL, 'polytechnoc', NULL, '2024-07-25 17:46:43', '2024-07-25 18:02:05'),
 (5, '50829', NULL, NULL, NULL, 'washing machine ', 'Lucknow', 'lucknow', NULL, NULL, NULL, '941', '0000-00-00 00:00:00', NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-07-25 18:40:12', '2024-07-25 18:40:12'),
-(6, '50830', 'urgent', NULL, NULL, 'Dog Walk', 'Lucknow', 'lucknow', NULL, NULL, NULL, '941', '0000-00-00 00:00:00', NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-07-25 18:48:54', '2024-07-25 18:48:54'),
+(6, '50830', 'urgent', NULL, NULL, 'Dog Walk', 'Lucknow', 'lucknow', NULL, NULL, NULL, '941', '0000-00-00 00:00:00', NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, NULL, NULL, NULL, NULL, NULL, NULL, 'change my mind ', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-07-25 18:48:54', '2024-07-28 02:49:19'),
 (7, '50831', 'Regular', NULL, NULL, 'washing machine ', 'Lucknow', 'lucknow', NULL, NULL, NULL, '941', '2024-07-26 22:55:00', NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-07-25 18:51:54', '2024-07-25 18:51:54'),
-(8, '50832', 'urgent', '04:33', '2024-07-26', 'body massage', 'Lucknow', 'lucknow', NULL, NULL, NULL, '941', '2024-07-26 23:03:00', NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-07-25 18:58:47', '2024-07-25 18:58:47');
+(8, '50832', 'urgent', '04:33', '2024-07-26', 'body massage', 'Lucknow', 'lucknow', NULL, NULL, NULL, '941', '2024-07-26 23:03:00', NULL, NULL, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 5, NULL, NULL, NULL, NULL, NULL, NULL, 'this is for testing ', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-07-25 18:58:47', '2024-07-28 02:20:13'),
+(9, '50833', 'Paid Service', '23:08', '2020-07-26', 'Gas stove/ cylinder/ burner service', '', 'Bihar', NULL, '', '', '958', '2024-07-26 17:38:00', NULL, NULL, NULL, 'MR. UMESH SHUKLA', NULL, NULL, 'Cash', '803', '197', '1000', NULL, NULL, NULL, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-07-26 15:36:41', '2024-07-26 18:05:37'),
+(10, '50834', 'Booking', '02:09', '2024-07-26', 'washing machine ', '', 'Gajipur', NULL, '', 'this is for testing ', '959', '2024-07-20 20:39:00', NULL, NULL, NULL, 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', 'Cash', '200', '300', '500', NULL, NULL, NULL, 3, NULL, 'Customer take 200 due', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-07-26 16:35:52', '2024-07-26 16:41:08');
 
 -- --------------------------------------------------------
 
@@ -2967,7 +2982,9 @@ INSERT INTO `order_process` (`id`, `order_no`, `membership`, `name`, `email`, `a
 (5, 50829, NULL, 'Shyam', 'nursid299@gmail.com', 21, '7081002501', 'lucknow', 'Lucknow', 0, '941', '', '', '', '2024-07-25', 'bathroom cleaning ', 'washing machine ', '0000-00-00 00:00:00'),
 (6, 50830, NULL, 'Shyam', 'nursid299@gmail.com', 21, '7081002501', 'lucknow', 'Lucknow', 0, '941', 'i want a person who help me to walk my dog', '', '', '2024-07-25', 'washing machine ', 'Dog Walk', '0000-00-00 00:00:00'),
 (7, 50831, NULL, 'Shyam', 'nursid299@gmail.com', 21, '7081002501', 'lucknow', 'Lucknow', 0, '941', '', '', '', '2024-07-25', 'Dog Walk', 'washing machine ', '2024-07-26 22:55:00'),
-(8, 50832, NULL, 'Shyam', 'nursid299@gmail.com', 21, '7081002501', 'lucknow', 'Lucknow', 0, '941', '', '', '', '2024-07-25', 'washing machine ', 'body massage', '2024-07-26 23:03:00');
+(8, 50832, NULL, 'Shyam', 'nursid299@gmail.com', 21, '7081002501', 'lucknow', 'Lucknow', 0, '941', '', '', '', '2024-07-25', 'washing machine ', 'body massage', '2024-07-26 23:03:00'),
+(9, 50833, NULL, 'mobasshir  hussain', '', 32, '9879878952', 'Bihar', '', 0, '958', 'this is for testing ', '', '', '', '', 'Gas stove/ cylinder/ burner service', '2024-07-26 17:38:00'),
+(10, 50834, NULL, 'Sujeet yadaw', 'sujeet@gmail.com', 25, '8763864732', 'Gajipur', '', 0, '959', '', '', '', '', '', 'washing machine ', '2024-07-20 20:39:00');
 
 -- --------------------------------------------------------
 
@@ -3070,7 +3087,11 @@ INSERT INTO `otps` (`id`, `otp`, `otpid`, `otpExpireTime`, `createdAt`, `updated
 (79, '2424', '1|1|32281425072412324630925010461', '2024-07-24 19:03:27', '2024-07-24 19:02:47', '2024-07-24 19:02:47'),
 (80, '7746', '1|1|32281425072408442176725010103', '2024-07-25 03:15:03', '2024-07-25 03:14:23', '2024-07-25 03:14:23'),
 (81, '6574', '1|1|32281425072408443777425010411', '2024-07-25 15:15:19', '2024-07-25 15:14:39', '2024-07-25 15:14:39'),
-(82, '1509', '1|1|32281425072409434041725010195', '2024-07-25 16:14:22', '2024-07-25 16:13:42', '2024-07-25 16:13:42');
+(82, '1509', '1|1|32281425072409434041725010195', '2024-07-25 16:14:22', '2024-07-25 16:13:42', '2024-07-25 16:13:42'),
+(83, '6217', '1|1|32281426072410065474488720086', '2024-07-26 16:37:36', '2024-07-26 16:36:56', '2024-07-26 16:36:56'),
+(84, '3671', '4', '2024-07-26 16:40:18', '2024-07-26 16:39:38', '2024-07-26 16:39:38'),
+(85, '9942', '1|1|32281427072412042886425010252', '2024-07-26 18:35:10', '2024-07-26 18:34:30', '2024-07-26 18:34:30'),
+(86, '2354', '1|1|32281428072408181868025010324', '2024-07-28 02:49:00', '2024-07-28 02:48:20', '2024-07-28 02:48:20');
 
 -- --------------------------------------------------------
 
@@ -3277,13 +3298,13 @@ INSERT INTO `service_providers` (`id`, `name`, `first_name`, `last_name`, `usern
 (30, 'Malkhan Singh', 'Malkhan', 'Singh ', 'malkhansingh ', '9889504586 ', '580069380575', 'N/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', '555Kha/261, Bhola Kheda, Krishna Nagar, Manas Nagar, Lucknow \r\n', '555Kha/261, Bhola Kheda, Krishna Nagar, Manas Nagar, Lucknow \r\n', 'Office Enquiry ', 'N/A', 'N.A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Carpenter,Plumber ,Electrician', 'Experienced Helper  ', '0', 'malkhan@123', NULL, NULL, NULL, NULL, NULL, NULL, 0, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (31, 'Sushil Kumar ', 'Sushil ', 'Kumar ', 'sushikumar', '8400980364', '332763930285', 'N/A', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Saimar Ganj, Bhausi, Rae Bareli', 'Asiyana Lukcnow ', 'Office Enquiry ', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Security Guard', '.', 'photo1.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (32, 'Prince Kumar Dubey ', 'Prince ', 'Kumar Dubey ', 'princekumar', '7068922967', '583908048845', 'N/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Himmatnagar Road, Prathmik Vidyaaly, Prem Ka Pura, Jaunpur, Machhlishar U.P', 'Sec-H, ashiyana Lucknow ', 'N/A', 'N/A', 'N/A ', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Security Guard', 'Good Worker.', 'photo2.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, '0', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(33, 'Mohb. Arbza', 'Mohb.', 'Arbaz ', 'arbaz', '7081002501', '234907677390', 'UP3020190003165', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Bilai Maszid Balaganj Hardoi Road Chowk Lucknow ', 'Bilai Maszid Balaganj Hardoi Road Chowk Lucknow ', 'Office Enquiry ', 'N/A', 'N/A ', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Aashiyana, Lucknow, Uttar Pradesh, India', 0, 'Driver', 'good driver', 'photo3.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '0', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-05-22 18:44:16'),
 (34, 'Anrudh Kumar ', 'Anrudh ', 'Kumar ', 'anurdhkumar', '7309705863', '968758470282', 'N/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', '156A,Saidapur, Rosan Garh, Ambedkar Nagar.', '156A,Saidapur, Rosan Garh, Ambedkar Nagar.', 'Office Enquiry ', 'N/A', 'N/A ', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 1, 'Carpenter', 'Good Carpenter', 'photo4.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, '0', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-05-22 18:37:35'),
 (35, 'Sonu Kaushal ', 'Sonu ', 'Kaushal', 'sonukaushal', '7609954719', '776597659382', 'N/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Baldikheda Krishna Nagar Lucknow ', 'Baldikheda Krishna Nagar Lucknow ', 'Office Enquiry ', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 1, 'Driver,Pathology Services', 'EXPERIENCED DRIVER ', 'photo5.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '0', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-05-22 18:16:03'),
 (36, 'Manoj Kumar ', 'Manoj ', 'Kumar ', 'manojkumar', '7084803274', '408873601249', 'N/A', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Madhubana, Dadhna Mau, Arthapur, Sitapur Misrikh.', 'Sec-H, ashiyana Lucknow', 'N/A', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Plumber ', 'Good Plumber', 'photo6.jpg', '123456', NULL, NULL, NULL, NULL, NULL, NULL, 1, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-05-22 15:54:39'),
 (37, 'Nagendra Kumar ', 'Nagendra ', 'Kumar ', 'nagendrakumar', '9621899764', '821611745150', 'UP3220180047758', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Raipur, Kakari , Lucknow', 'Raipur, Kakari , Lucknow', 'Office Enquiry ', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 1, 'Driver', 'Good Driver', 'WhatsApp_Image_2019-05-21_at_11_27_00.jpeg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-04-22 09:49:25'),
 (39, 'Styam', ' vkjdjfhkjv', ' bjhvj', ' Umesh', '98899743274', ' 784382674242', ' DVD987432J', ' pradeep001@yopmail.com', '2024-05-23 18:30:00', ' BR Electric Works, Bhitoli Khurd', ' ALASKA', ' Locifar', ' BR Electric Works, Bhitoli Khurd', ' 23983389274', ' 7081002501', ' Lucknow', ' lucknow', ' Lucknow', 0, ' [{\"label\": \"Security Guard\", \"value\": 5}, {\"label\": \"Medicine\", \"value\": 7}]', ' this is service about', NULL, ' 123', ' adhar', NULL, ' bank', NULL, ' ashra', NULL, NULL, NULL, NULL, NULL, ' staff', NULL, NULL, NULL, '2024-05-23 19:30:10', '2024-05-23 19:30:10'),
-(42, ' sujeet yadaw', ' sujeet', ' yadaw', ' sujeet', ' 87678678354', ' 876237432682', ' 87428479823', ' bcsdjhcbh@gmail.com', '0000-00-00 00:00:00', ' alaska', ' ALASKA', 'Shruti', ' BR Electric Works, Bhitoli Khurd', ' 23983389274', ' 874324987', ' Lucknow', 'Lucknow', 'Lucknow', 0, ' ', ' this is for testig ', 'holi2.jpg', ' 123', ' adhar', 'null', ' pan', 'null', ' ', ' IMG_4277.JPG', 1, NULL, NULL, NULL, ' outsource', NULL, NULL, NULL, '2024-05-23 20:04:18', '2024-07-21 07:31:27');
+(42, ' sujeet yadaw', ' sujeet', ' yadaw', ' sujeet', ' 87678678354', ' 876237432682', ' 87428479823', ' bcsdjhcbh@gmail.com', '0000-00-00 00:00:00', ' alaska', ' ALASKA', 'Shruti', ' BR Electric Works, Bhitoli Khurd', ' 23983389274', ' 874324987', ' Lucknow', 'Lucknow', 'Lucknow', 0, ' ', ' this is for testig ', 'holi2.jpg', ' 123', ' adhar', 'null', ' pan', 'null', ' ', ' IMG_4277.JPG', 1, NULL, NULL, NULL, ' outsource', NULL, NULL, NULL, '2024-05-23 20:04:18', '2024-07-21 07:31:27'),
+(47, 'Sonu', '', '', '', '8974928798', '867462732432', '82839128J', 'sonu@gmail.com', '2024-07-28 00:00:00', 'Lucknow', '', 'Nursid ', 'Lucknow', '', '', '', '', '', 0, '', 'He has many years of Experience ', 'null', '', '', 'null', '', 'null', '', '', NULL, NULL, NULL, NULL, '', NULL, NULL, NULL, '2024-07-28 02:31:13', '2024-07-28 02:34:38');
 
 -- --------------------------------------------------------
 
@@ -3368,7 +3389,10 @@ INSERT INTO `sp_services` (`id`, `service_name`, `mobile_no`, `createdAt`, `upda
 (19, 'Plumber', ' 87678678354', '2024-07-21 07:31:27', '2024-07-21 07:31:27'),
 (20, 'Doctors', ' 87678678354', '2024-07-21 07:31:27', '2024-07-21 07:31:27'),
 (21, 'Medicine', ' 87678678354', '2024-07-21 07:31:27', '2024-07-21 07:31:27'),
-(22, 'Travels & Driver', ' 87678678354', '2024-07-21 07:31:27', '2024-07-21 07:31:27');
+(22, 'Travels & Driver', ' 87678678354', '2024-07-21 07:31:27', '2024-07-21 07:31:27'),
+(29, 'Lighting', '8974928798', '2024-07-28 02:34:38', '2024-07-28 02:34:38'),
+(30, 'Dog Walk', '8974928798', '2024-07-28 02:34:38', '2024-07-28 02:34:38'),
+(31, 'Gas stove/ cylinder/ burner service', '8974928798', '2024-07-28 02:34:38', '2024-07-28 02:34:38');
 
 -- --------------------------------------------------------
 
@@ -3808,7 +3832,7 @@ ALTER TABLE `customerids`
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=622;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=623;
 
 --
 -- AUTO_INCREMENT for table `cust_addposts`
@@ -3832,19 +3856,19 @@ ALTER TABLE `designations`
 -- AUTO_INCREMENT for table `employees`
 --
 ALTER TABLE `employees`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT for table `empservices`
 --
 ALTER TABLE `empservices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `enquiries`
 --
 ALTER TABLE `enquiries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `expenses`
@@ -3886,7 +3910,7 @@ ALTER TABLE `monthlyservices`
 -- AUTO_INCREMENT for table `new_customers`
 --
 ALTER TABLE `new_customers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=959;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=960;
 
 --
 -- AUTO_INCREMENT for table `offers`
@@ -3904,19 +3928,19 @@ ALTER TABLE `ordernos`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `order_process`
 --
 ALTER TABLE `order_process`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `otps`
 --
 ALTER TABLE `otps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT for table `our_customers`
@@ -3934,7 +3958,7 @@ ALTER TABLE `services`
 -- AUTO_INCREMENT for table `service_providers`
 --
 ALTER TABLE `service_providers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=48;
 
 --
 -- AUTO_INCREMENT for table `service_provider_roles`
@@ -3946,7 +3970,7 @@ ALTER TABLE `service_provider_roles`
 -- AUTO_INCREMENT for table `sp_services`
 --
 ALTER TABLE `sp_services`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=32;
 
 --
 -- AUTO_INCREMENT for table `supervisor_roles`
