@@ -16,6 +16,7 @@ const MonthlyServiceModel = db.MonthlyServiceModel
 const AddExpenseModel = db.AddExpenseModel
 const AccountModel = db.Account
 
+
 const GetOrderNow = async (req, res) => {
 	try {
 		const formdata = req.body;
@@ -218,15 +219,27 @@ const GetAllOrders = async (req, res) => {
 			]
 		});
 
+		
+
 		const addService = await Promise.all(orders.map(async (item) => {
-			const orderProcess = await OrderProcessModel.findOne({
-				where: {
-					order_no: item.order_no
-				}
-			});
+			const [orderProcess, customerData] = await Promise.all([
+				OrderProcessModel.findOne({
+					where: {
+						order_no: item.order_no
+					}
+				}),
+				CustomerModel.findOne({
+					attributes: ['member_id'],
+					where: {
+						user_id: item.cust_id
+					}
+				})
+			]);
+
 			return {
 				...item.dataValues,
-				orderProcess
+				orderProcess,
+				member_id: customerData?.member_id
 			};
 		}));
 

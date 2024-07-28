@@ -94,7 +94,7 @@ const getCustomerByMobile = async (req, res) => {
 		}
 	
 		const customerData = await CustomerModel.findOne({
-			attributes: ['address','land_mark','location', 'age'],
+			attributes: ['address','land_mark','location', 'age', 'member_id'],
 			include: [
 				{
 					model: NewCustomer,
