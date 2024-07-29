@@ -1,6 +1,3 @@
-// const CustomerModel = require("../../Models/AuthModels/CustomerModel");
-// const CustomerID = require("../../Models/misc/customerId");
-// const OrderModel = require("../../Models/ordermodel/ordermodel");
 const generateOrderNo = require("../misc/orderNoGenerator");
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
@@ -15,6 +12,8 @@ const EmployeeModel = db.EmployeeModel
 const MonthlyServiceModel = db.MonthlyServiceModel
 const AddExpenseModel = db.AddExpenseModel
 const AccountModel = db.Account
+const TimeSlotModel = db.TimeSlotModel
+
 
 
 const GetOrderNow = async (req, res) => {
@@ -219,8 +218,6 @@ const GetAllOrders = async (req, res) => {
 			]
 		});
 
-		
-
 		const addService = await Promise.all(orders.map(async (item) => {
 			const [orderProcess, customerData] = await Promise.all([
 				OrderProcessModel.findOne({
@@ -277,24 +274,6 @@ const GetByStatus = async (req, res) => {
 		res.status(500).json({error: "Internally Error "});
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 const GetCancel = async (req, res) => {
 	try {
@@ -658,10 +637,17 @@ const GetTotalSummary = async (req, res) => {
     }
 };
 
-module.exports = GetTotalSummary;
-
-
-
+const GetTimeSlot = async (req, res) => {
+	try {
+		const timeSlots = await TimeSlotModel.findAll({
+			attributes: ['id', 'time_range']
+		})
+		res.status(200).json({status: true, data: timeSlots})
+	} catch (error) {
+		console.error('Error fetching time slots:', error)
+		res.status(500).json({ error: "Internal Server Error" })
+	}
+}
 
 module.exports = {
 	GetAllOrders,
@@ -680,5 +666,7 @@ module.exports = {
 	GetOrderAssingwithStatus,
 	GetLastOrderByMobile,
 	GetOrderAssingwithSupervisor,
+	GetTotalSummary,
+	GetTimeSlot,
 	GetTotalSummary
 }

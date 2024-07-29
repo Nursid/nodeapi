@@ -20,5 +20,6 @@ router.post("/assign-availability/:mobile_no/:date",AvailabilityController.Assig
 
 router.get("/location-listing",LocationModel.ListingLocation )
 
+
     
 module.exports = router

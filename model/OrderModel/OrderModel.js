@@ -52,6 +52,9 @@ module.exports = (sequelize) => {
           emp_id: {
             type: DataTypes.STRING
           },
+          approx_duration: {
+            type: DataTypes.STRING
+          },
           suprvisor_id: {
             type: DataTypes.STRING
           },

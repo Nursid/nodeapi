@@ -60,9 +60,13 @@ db.Availability = require("./AvailabilityModel")(sequelize, DataTypes)
 db.SpServices = require("./Misc/sp_services")(sequelize, DataTypes)
 db.locality=require("./Misc/localities")(sequelize, DataTypes)
 db.ComplainModel = require("./ComplainModel")(sequelize, DataTypes)
+db.TimeSlotModel = require("./TimeSlotModel")(sequelize, DataTypes)
+
+
+
+//  relation between model
 
 db.CustomerModel.belongsTo(db.NewCustomerModel, { foreignKey: 'user_id' });
-
 db.OrderModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
 db.ComplainModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
 db.OrderProcessModel.belongsTo(db.NewCustomerModel, { foreignKey: 'registered_id'});

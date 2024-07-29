@@ -15,7 +15,8 @@ const {
 	GetOrderAssingwithStatus,
 	GetLastOrderByMobile,
     GetOrderAssingwithSupervisor,
-	GetTotalSummary
+	GetTotalSummary,
+	GetTimeSlot
 } = require("../../Controllers/ordercontroller/ordercontrollers");
 
 const router = require("express").Router();
@@ -40,5 +41,6 @@ router.get('/getall/:sup_id/:status_id', GetOrderAssingwithStatus)
 router.get("/get-last-service", GetLastOrderByMobile)
 
 router.get("/filter-order", GetTotalSummary)
+router.get("/time-slot", GetTimeSlot)
 
 module.exports = router;

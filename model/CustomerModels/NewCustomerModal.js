@@ -53,6 +53,10 @@ module.exports = (sequelize) => {
 			type: DataTypes.BOOLEAN,
 			defaultValue: false
 		  },
+		  ismember: {
+			type: DataTypes.BOOLEAN,
+			defaultValue: false
+		  },
 		  block: {
 			type: DataTypes.BOOLEAN,
 			defaultValue: false
