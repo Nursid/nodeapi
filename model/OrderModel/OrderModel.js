@@ -55,6 +55,9 @@ module.exports = (sequelize) => {
           approx_duration: {
             type: DataTypes.STRING
           },
+          allot_time_range: {
+            type: DataTypes.STRING
+          },
           suprvisor_id: {
             type: DataTypes.STRING
           },
@@ -83,7 +86,8 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING
           },
           admin_approve: {
-            type: DataTypes.INTEGER
+            type: DataTypes.BOOLEAN,
+			      defaultValue: false
           },
           pending: {
             type: DataTypes.INTEGER

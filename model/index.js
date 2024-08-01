@@ -62,12 +62,19 @@ db.locality=require("./Misc/localities")(sequelize, DataTypes)
 db.ComplainModel = require("./ComplainModel")(sequelize, DataTypes)
 db.TimeSlotModel = require("./TimeSlotModel")(sequelize, DataTypes)
 
+db.SupervisorAttendance = require("./AttendanceModels/SupervisorAttendance")(sequelize, DataTypes)
+
+db.ServiceProviderAttendance = require("./AttendanceModels/ServiceProviderAttendance")(sequelize, DataTypes)
+
 
 
 //  relation between model
+// db.OrderModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
+db.OrderModel.belongsTo(db.NewCustomerModel, {foreignKey: 'cust_id'})
+db.NewCustomerModel.hasOne(db.CustomerModel, { foreignKey: 'user_id' });
 
 db.CustomerModel.belongsTo(db.NewCustomerModel, { foreignKey: 'user_id' });
-db.OrderModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
+// db.OrderModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
 db.ComplainModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
 db.OrderProcessModel.belongsTo(db.NewCustomerModel, { foreignKey: 'registered_id'});
 db.EmployeeModel.belongsTo(db.DepartmentsModel,{foreignKey: 'department_id'});

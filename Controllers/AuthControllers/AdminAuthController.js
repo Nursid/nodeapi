@@ -106,7 +106,6 @@ const updateAdmin = async (req, res) => {
 		res.status(500).json({error});
 	}
 };
-
 const ForgetPassword = async (req, res) => {
 
 	const email = req.body.email;
@@ -160,7 +159,6 @@ const ForgetPassword = async (req, res) => {
 		});
 	}
 }
-
 const VerifyPassword = async (req, res) => {
 	try {
 		const otp = req.body.otp;
@@ -190,7 +188,6 @@ const VerifyPassword = async (req, res) => {
 		})
 	}
 }
-
 const ResetPassword = async (req, res) => {
 	try {
 		const email = req.body.email;
@@ -232,8 +229,6 @@ const ResetPassword = async (req, res) => {
 		});
 	}
 };
-
-
 module.exports = {
 	createTheAdmin,
 	loginAdmin,

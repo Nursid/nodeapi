@@ -6,7 +6,6 @@ const CustomerModel = db.CustomerModel
 const CustomerID = db.CustomerID
 const OrderModel = db.OrderModel
 const NewCustomerModel = db.NewCustomerModel
-const OrderProcessModel = db.OrderProcessModel
 const ServiceProviderModel = db.ServiceProviderModel
 const EmployeeModel = db.EmployeeModel
 const MonthlyServiceModel = db.MonthlyServiceModel
@@ -18,69 +17,88 @@ const TimeSlotModel = db.TimeSlotModel
 
 const GetOrderNow = async (req, res) => {
 	try {
-		const formdata = req.body;
-
-		const {id} = req.params;
-		// find user with id
-		const isUser = await NewCustomerModel.findOne({
-			where: {
-				id: id
-			}
-		})
-		if (! isUser) {
-			return res.status(404).json({error: true, message: "Invalid user"})
+	  const formdata = req.body;
+	  let userId;
+  
+	  // Check if the user exists with the provided mobile number and ismember true
+	  let isUser = await NewCustomerModel.findOne({
+		where: {
+		  mobileno: formdata.mobile,
+		  ismember: true
 		}
-
-		const lastOrder = await OrderModel.findOne({
-			order: [
-				['id', 'DESC']
-			]
+	  });
+  
+	  if (!isUser) {
+		// Check if the user exists with the provided mobile number and ismember false
+		isUser = await NewCustomerModel.findOne({
+		  where: {
+			mobileno: formdata.mobile,
+			ismember: false
+		  }
 		});
-
-		let OrderNo;
-
-		if (! lastOrder) {
-			OrderNo = 50825;
+  
+		if (!isUser) {
+		  // Create new user with ismember set to false
+		  const newUser = await NewCustomerModel.create({
+			name: formdata.name,
+			email: formdata.email,
+			mobileno: formdata.mobile,
+			ismember: false
+		  });
+  
+		  // Create new entry in CustomerModel
+		  await CustomerModel.create({
+			user_id: newUser.id,
+			address: formdata.address,
+			land_mark: formdata.land_mark,
+			age: formdata.age
+		  });
+  
+		  userId = newUser.id;
 		} else {
-			OrderNo = parseInt(lastOrder.order_no) + 1;
-		} 
-		formdata.order_no = OrderNo
-		formdata.registered_id = id
+		  // Use the existing user's ID
+		  userId = isUser.id;
+		}
+	  } else {
+		// Use the existing user's ID
+		userId = isUser.id;
+	  }
 
-		const isSubmit = await OrderProcessModel.create(formdata);
-		if (! isSubmit) {
-			return res.status(400).json({error: true, message: "order not placed i! Try again"})
+		if (formdata.suprvisor_id || formdata.servicep_id) {
+			formdata.pending = 4
+		} else {
+			formdata.pending = 0
 		}
 
-		if (formdata?.serviceDateTime) {
-			const dateTime = new Date(formdata.serviceDateTime)
-			const bookdate = dateTime.toISOString().split('T')[0]
-			const booktime = dateTime.toTimeString().slice(0, 5)
-			formdata.bookdate = bookdate
-			formdata.booktime = booktime
-		}
+	  const lastOrder = await OrderModel.findOne({
+		order: [['id', 'DESC']]
+	  });
+  
+	  formdata.order_no = lastOrder ? parseInt(lastOrder.order_no) + 1 : 1;
+	  formdata.order_no = formdata.order_no.toString().padStart(4, '0');
+	  formdata.cust_id = userId;
 
-		const OrderData = {
-			...formdata,
-			create_date: isSubmit.serviceDateTime,
-			cust_id: id,
-			city: isSubmit.city,
-			suprvisor_id: isSubmit.supervisor_name,
-			pending: 0,
-			order_no: OrderNo,
-			service_address: isSubmit.address
-		}
-		const data = await OrderModel.create(OrderData);
-		if (! data) {
-			return res.status(400).json({error: true, message: "order not placed i! Try again"})
-		}
-
-		res.status(200).json({message: "successfully ordered", data: data})
-	} catch (error) {
-		res.status(500).json(error)
+	  if (formdata?.serviceDateTime) {
+		const dateTime = new Date(formdata.serviceDateTime)
+		const bookdate = dateTime.toISOString().split('T')[0]
+		const booktime = dateTime.toTimeString().slice(0, 5)
+		formdata.bookdate = bookdate
+		formdata.booktime = booktime
 	}
-}
 
+  
+	  const data = await OrderModel.create(formdata);
+  
+	  if (!data) {
+		return res.status(400).json({ error: true, message: "Order not placed! Try again" });
+	  }
+  
+	  res.status(200).json({ status: true, message: "Successfully ordered", data: data });
+	} catch (error) {
+	  res.status(500).json(error);
+	}
+  };
+  
 const OrderComplain = async (req, res) => {
 	try {
 		const formdata = req.body;
@@ -94,19 +112,6 @@ const OrderComplain = async (req, res) => {
 		let OrderNo = parseInt(lastOrder.order_no) + 1;;
 
 		formdata.order_no = OrderNo
-
-		const isSubmit = await OrderProcessModel.create(formdata);
-		if (! isSubmit) {
-			return res.status(400).json({error: true, message: "order not placed i! Try again"})
-		}
-
-
-		const OrderData = {
-			... formdata,
-			create_date: isSubmit.serviceDateTime,
-			pending: 0,
-			order_no: OrderNo
-		}
 
 		const data = await OrderModel.create(OrderData);
 		if (! data) {
@@ -125,33 +130,14 @@ const GetOrderUpdate = async (req, res) => {
 		const orderID = req.params.id
 		const data = req.body
 
-		const orderData = {
-			"name": data.name,
-			"email": data.email,
-			"city": data.city
-		}
 
-		console.log(orderData)
-
-		const {
-			email,
-			name,
-			...order_data
-		} = data;
-
-
-		const isUpdated = await OrderModel.update(order_data, {
+		const isUpdated = await OrderModel.update(data, {
 			where: {
 				order_no: orderID
 			}
 		})
-		const isUpdated2 = await OrderProcessModel.update(orderData, {
-			where: {
-				order_no: orderID
-			}
-		});
 
-		if (! isUpdated && ! isUpdated2) {
+		if (! isUpdated) {
 			return res.status(400).json({error: true, message: 'Updation Failed ! Try again'})
 		}
 		res.status(200).json({status: 200, message: "Updated Successfull!"})
@@ -189,23 +175,22 @@ const GetSingleOrder = async (req, res) => {
 
 // Delete Order
 const GetDeleteByID = async (req, res) => {
-	const orderId = req.params.order_no
+	const orderId = req.params.order_no;
 	try {
-		const DeleteOrder = await OrderModel.destroy({
+		const deletedOrder = await OrderModel.destroy({
 			where: {
-				order_no: orderId // Specify the order_no you want to delete
+				order_no: orderId
 			}
 		});
 
-		const deletedRows = await OrderProcessModel.destroy({
-			where: {
-				order_no: orderId // Specify the order_no you want to delete
-			}
-		});
+		if (deletedOrder === 0) {
+			return res.status(404).json({ status: 404, message: 'Order not found' });
+		}
 
-		res.status(200).json({status: 200, message: 'deleted successfully'})
+		res.status(200).json({ status: 200, message: 'Order deleted successfully' });
 	} catch (error) {
-		res.status(500).json({error})
+		console.error("Error in GetDeleteByID:", error);
+		res.status(500).json({ status: 500, error: "Internal Server Error" });
 	}
 }
 
@@ -213,62 +198,44 @@ const GetAllOrders = async (req, res) => {
 	try {
 
 		const orders = await OrderModel.findAll({
-			order: [
-				['id', 'DESC']
-			]
+			include: {
+				model: NewCustomerModel,
+				attributes: ['name', 'email', 'mobileno'],
+				include: {
+					model: CustomerModel,
+					attributes: ['age', 'address', 'member_id'],
+				}
+			},
+			order: [['id', 'DESC']]
 		});
 
-		const addService = await Promise.all(orders.map(async (item) => {
-			const [orderProcess, customerData] = await Promise.all([
-				OrderProcessModel.findOne({
-					where: {
-						order_no: item.order_no
-					}
-				}),
-				CustomerModel.findOne({
-					attributes: ['member_id'],
-					where: {
-						user_id: item.cust_id
-					}
-				})
-			]);
-
-			return {
-				...item.dataValues,
-				orderProcess,
-				member_id: customerData?.member_id
-			};
-		}));
-
-		res.status(200).json({status: 200, data: addService});
-
+		res.status(200).json({ status: 200, data: orders });
 	} catch (error) {
-		res.status(500).json({error: "Internally Error "});
+		console.error("Error in GetAllOrders:", error);
+		res.status(500).json({ error: "Internal Server Error" });
 	}
 }
 
 const GetByStatus = async (req, res) => {
 	const status = req.params.status
 	try {
+	
 		const orders = await OrderModel.findAll({
+			include: {
+				model: NewCustomerModel,
+				attributes: ['name', 'email', 'mobileno'],
+				include: {
+					model: CustomerModel,
+					attributes: ['age', 'address', 'member_id'],
+				}
+			},
+			order: [['id', 'DESC']],
 			where: {
 				pending: status
 			}
 		});
 
-		const addService = await Promise.all(orders.map(async (item) => {
-			const orderProcess = await OrderProcessModel.findOne({
-				where: {
-					order_no: item.order_no
-				}
-			});
-			return {
-				...item.dataValues,
-				orderProcess
-			};
-		}));
-
-		res.status(200).json({status: 200, data: addService})
+		res.status(200).json({status: 200, data: orders})
 
 	} catch (error) {
 		res.status(500).json({error: "Internally Error "});
@@ -341,25 +308,19 @@ const GetOrderByID = async (req, res) => {
 		const user_id = req.params.id
 
 		const orders = await OrderModel.findAll({
+			include: {
+				model: NewCustomerModel,
+				attributes: ['name', 'email', 'mobileno'],
+				include: {
+					model: CustomerModel,
+					attributes: ['age', 'address', 'member_id'],
+				}
+			},
+			order: [['id', 'DESC']],
 			where: {
 				cust_id: user_id
 			},
-			order: [
-				['id', 'DESC']
-			]
 		});
-
-		const orderData = await Promise.all(orders.map(async (item) => {
-			const orderProcess = await OrderProcessModel.findOne({
-				where: {
-					order_no: item.order_no
-				}
-			});
-			return {
-				...item.dataValues,
-				orderProcess
-			};
-		}));
 
 		res.status(200).json({status: 200, data: orders})
 
@@ -372,8 +333,11 @@ const OrderAssing = async (req, res) => {
 	try {
 		const orderID = req.params.id
 		let data = req.body
-		if(data.pending !== 5){
+		
+		if (data.pending !== 5 && data.pending !== 1) {
 			data.pending = 4
+		} else if (data.pending === 1) {
+			data.pending = 1
 		}
 		
 		const isUpdated = await OrderModel.update(data, {
@@ -402,28 +366,25 @@ const GetOrderAssing = async (req, res) => {
 		if (! isServiceProvider) {
 			return res.status(400).json({error: true, message: 'Updation Failed ! Try again'})
 		}
+
 		const orders = await OrderModel.findAll({
+			include: [{
+				model: NewCustomerModel,
+				attributes: ['name', 'email', 'mobileno'],
+				include: {
+					model: CustomerModel,
+					attributes: ['age', 'address', 'member_id'],
+				}
+			}],
 			where: {
-				servicep_id: isServiceProvider.name
+				servicep_id: isServiceProvider.id
 			},
 			order: [
 				['id', 'DESC']
 			]
 		});
 
-		const addService = await Promise.all(orders.map(async (item) => {
-			const orderProcess = await OrderProcessModel.findOne({
-				where: {
-					order_no: item.order_no
-				}
-			});
-			return {
-				...item.dataValues,
-				orderProcess
-			};
-		}));
-
-		res.status(200).json({status: 200, data: addService})
+		res.status(200).json({status: 200, data: orders})
 
 	} catch (error) {
 		res.status(200).json("Internal Server Error");
@@ -454,27 +415,22 @@ const GetOrderAssingwithSupervisor = async (req, res) => {
 			whereConditions.pending = status_id;
 		}
 
-
 		const orders = await OrderModel.findAll({
+			include: [{
+				model: NewCustomerModel,
+				attributes: ['name', 'email', 'mobileno'],
+				include: {
+					model: CustomerModel,
+					attributes: ['age', 'address', 'member_id'],
+				}
+			}],
 			where: whereConditions,
 			order: [
 				['id', 'DESC']
 			]
 		});
 
-		const allSupervisor = await Promise.all(orders.map(async (item) => {
-			const orderProcess = await OrderProcessModel.findOne({
-				where: {
-					order_no: item.order_no
-				}
-			});
-			return {
-				...item.dataValues,
-				orderProcess
-			};
-		}));
-
-		res.status(200).json({status: 200, data: allSupervisor})
+		res.status(200).json({status: 200, data: orders})
 
 	} catch (error) {
 		res.status(500).json({
@@ -498,78 +454,29 @@ const GetOrderAssingwithStatus = async (req, res) => {
 		if (! isServiceProvider) {
 			return res.status(400).json({error: true, message: 'Updation Failed ! Try again'})
 		}
+
 		const orders = await OrderModel.findAll({
+			include: [{
+				model: NewCustomerModel,
+				attributes: ['name', 'email', 'mobileno'],
+				include: {
+					model: CustomerModel,
+					attributes: ['age', 'address', 'member_id'],
+				}
+			}],
 			where: {
 				servicep_id: isServiceProvider.name,
 				pending: status_id
-			}
+			},
+			order: [
+				['id', 'DESC']
+			]
 		});
 
-		const addService = await Promise.all(orders.map(async (item) => {
-			const orderProcess = await OrderProcessModel.findOne({
-				where: {
-					order_no: item.order_no
-				}
-			});
-			return {
-				...item.dataValues,
-				orderProcess
-			};
-		}));
-
-		res.status(200).json({status: 200, data: addService})
+		res.status(200).json({status: 200, data: orders})
 
 	} catch (error) {
 		res.status(200).json("Internal Server Error");
-	}
-}
-
-const GetLastOrderByMobile = async (req, res) => {
-	try {
-		const customers = await NewCustomerModel.findAll();
-
-		const data = [];
-		for (const item of customers) {
-			try { // Fetch the most recent order for the current customer
-				const orders = await OrderProcessModel.findOne({
-					where: {
-						mobile: item.mobileno
-					},
-					order: [
-						['id', 'DESC']
-					] // Sorting to get the most recent order
-				});
-
-				// Only consider customers with orders
-				if (orders) { // Fetch the order process details for the most recent order
-					const orderProcess = await OrderModel.findOne({
-						where: {
-							order_no: orders.order_no
-						}
-					});
-
-					// Combine customer details, order details, and order process details
-					data.push({
-						... item.dataValues,
-						orders: orders.dataValues,
-						orderProcess
-					});
-				}
-
-			} catch (error) { // Log the error (consider more sophisticated error logging depending on your setup)
-				console.error(`Error processing customer ${
-					item.id
-				}: ${error}`);
-				// Optionally, handle errors specifically or add error information in the log/output
-				// Continue to the next iteration, skipping any error processing for this customer
-				continue;
-			}
-		}
-
-		res.status(200).json({status: 200, data: data})
-
-	} catch (error) {
-		return res.status(500).json({status: false, message: "Interal Error"})
 	}
 }
 
@@ -664,7 +571,6 @@ module.exports = {
 	OrderAssing,
 	GetOrderAssing,
 	GetOrderAssingwithStatus,
-	GetLastOrderByMobile,
 	GetOrderAssingwithSupervisor,
 	GetTotalSummary,
 	GetTimeSlot,
