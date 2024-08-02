@@ -2,25 +2,37 @@ const { DataTypes } = require('sequelize')
 
 module.exports = (sequelize) => {
   const ServiceProviderAttendance = sequelize.define('serviceProviderAttendance', {
-    emp_id: {
+    servp_id: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    date: {
+    in_date: {
       type: DataTypes.DATEONLY,
       allowNull: false
     },
-    start_time: {
+    check_in: {
       type: DataTypes.TIME,
-      allowNull: false
+      allowNull: true
     },
-    end_time: {
+    out_date: {
+      type: DataTypes.DATEONLY,
+      allowNull: true
+    },
+    check_out: {
       type: DataTypes.TIME,
-      allowNull: false
+      allowNull: true
     },
     createdby: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
+    },
+    status: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+    message: {
+      type: DataTypes.STRING,
+      allowNull: true
     }
   }, {
     timestamps: true,
