@@ -31,13 +31,14 @@ const ServiceProviderAttendance = db.ServiceProviderAttendance
             message: 'Service provider has already checked in today'
           })
         }
+        
 
         newAttendance = await ServiceProviderAttendance.create({
           servp_id: data.servp_id,
           check_in: new Date().toISOString().split('T')[1].split('.')[0],
           in_date:  new Date().toISOString().split('T')[0],
           createdby: data.createdby,
-          success: true,
+          status: true,
           check_out: null,
           out_date: null
         })
@@ -54,7 +55,7 @@ const ServiceProviderAttendance = db.ServiceProviderAttendance
         newAttendance = await ServiceProviderAttendance.update({
           check_out: new Date().toISOString().split('T')[1].split('.')[0],
           out_date: new Date().toISOString().split('T')[0],
-          success: false,
+          status: false,
         }, {
           where: {
             servp_id: data.servp_id,
@@ -151,7 +152,11 @@ const ServiceProviderAttendance = db.ServiceProviderAttendance
 
 const GetAllSupervisorAttendance = async (req, res) => {
   try {
-    const allAttendance = await SupervisorAttendance.findAll()
+    const allAttendance = await SupervisorAttendance.findAll({
+      where:{
+        in_date: new Date().toISOString().split('T')[0]
+      }
+    })
     
     res.status(200).json({
       success: true,
@@ -167,4 +172,27 @@ const GetAllSupervisorAttendance = async (req, res) => {
   }
 }
 
-module.exports = { AddSupervisorAttendance, AddServiceProviderAttendance, GetAllSupervisorAttendance }
+
+const GetAllServiceProviderAttendance = async (req, res) => {
+  try {
+    const allAttendance = await ServiceProviderAttendance.findAll({
+      where:{
+        in_date: new Date().toISOString().split('T')[0]
+      }
+    })
+    
+    res.status(200).json({
+      success: true,
+      message: 'All attendance records retrieved successfully',
+      data: allAttendance
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error retrieving attendance records',
+      error: error.message
+    })
+  }
+}
+
+module.exports = { AddSupervisorAttendance, AddServiceProviderAttendance, GetAllSupervisorAttendance, GetAllServiceProviderAttendance }
