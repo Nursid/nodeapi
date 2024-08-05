@@ -8,6 +8,15 @@ const ServiceProviderAttendance = db.ServiceProviderAttendance
     try {
       const data = req.body
 
+      let date = new Date();
+
+      // Convert the date to Kolkata time zone (IST) with milliseconds
+      let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
+      let milliseconds = date.getMilliseconds();
+  
+      // Format the time with milliseconds
+      let formattedTime = kolkataTime.split(', ')[1] + `.${milliseconds}`;
+
       if (data.action !== 'check_in' && data.action !== 'check_out') {
         return res.status(202).json({
           success: false,
@@ -35,7 +44,7 @@ const ServiceProviderAttendance = db.ServiceProviderAttendance
 
         newAttendance = await ServiceProviderAttendance.create({
           servp_id: data.servp_id,
-          check_in: new Date().toISOString().split('T')[1].split('.')[0],
+          check_in: formattedTime,
           in_date:  new Date().toISOString().split('T')[0],
           createdby: data.createdby,
           status: true,
@@ -53,7 +62,7 @@ const ServiceProviderAttendance = db.ServiceProviderAttendance
           })
         }
         newAttendance = await ServiceProviderAttendance.update({
-          check_out: new Date().toISOString().split('T')[1].split('.')[0],
+          check_out: formattedTime,
           out_date: new Date().toISOString().split('T')[0],
           status: false,
         }, {
@@ -83,6 +92,16 @@ const ServiceProviderAttendance = db.ServiceProviderAttendance
     try {
       const data = req.body
 
+    let date = new Date();
+
+    // Convert the date to Kolkata time zone (IST) with milliseconds
+    let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
+    let milliseconds = date.getMilliseconds();
+
+    // Format the time with milliseconds
+    let formattedTime = kolkataTime.split(', ')[1] + `.${milliseconds}`;
+
+
       if (data.action !== 'check_in' && data.action !== 'check_out') {
         return res.status(202).json({
           success: false,
@@ -109,7 +128,7 @@ const ServiceProviderAttendance = db.ServiceProviderAttendance
 
         newAttendance = await SupervisorAttendance.create({
           emp_id: data.emp_id,
-          check_in: new Date().toISOString().split('T')[1].split('.')[0],
+          check_in: formattedTime,
           in_date: new Date().toISOString().split('T')[0],
           createdby: data.createdby,
           status: true,
@@ -125,7 +144,7 @@ const ServiceProviderAttendance = db.ServiceProviderAttendance
           })
         }
         newAttendance = await SupervisorAttendance.update({
-          check_out: new Date().toISOString().split('T')[1].split('.')[0],
+          check_out: formattedTime,
           out_date: new Date().toISOString().split('T')[0],
           status: false
         }, {
