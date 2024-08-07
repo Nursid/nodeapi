@@ -9,11 +9,7 @@ module.exports = (sequelize) => {
         emp_id: {
             type: DataTypes.STRING,
             allowNull: true,
-        },
-        emp_type: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-        },  
+        }, 
         "09:00-09:30": {
             type: DataTypes.STRING,
             allowNull: true,

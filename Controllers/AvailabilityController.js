@@ -1,45 +1,48 @@
 const db = require("../model/index")
 const AvailabilityModel = db.Availability;
 const EmployeeModel = db.EmployeeModel
+const ServiceProvider = db.ServiceProviderModel
 const moment = require('moment');
 
 const GetAllAvailability = async (req, res) => {
-        const filterDate =  req.body.date;
+    const filterDate = req.body.date;
 
-       try {
-            const availabilities = await AvailabilityModel.findAll({
-                where:{
-                    date:filterDate
-                },
-                order: [
-                    ['id', 'DESC']
-                ]
-            });
+    try {
+        // Fetch availabilities and employees in parallel
+        const [availabilities, employees] = await Promise.all([
+            AvailabilityModel.findAll({
+                where: { date: filterDate }
+            }),
+            ServiceProvider.findAll({
+                attributes: ['id', 'name', 'provider_type'],
+                where: { block_id: true }
+            })
+        ]);
 
-        const AllAvailability = await Promise.all(availabilities.map(async (item) => {
-            const Employee = await EmployeeModel.findOne({
-                attributes: ['name'],
-                where: {
-                    mobile_no: item.emp_id
-                }
-            });
-        
-            return {
-                ...item.dataValues,
-                Employee: Employee ? Employee.dataValues : null
-            };
-        }));
+        // Combine data
+        const combinedData = employees.map(employee => {
+            const matchingAvailability = availabilities.find(
+                available => parseInt(available.emp_id, 10) === parseInt(employee.id, 10)
+            );
 
-		if (!AllAvailability) {
-			res.status(200).json({status: false, message: "User Not Found!"})
-		}
+            return matchingAvailability
+                ? { id: employee.id, name: employee.name, ...matchingAvailability.dataValues, provider_type: employee.provider_type,"01:00-01:30": 'Lunch' }
+                : { id: employee.id, name: employee.name, provider_type: employee.provider_type, "01:00-01:30": 'Lunch'  };
+        });
 
-		res.status(200).json({status: true, data: AllAvailability})
+        // Check if combinedData is empty
+        if (combinedData.length === 0) {
+            return res.status(200).json({ status: false, message: "User Not Found!" });
+        }
 
-	} catch (error) {
-		res.status(500).json({error})
-	}
-}
+        // Respond with combined data
+        res.status(200).json({ status: true, data: combinedData });
+
+    } catch (error) {
+        res.status(500).json({ error });
+    }
+};
+
 
 const AddAvailability = async (req, res) => {
 

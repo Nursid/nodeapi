@@ -334,12 +334,6 @@ const OrderAssing = async (req, res) => {
 		const orderID = req.params.id
 		let data = req.body
 		
-		if (data.pending !== 5 && data.pending !== 1 && data.pending !==3) {
-			data.pending = 4
-		} else if (data.pending === 1) {
-			data.pending = 1
-		}
-		
 		const isUpdated = await OrderModel.update(data, {
 			where: {
 				order_no: orderID
