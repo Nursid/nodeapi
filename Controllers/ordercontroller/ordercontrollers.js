@@ -1,7 +1,9 @@
 const generateOrderNo = require("../misc/orderNoGenerator");
 const Sequelize = require('sequelize');
+const sequelize = require('../../config/sequalize'); 
 const Op = Sequelize.Op;
 const db = require("../../model/index");
+const { name } = require("ejs");
 const CustomerModel = db.CustomerModel
 const CustomerID = db.CustomerID
 const OrderModel = db.OrderModel
@@ -12,10 +14,11 @@ const MonthlyServiceModel = db.MonthlyServiceModel
 const AddExpenseModel = db.AddExpenseModel
 const AccountModel = db.Account
 const TimeSlotModel = db.TimeSlotModel
-
+const Availability = db.Availability
 
 
 const GetOrderNow = async (req, res) => {
+	const transaction = await sequelize.transaction();
 	try {
 	  const formdata = req.body;
 	  let userId;
@@ -25,7 +28,8 @@ const GetOrderNow = async (req, res) => {
 		where: {
 		  mobileno: formdata.mobile,
 		  ismember: true
-		}
+		},
+		transaction
 	  });
   
 	  if (!isUser) {
@@ -34,7 +38,8 @@ const GetOrderNow = async (req, res) => {
 		  where: {
 			mobileno: formdata.mobile,
 			ismember: false
-		  }
+		  },
+		  transaction
 		});
   
 		if (!isUser) {
@@ -44,7 +49,7 @@ const GetOrderNow = async (req, res) => {
 			email: formdata.email,
 			mobileno: formdata.mobile,
 			ismember: false
-		  });
+		  }, { transaction });
   
 		  // Create new entry in CustomerModel
 		  await CustomerModel.create({
@@ -52,7 +57,7 @@ const GetOrderNow = async (req, res) => {
 			address: formdata.address,
 			land_mark: formdata.land_mark,
 			age: formdata.age
-		  });
+		  }, { transaction });
   
 		  userId = newUser.id;
 		} else {
@@ -63,41 +68,86 @@ const GetOrderNow = async (req, res) => {
 		// Use the existing user's ID
 		userId = isUser.id;
 	  }
-
-		if (formdata.suprvisor_id || formdata.servicep_id) {
-			formdata.pending = 4
-		} else {
-			formdata.pending = 0
-		}
-
+  
+	  if (formdata.suprvisor_id || formdata.servicep_id) {
+		formdata.pending = 4;
+	  } else {
+		formdata.pending = 0;
+	  }
+  
 	  const lastOrder = await OrderModel.findOne({
-		order: [['id', 'DESC']]
+		order: [['id', 'DESC']],
+		transaction
 	  });
   
 	  formdata.order_no = lastOrder ? parseInt(lastOrder.order_no) + 1 : 1;
 	  formdata.order_no = formdata.order_no.toString().padStart(4, '0');
 	  formdata.cust_id = userId;
-
+  
 	  if (formdata?.serviceDateTime) {
-		const dateTime = new Date(formdata.serviceDateTime)
-		const bookdate = dateTime.toISOString().split('T')[0]
-		const booktime = dateTime.toTimeString().slice(0, 5)
-		formdata.bookdate = bookdate
-		formdata.booktime = booktime
-	}
-
-  
-	  const data = await OrderModel.create(formdata);
-  
-	  if (!data) {
-		return res.status(400).json({ error: true, message: "Order not placed! Try again" });
+		const [bookdate, booktime] =  formdata.serviceDateTime.split('T');
+		formdata.bookdate = bookdate;
+		formdata.booktime = booktime;
 	  }
   
-	  res.status(200).json({ status: true, message: "Successfully ordered", data: data });
+	  const data = await OrderModel.create(formdata, { transaction });
+  
+	  if (!data) {
+		await transaction.rollback();
+		return res.status(202).json({ status: false, message: "Order not placed! Try again" });
+	  }
+  
+	  const allot_time_range = formdata.allot_time_range;
+	  const serProvider = await ServiceProviderModel.findOne({
+		where: { name: formdata.servicep_id },
+		transaction
+	  });
+  
+	  if (!serProvider) {
+		await transaction.rollback();
+		return res.status(202).json({ status: false, message: 'Service Provider not found!' });
+	  }
+  
+	  const AllotData = {
+		date: formdata.bookdate,
+		[allot_time_range]: formdata.service_name,
+		emp_id: serProvider.id,
+	  };
+  
+	  const existingAvailability = await Availability.findOne({
+		where: {
+		  date: formdata.bookdate,
+		  emp_id: serProvider.id,
+		},
+		transaction
+	  });
+  
+	  // Check if the record exists and if the dynamic field already has a value
+	  if (existingAvailability) {
+		if (existingAvailability[allot_time_range]) {
+		  await transaction.rollback();
+		  return res.status(202).json({ status: false,
+			message: 'Already assigned to someone at this time range.',
+		  });
+		} else {
+		  await existingAvailability.update({
+			[allot_time_range]: formdata.service_name,
+		  }, { transaction });
+  
+		  await transaction.commit();
+		  return res.status(200).json({ status: true, message: 'Availability updated successfully.' });
+		}
+	  } else {
+		await Availability.create(AllotData, { transaction });
+		await transaction.commit();
+		return res.status(200).json({ status: true, message: 'Availability created successfully.' });
+	  }
 	} catch (error) {
-	  res.status(500).json(error);
+	  await transaction.rollback(); // Rollback transaction in case of error
+	  res.status(500).json({ error: true, message: error.message });
 	}
   };
+  
   
 const OrderComplain = async (req, res) => {
 	try {
@@ -350,40 +400,87 @@ const OrderAssing = async (req, res) => {
 }
 
 const GetOrderAssing = async (req, res) => {
-	try {
-		const serPID = req.params.id
-		const isServiceProvider = await ServiceProviderModel.findOne({
-			where: {
-				id: serPID
-			}
-		});
-		if (! isServiceProvider) {
-			return res.status(400).json({error: true, message: 'Updation Failed ! Try again'})
-		}
+    const transaction = await sequelize.transaction();
 
-		const orders = await OrderModel.findAll({
-			include: [{
-				model: NewCustomerModel,
-				attributes: ['name', 'email', 'mobileno'],
-				include: {
-					model: CustomerModel,
-					attributes: ['age', 'address', 'member_id'],
-				}
-			}],
-			where: {
-				servicep_id: isServiceProvider.id
-			},
-			order: [
-				['id', 'DESC']
-			]
-		});
+    try {
+        const order_no = req.params.order_no;
+        const data = req.body;
 
-		res.status(200).json({status: 200, data: orders})
+        // Update the order with the provided data
+        const [isUpdated] = await OrderModel.update(data, {
+            where: { order_no: order_no },
+            transaction,
+        });
 
-	} catch (error) {
-		res.status(200).json("Internal Server Error");
-	}
-}
+        if (!isUpdated) {
+            await transaction.rollback();
+            return res.status(202).json({ error: true, message: 'Assign Failed! Try again' });
+        }
+
+        // Fetch the updated order details
+        const updatedOrder = await OrderModel.findOne({
+            where: { order_no: order_no },
+            transaction,
+        });
+
+        if (!updatedOrder) {
+            await transaction.rollback();
+            return res.status(202).json({ error: true, message: 'Order not found!' });
+        }
+
+        const allot_time_range = updatedOrder.allot_time_range;
+        const serProvider = await ServiceProviderModel.findOne({
+            where: { name: data.servicep_id },
+            transaction,
+        });
+
+        if (!serProvider) {
+            await transaction.rollback();
+            return res.status(202).json({ error: true, message: 'Service Provider not found!' });
+        }
+
+        const AllotData = {
+            date: updatedOrder.bookdate,
+            [allot_time_range]: updatedOrder.service_name,
+            emp_id: serProvider.id,
+        };
+
+        const existingAvailability = await Availability.findOne({
+            where: {
+                date: updatedOrder.bookdate,
+                emp_id: serProvider.id,
+            },
+            transaction,
+        });
+
+        // Check if the record exists and if the dynamic field already has a value
+        if (existingAvailability) {
+            if (existingAvailability[allot_time_range]) {
+                await transaction.rollback();
+                return res.status(202).json({
+                    message: 'Already assigned to someone at this time range.',
+                });
+            } else {
+                await existingAvailability.update({
+                    [allot_time_range]: updatedOrder.service_name,
+                }, { transaction });
+
+                await transaction.commit();
+                return res.status(200).json({ status: true, message: 'Availability updated successfully.' });
+            }
+        } else {
+            const newAvailability = await Availability.create(AllotData, { transaction });
+            await transaction.commit();
+            return res.status(200).json({ message: 'Availability created successfully.' });
+        }
+
+    } catch (error) {
+        await transaction.rollback();
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+};
+
 
 const GetOrderAssingwithSupervisor = async (req, res) => {
 	try {
