@@ -15,7 +15,9 @@ const {
 	GetOrderAssingwithStatus,
     GetOrderAssingwithSupervisor,
 	GetTotalSummary,
-	GetTimeSlot
+	GetTimeSlot,
+	GetOrderAssingServiceProvider,
+	AddOrderCustomer
 } = require("../../Controllers/ordercontroller/ordercontrollers");
 
 const router = require("express").Router();
@@ -39,5 +41,7 @@ router.get("/getall/supervisor/:id", GetOrderAssingwithSupervisor)
 router.get('/getall/:sup_id/:status_id', GetOrderAssingwithStatus)
 router.get("/filter-order", GetTotalSummary)
 router.get("/time-slot", GetTimeSlot)
+router.get("/getall-service-provider/:id", GetOrderAssingServiceProvider)
+router.post("/add-customer-order", AddOrderCustomer)
 
 module.exports = router;

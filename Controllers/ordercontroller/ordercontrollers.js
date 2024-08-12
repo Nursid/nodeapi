@@ -398,6 +398,37 @@ const OrderAssing = async (req, res) => {
 		res.status(200).json("Internal Server Error");
 	}
 }
+const AddOrderCustomer = async (req, res) => {
+	try {
+	  
+	  const formdata = req.body;
+  
+	  const isCustomer = await NewCustomerModel.findOne({
+		where: { mobileno: formdata.mobile },
+	  });
+  
+	  if (!isCustomer) {
+		return res.status(201).json({ error: true, message: 'User Not Found!' });
+	  }
+
+	  const lastOrder = await OrderModel.findOne({
+		order: [['id', 'DESC']]
+	  });
+  
+	  formdata.order_no = lastOrder ? parseInt(lastOrder.order_no) + 1 : 1;
+	  formdata.order_no = formdata.order_no.toString().padStart(4, '0');
+  
+	  await OrderModel.create(formdata);
+  
+	  return res.status(200).json({ status: true, message: "Order Created Successfully!" });
+	} catch (error) {
+	  console.error("Error in AddOrderCustomer:", error);
+	  return res.status(500).json({ error: true, message: "Internal Server Error" });
+	}
+  }
+  
+
+
 
 const GetOrderAssing = async (req, res) => {
     const transaction = await sequelize.transaction();
@@ -481,6 +512,43 @@ const GetOrderAssing = async (req, res) => {
     }
 };
 
+const GetOrderAssingServiceProvider = async (req, res) => {
+	const serPID = req.params.id
+		console.log("serPID---",serPID)
+	try {
+		
+		const isServiceProvider = await ServiceProviderModel.findOne({
+			where: {
+				id: serPID
+			}
+		});
+		if (! isServiceProvider) {
+			return res.status(400).json({error: true, message: 'Updation Failed ! Try again'})
+		}
+		
+		const orders = await OrderModel.findAll({
+			include: [{
+				model: NewCustomerModel,
+				attributes: ['name', 'email', 'mobileno'],
+				include: {
+					model: CustomerModel,
+					attributes: ['age', 'address', 'member_id'],
+				}
+			}],
+			where: {
+				servicep_id: isServiceProvider.name
+			},
+			order: [
+				['id', 'DESC']
+			]
+		});
+
+		res.status(200).json({status: 200, data: orders})
+
+	} catch (error) {
+		res.status(200).json("Internal Server Error");
+	}
+}
 
 const GetOrderAssingwithSupervisor = async (req, res) => {
 	try {
@@ -665,5 +733,8 @@ module.exports = {
 	GetOrderAssingwithSupervisor,
 	GetTotalSummary,
 	GetTimeSlot,
-	GetTotalSummary
+	GetTotalSummary,
+	GetOrderAssingServiceProvider,
+	AddOrderCustomer,
+	AddOrderCustomer
 }
