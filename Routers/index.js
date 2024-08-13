@@ -12,7 +12,7 @@ router.post("/edit-balance/:id",AccountController.EditBalnace);
 /*  Availability API */
 
 router.post("/listing-availability",AvailabilityController.GetAllAvailability )
-router.post("/add-availability",AvailabilityController.AddAvailability );
+router.post("/add-leave",AvailabilityController.AddLeave );
 router.post("/assign-availability/:mobile_no/:date",AvailabilityController.AssignAvailability);
 
 
