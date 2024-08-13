@@ -13,55 +13,29 @@ const GetAllAvailability = async (req, res) => {
             // Format the date to match the format used in your database (e.g., 'YYYY-MM-DD')
             filterDate = today.toISOString().split('T')[0];
         }
-        // Fetch availabilities and employees in parallel
-        // const [availabilities, employees] = await Promise.all([
-        //     AvailabilityModel.findAll({
-        //         where: { date: filterDate }
-        //     }),
-        //     ServiceProvider.findAll({
-        //         attributes: ['id', 'name', 'provider_type'],
-        //         where: { block_id: true }
-        //     })
-        // ]);
+       
 
-        const availabilities = await AvailabilityModel.findAll({
-            where: { date: filterDate }
-        })
-        const employees = await ServiceProvider.findAll({
+        const providersWithAvailabilities = await ServiceProvider.findAll({
             attributes: ['id', 'name', 'provider_type'],
-            where: { block_id: true }
-        })
-
-        // Combine data
-        // const combinedData = employees.map(employee => {
-        //     const matchingAvailability = availabilities.find(
-        //         available => parseInt(available.emp_id, 10) === parseInt(employee.id, 10)
-        //     );
-
-        //     return matchingAvailability
-        //         ? { id: employee.id, name: employee.name, ...matchingAvailability.dataValues, provider_type: employee.provider_type, "01:00-01:30": 'Lunch' }
-        //         : { id: employee.id, name: employee.name, provider_type: employee.provider_type, "01:00-01:30": 'Lunch'  };
-        // });
-
-        const combinedData = employees.map((employee) => {
-            const matchingAttendance = availabilities.find(available => 
-                parseInt(available.emp_id, 10) === parseInt(employee.id, 10)
-              );
-        
-            if (matchingAttendance) {
-                return { id: employee.id, name: employee.name, ...matchingAttendance.dataValues, provider_type: employee.provider_type, "01:00-01:30": 'Lunch'  };
-            } else {
-                return { id: employee.id, name: employee.name, provider_type: employee.provider_type, "01:00-01:30": 'Lunch'  };
-            }
+            where: { block_id: true }, // Filter on ServiceProvider
+            include: [{
+                model: AvailabilityModel,
+                where: { date: filterDate }, // Optional: Filter on AvailabilityModel
+                required: false, // This ensures a LEFT JOIN
+            }]
         });
+        
+    
+       
+      
 
         // Check if combinedData is empty
-        if (combinedData.length === 0) {
+        if (providersWithAvailabilities.length === 0) {
             return res.status(200).json({ status: false, message: "User Not Found!" });
         }
 
         // Respond with combined data
-        res.status(200).json({ status: true, data: combinedData });
+        res.status(200).json({ status: true, data: providersWithAvailabilities });
 
     } catch (error) {
         res.status(500).json({ error });

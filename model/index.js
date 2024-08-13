@@ -85,6 +85,10 @@ db.Empservices.belongsTo(db.EmployeeModel, { foreignKey: 'mobile_no', targetKey:
 db.ServiceProviderModel.hasMany(db.SpServices, { foreignKey: 'mobile_no', sourceKey: 'mobile_no' });
 db.SpServices.belongsTo(db.ServiceProviderModel, { foreignKey: 'mobile_no', targetKey: 'mobile_no' });
 
+
+db.ServiceProviderModel.hasMany(db.Availability, { foreignKey: 'emp_id' });
+db.Availability.belongsTo(db.ServiceProviderModel, { foreignKey: 'emp_id' });
+
 // db.NewCustomerModel.hasMany(db.CustomerModel,{foreignKey : 'user_id'});
 
 
