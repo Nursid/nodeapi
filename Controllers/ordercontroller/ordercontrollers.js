@@ -80,8 +80,15 @@ const GetOrderNow = async (req, res) => {
 		transaction
 	  });
   
-	  formdata.order_no = lastOrder ? parseInt(lastOrder.order_no) + 1 : 1;
-	  formdata.order_no = formdata.order_no.toString().padStart(4, '0');
+	//   formdata.order_no = lastOrder ? parseInt(lastOrder.order_no) + 1 : 1;
+	//   formdata.order_no = formdata.order_no.toString().padStart(4, '0');
+
+	  const lastOrderNumber = lastOrder ? parseInt(lastOrder.order_no, 10) : 0;
+	  const nextOrderNumber = lastOrderNumber + 1;
+
+	const formattedOrderNumber = nextOrderNumber.toString().padStart(5, '0');
+	formdata.order_no = formattedOrderNumber
+
 	  formdata.cust_id = userId;
   
 	  if (formdata?.serviceDateTime) {
@@ -415,9 +422,16 @@ const AddOrderCustomer = async (req, res) => {
 		order: [['id', 'DESC']]
 	  });
   
-	  formdata.order_no = lastOrder ? parseInt(lastOrder.order_no) + 1 : 1;
-	  formdata.order_no = formdata.order_no.toString().padStart(4, '0');
-  
+	//   formdata.order_no = lastOrder ? parseInt(lastOrder.order_no) + 1 : 1;
+	//   formdata.order_no = formdata.order_no.toString().padStart(4, '0');
+
+	  const lastOrderNumber = lastOrder ? parseInt(lastOrder.order_no, 10) : 0;
+	  const nextOrderNumber = lastOrderNumber + 1;
+
+// Convert to string and pad with leading zeros to 5 digits
+	const formattedOrderNumber = nextOrderNumber.toString().padStart(5, '0');
+	formdata.order_no = formattedOrderNumber
+
 	  await OrderModel.create(formdata);
   
 	  return res.status(200).json({ status: true, message: "Order Created Successfully!" });
