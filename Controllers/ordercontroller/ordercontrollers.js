@@ -117,7 +117,7 @@ const GetOrderNow = async (req, res) => {
   
 	  const AllotData = {
 		date: formdata.bookdate,
-		[allot_time_range]: formdata.service_name,
+		[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
 		emp_id: serProvider.id,
 	  };
   
@@ -137,9 +137,10 @@ const GetOrderNow = async (req, res) => {
 			message: 'Already assigned to someone at this time range.',
 		  });
 		} else {
-		  await existingAvailability.update({
-			[allot_time_range]: formdata.service_name,
-		  }, { transaction });
+
+		await existingAvailability.update({
+			[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
+			}, { transaction });
   
 		  await transaction.commit();
 		  return res.status(200).json({ status: true, message: 'Availability updated successfully.' });
@@ -422,9 +423,6 @@ const AddOrderCustomer = async (req, res) => {
 		order: [['id', 'DESC']]
 	  });
   
-	//   formdata.order_no = lastOrder ? parseInt(lastOrder.order_no) + 1 : 1;
-	//   formdata.order_no = formdata.order_no.toString().padStart(4, '0');
-
 	  const lastOrderNumber = lastOrder ? parseInt(lastOrder.order_no, 10) : 0;
 	  const nextOrderNumber = lastOrderNumber + 1;
 
@@ -486,7 +484,7 @@ const GetOrderAssing = async (req, res) => {
 
         const AllotData = {
             date: updatedOrder.bookdate,
-            [allot_time_range]: updatedOrder.service_name,
+            [allot_time_range]: `${updatedOrder.service_name}-${order_no}`,
             emp_id: serProvider.id,
         };
 
@@ -507,7 +505,7 @@ const GetOrderAssing = async (req, res) => {
                 });
             } else {
                 await existingAvailability.update({
-                    [allot_time_range]: updatedOrder.service_name,
+                    [allot_time_range]: `${updatedOrder.service_name}-${order_no}`,
                 }, { transaction });
 
                 await transaction.commit();
@@ -528,9 +526,7 @@ const GetOrderAssing = async (req, res) => {
 
 const GetOrderAssingServiceProvider = async (req, res) => {
 	const serPID = req.params.id
-		console.log("serPID---",serPID)
 	try {
-		
 		const isServiceProvider = await ServiceProviderModel.findOne({
 			where: {
 				id: serPID
@@ -569,7 +565,6 @@ const GetOrderAssingwithSupervisor = async (req, res) => {
 		const supvisorID = req.params.id
 		const status_id = req.query.status_id || undefined;
 
-
 		const isSupervisor = await EmployeeModel.findOne({
 			where: {
 				id: supvisorID
@@ -578,7 +573,6 @@ const GetOrderAssingwithSupervisor = async (req, res) => {
 		if (! isSupervisor) {
 			return res.status(200).json({status: false, message: 'User Not Found!'})
 		}
-
 
 		const whereConditions = {
 			suprvisor_id: isSupervisor.name
