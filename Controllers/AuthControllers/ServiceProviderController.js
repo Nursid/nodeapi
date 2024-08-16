@@ -3,9 +3,11 @@ const ServiceProviderModel = db.ServiceProviderModel;
 const SpServicesModel = db.SpServices
 const EmployeeModel = db.EmployeeModel
 const NewCustomerModel = db.NewCustomerModel
+const Availability = db.Availability
 const {isOptValid} = require("../utils");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
+const { Op } = require('sequelize');
 
 // Add the Service Provider
 const AddServiceProvider = async (req, res) => {
@@ -303,18 +305,47 @@ const BlockServiceProvider = async (req, res) => {
 };
 // get all the service provider
 const GetAllTheServiceProvider = async (req, res) => {
+	const data = req.query;
+
 	try {
+		
+		
+		
 		const result = await ServiceProviderModel.findAll({
 			include: [{	
-				model: SpServicesModel,
-				attributes: ['service_name'] 
+			  model: SpServicesModel,
+			  attributes: ['service_name'] 
 			}],
-			order:[['id','DESC']],
-		});
-		if (!result){
-			return res.status(400).json({error: true, message: "No Data Found"});
+			order: [['id', 'DESC']],
+		  });
+
+		  if (!data || !data.date || !data.time_range) {
+			return res.status(200).json({error: false, data: result});
 		}
-		res.status(200).json({error: false, data: result});
+		  
+		  const Available = await Availability.findAll({
+			attributes: ['emp_id'],
+			where: {
+			  date: data.date,
+			  [data.time_range]: {
+				[Op.ne]: null
+			  }
+			}
+		  });
+		  
+		  const availableEmpIds = Available.map(entry => entry.dataValues.emp_id);
+		  const serviceProvider = result
+				.filter(entry => entry.dataValues.block_id !== 1)
+				.map(entry => entry.dataValues);
+
+		
+		const filterData = serviceProvider.filter(item => !availableEmpIds.includes(item.id.toString()));
+	
+
+		if (filterData.length === 0){
+			return res.status(202).json({error: true, message: "No Data Found"});
+		}
+		res.status(200).json({error: false, data: filterData});
 	} catch (error) {
 		res.status(500).json({error});
 	}

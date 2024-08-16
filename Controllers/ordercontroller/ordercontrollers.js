@@ -56,7 +56,8 @@ const GetOrderNow = async (req, res) => {
 			user_id: newUser.id,
 			address: formdata.address,
 			land_mark: formdata.land_mark,
-			age: formdata.age
+			age: formdata.age,
+			mobile: formdata.mobile
 		  }, { transaction });
   
 		  userId = newUser.id;

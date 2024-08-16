@@ -246,8 +246,6 @@ const GetUpdateTheCustomer = async (req, res) => {
 			}
 		});
 
-		console.log(updatedCustomerRows)
-
 		if (!updatedCustomerRows) {
 			return res.status(200).json({status: false, message: "User Not Found!"});
 		}

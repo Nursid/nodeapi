@@ -13,11 +13,10 @@ const GetAllAvailability = async (req, res) => {
             // Format the date to match the format used in your database (e.g., 'YYYY-MM-DD')
             filterDate = today.toISOString().split('T')[0];
         }
-       
 
         const providersWithAvailabilities = await ServiceProvider.findAll({
             attributes: ['id', 'name', 'provider_type'],
-            where: { block_id: true }, // Filter on ServiceProvider
+            where: { block_id: false }, // Filter on ServiceProvider
             include: [{
                 model: AvailabilityModel,
                 where: { date: filterDate }, // Optional: Filter on AvailabilityModel
