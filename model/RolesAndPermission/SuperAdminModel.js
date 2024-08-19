@@ -118,6 +118,10 @@ module.exports = (sequelize) => {
       type: DataTypes.BOOLEAN,
       allowNull: true,
     },
+    OrderReports: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
     RolesAndPermission: {
       type: DataTypes.BOOLEAN,
       allowNull: true,
