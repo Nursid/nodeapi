@@ -15,7 +15,8 @@ const AddExpenseModel = db.AddExpenseModel
 const AccountModel = db.Account
 const TimeSlotModel = db.TimeSlotModel
 const Availability = db.Availability
-
+const moment = require('moment');
+const { date } = require("joi");
 
 const GetOrderNow = async (req, res) => {
 	const transaction = await sequelize.transaction();
@@ -439,10 +440,6 @@ const AddOrderCustomer = async (req, res) => {
 	  return res.status(500).json({ error: true, message: "Internal Server Error" });
 	}
   }
-  
-
-
-
 const GetOrderAssing = async (req, res) => {
     const transaction = await sequelize.transaction();
 
@@ -724,6 +721,65 @@ const GetTimeSlot = async (req, res) => {
 	}
 }
 
+const GetReports = async (req, res) => {
+    const type = req.params.type;
+	
+    let startDate = "", endDate = "";
+
+    const today = moment();
+
+    switch (parseInt(type)) {
+        case 1: // Today
+            startDate = today.startOf('day').toDate();
+            endDate = new Date();
+            break;
+        case 3: // This Month
+            startDate = today.startOf('month').toDate();
+            endDate = new Date();
+            break;
+        case 6: // Last 6 Months
+            startDate = today.subtract(6, 'months').startOf('month').toDate();
+            endDate = new Date();
+            break;
+		case 7: // This Week
+			startDate = today.startOf('week').toDate();
+			endDate = new Date();
+			break;
+        default:
+            startDate = new Date(0); // Earliest date possible
+            endDate = new Date(); // Current date
+            break;
+    }
+	
+    try {
+        const orders = await OrderModel.findAll({
+            include: {
+                model: NewCustomerModel,
+                attributes: ['name', 'email', 'mobileno'],
+                include: {
+                    model: CustomerModel,
+                    attributes: ['age', 'address', 'member_id'],
+                }
+            },
+            order: [['id', 'DESC']],
+            where: {
+                createdAt: {
+                    [Op.between]: [startDate, endDate]
+                }
+            }
+        });
+
+		if(!orders){
+			return res.status(202).json({status: false, data: []})
+		}
+
+        res.status(200).json({ status: 200, data: orders, startDate, endDate });
+
+    } catch (error) {
+        res.status(202).json({ error: "Internal Error" });
+    }
+}
+
 module.exports = {
 	GetAllOrders,
 	GetOrderNow,
@@ -745,5 +801,6 @@ module.exports = {
 	GetTotalSummary,
 	GetOrderAssingServiceProvider,
 	AddOrderCustomer,
-	AddOrderCustomer
+	AddOrderCustomer,
+	GetReports
 }

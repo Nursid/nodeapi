@@ -17,7 +17,8 @@ const {
 	GetTotalSummary,
 	GetTimeSlot,
 	GetOrderAssingServiceProvider,
-	AddOrderCustomer
+	AddOrderCustomer,
+	GetReports
 } = require("../../Controllers/ordercontroller/ordercontrollers");
 
 const router = require("express").Router();
@@ -43,5 +44,8 @@ router.get("/filter-order", GetTotalSummary)
 router.get("/time-slot", GetTimeSlot)
 router.get("/getall-service-provider/:id", GetOrderAssingServiceProvider)
 router.post("/add-customer-order", AddOrderCustomer)
+
+// report API 
+router.get("/reports/:type", GetReports)
 
 module.exports = router;
