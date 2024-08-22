@@ -260,11 +260,15 @@ const GetAllOrders = async (req, res) => {
 				attributes: ['name', 'email', 'mobileno'],
 				include: {
 					model: CustomerModel,
-					attributes: ['age', 'address', 'member_id'],
+					attributes: [ 'gender', 'age', 'address', 'land_mark', 'location', 'tel_no', 'office_no', 'alternate_no', 'aadhar_no', 'occupation', 'designation', 'own_house', 'dob', 'doa', 'spouse_name', 'spouse_name1', 'spouse_dob1', 'spouse_name2', 'spouse_dob2', 'spouse_dob', 'image','service', 'service1', 'service2', 'service3', 'service4', 'service5', 'username', 'reference', 'familyMember', 'membership', 'is_approved', 'member_id', 'is_block', 'todate', 'validtodate', 'createdAt',
+					],
 				}
 			},
 			order: [['id', 'DESC']]
 		});
+
+
+		
 
 		res.status(200).json({ status: 200, data: orders });
 	} catch (error) {

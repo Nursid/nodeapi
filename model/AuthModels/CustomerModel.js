@@ -120,27 +120,27 @@ module.exports = (sequelize) => {
             allowNull: true
           },
           service: {
-            type: DataTypes.BIGINT,
+            type: DataTypes.STRING,
             allowNull: true
           },
           service1: {
-            type: DataTypes.BIGINT,
+            type: DataTypes.STRING,
             allowNull: true
           },
           service2: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             allowNull: true
           },
           service3: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.STRING,
             allowNull: true
           },
           service4: {
-            type: DataTypes.BIGINT,
+            type: DataTypes.STRING,
             allowNull: true
           },
           service5: {
-            type: DataTypes.BOOLEAN,
+            type: DataTypes.STRING,
             allowNull: true
           },
           username: {
