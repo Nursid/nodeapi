@@ -16,7 +16,6 @@ const AccountModel = db.Account
 const TimeSlotModel = db.TimeSlotModel
 const Availability = db.Availability
 const moment = require('moment');
-const { date } = require("joi");
 
 const GetOrderNow = async (req, res) => {
 	const transaction = await sequelize.transaction();
@@ -157,8 +156,6 @@ const GetOrderNow = async (req, res) => {
 	  res.status(500).json({ error: true, message: error.message });
 	}
   };
-  
-  
 const OrderComplain = async (req, res) => {
 	try {
 		const formdata = req.body;
@@ -738,8 +735,8 @@ const GetReports = async (req, res) => {
             endDate = new Date();
             break;
         case 6: // Last 6 Months
-            startDate = today.subtract(6, 'months').startOf('month').toDate();
-            endDate = new Date();
+            startDate = req.body?.from;
+            endDate = req.body?.to;
             break;
 		case 7: // This Week
 			startDate = today.startOf('week').toDate();
@@ -773,7 +770,7 @@ const GetReports = async (req, res) => {
 			return res.status(202).json({status: false, data: []})
 		}
 
-        res.status(200).json({ status: 200, data: orders, startDate, endDate });
+        res.status(200).json({ status: 200, data: orders });
 
     } catch (error) {
         res.status(202).json({ error: "Internal Error" });

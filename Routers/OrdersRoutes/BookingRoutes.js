@@ -46,6 +46,6 @@ router.get("/getall-service-provider/:id", GetOrderAssingServiceProvider)
 router.post("/add-customer-order", AddOrderCustomer)
 
 // report API 
-router.get("/reports/:type", GetReports)
+router.post("/reports/:type", GetReports)
 
 module.exports = router;
