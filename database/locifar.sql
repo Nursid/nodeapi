@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306:3306
--- Generation Time: Aug 22, 2024 at 08:38 PM
+-- Generation Time: Aug 24, 2024 at 05:09 PM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.6
 
@@ -1374,7 +1374,7 @@ INSERT INTO `customers` (`id`, `user_id`, `gender`, `age`, `address`, `land_mark
 (625, 962, 'Male', 23, 'Bihar ', '', '', '7267982505', 0, '', 0, 873276476873, '', '', 'undefined', '0000-00-00 00:00:00', '', NULL, NULL, NULL, NULL, NULL, NULL, 'Screenshot 2024-08-14 134653.png', 0, 0, NULL, 0, 'undefined', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '', '', 'new_member', NULL, '', 0, NULL, NULL, '2024-08-15 19:38:21', '2024-08-16 17:19:24'),
 (626, 963, NULL, 21, 'sector 25', NULL, NULL, '8723867264', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-17 16:36:17', '2024-08-17 16:36:17'),
 (627, 964, 'Male', 21, 'sector 25', 'hashtag', 'Lucknow', '9387598749', 9687676876, '9873298743', 7868768767, 763286432423, 'CA', 'IT', 'Own House', '2024-08-22 00:00:00', '2024-08-22', NULL, NULL, NULL, NULL, NULL, NULL, 'IMG_4305.JPG', 1000, 500, NULL, 0, 'Cash', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'Nursid ', '', 'new_member', NULL, 'HM20022', NULL, NULL, NULL, '2024-08-21 17:45:50', '2024-08-22 17:14:48'),
-(628, 965, 'Male', 21, 'Lucknow', 'sector 25', 'lucknow ', '8786378642', 7827364723, '9786237647', 7876432846, 762343264873, 'Python Developer', 'Software Developer ', 'own_house', '2001-01-22 00:00:00', '2024-08-22', NULL, 'spouse 1', '2024-08-23 00:00:00', 'spouse 2', '2024-08-24 00:00:00', NULL, 'IMG_4282.JPG', 1000, 500, NULL, 0, 'Cash', NULL, '0', '0', '0', '0', '0', NULL, NULL, '5', 'new_member', NULL, 'HM20023', NULL, NULL, NULL, '2024-08-22 18:29:23', '2024-08-22 18:29:23');
+(628, 965, 'Male', 21, 'Lucknow', 'sector 25', 'lucknow ', '8786378642', 7827364723, '9786237647', 7876432846, 762343264873, 'Python Developer', 'Software Developer ', 'Rented House', '2001-01-22 00:00:00', '2024-08-22', NULL, 'spouse 1', '2024-08-23 00:00:00', 'spouse 2', '2024-08-24 00:00:00', NULL, 'IMG_4282.JPG', 1000, 300, 400, 300, 'Cash', NULL, 'Car Washing ', 'Car Service', 'Fridge', 'Dog Walk', 'Test', NULL, 'Nursid', '5', 'new_member', NULL, 'HM20023', NULL, NULL, NULL, '2024-08-22 18:29:23', '2024-08-23 18:27:20');
 
 -- --------------------------------------------------------
 
@@ -1874,7 +1874,8 @@ INSERT INTO `monthlyservices` (`id`, `cust_name`, `mobile_no`, `monthlyServices`
 (10, 'Basant ', '9956700001', 'Service A', 'Car Washing', 'Daily', '2:00 PM', '1000.00', '2024-03-12 18:31:00', '1', 'this is for testing', '2024-03-11 18:32:44', '2024-03-11 18:42:32'),
 (11, 'Sonu', '9956700001', 'Service C', 'Car Washing', 'Daily', '1:00 PM', '1200.00', '2024-06-09 20:10:00', '1', 'this is for testing ', '2024-03-11 18:43:47', '2024-06-09 20:06:50'),
 (12, 'Samad', '9956700001', 'Service C', 'Car Washing', 'Daily', '3:00 PM', '1987.00', '2024-06-08 20:07:00', '1', 'he is taking extra service', '2024-03-11 18:45:46', '2024-06-09 20:06:06'),
-(13, 'Ram', '7290900835', 'Service B', 'Car Washing', 'After', '12:00 PM', '2000.00', '2024-07-14 18:28:00', '954', 'this is for testing ', '2024-07-12 16:29:06', '2024-07-12 16:29:06');
+(13, 'Ram', '7290900835', 'Service B', 'Car Washing', 'After', '12:00 PM', '2000.00', '2024-07-14 18:28:00', '954', 'this is for testing ', '2024-07-12 16:29:06', '2024-07-12 16:29:06'),
+(14, 'Nursid ', '7081002501', 'Service B', 'Car Service', 'After', '1:00 PM', '2000.00', '2024-08-23 18:29:00', '941', 'this is for testing', '2024-08-23 18:30:37', '2024-08-23 18:30:59');
 
 -- --------------------------------------------------------
 
@@ -2978,7 +2979,7 @@ INSERT INTO `orders` (`id`, `order_no`, `user_type`, `booktime`, `bookdate`, `se
 (29, '00021', 'Booking', '21:59', '2024-08-18', 'Dog Walk', 'Lucknow', NULL, NULL, NULL, '', '941', NULL, NULL, NULL, NULL, '10:30-11:00', 'Asta', NULL, ' sujeet yadaw', '', 'Cash', '0', '1000', '1000', NULL, NULL, 1, 3, NULL, 'this is for test', NULL, NULL, NULL, 'order successfully received ', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-17 16:30:25', '2024-08-17 16:32:36'),
 (30, '00022', 'Urgent', '22:05', '2024-08-17', 'Fridge', 'lucknow ', NULL, NULL, NULL, 'i need fridge machenics', '963', NULL, NULL, NULL, NULL, '09:00-09:30', 'MR. UMESH SHUKLA', NULL, 'Sonu', '', 'Online', '0', '2000', '2000', NULL, NULL, 1, 3, NULL, 'i have done this service', NULL, NULL, NULL, 'successfully completed this order ', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-17 16:36:17', '2024-08-17 16:38:49'),
 (31, '00023', 'Urgent', '23:15', '2024-08-21', 'washing machine ', 'Lucknow', NULL, NULL, NULL, 'this is for testing ', '964', NULL, NULL, NULL, NULL, '10:00-10:30', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', '4 hours', 'Online', '0', '1000', '1000', NULL, NULL, 1, 3, NULL, NULL, NULL, NULL, NULL, 'order successfully completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-21 17:45:51', '2024-08-22 17:15:44'),
-(32, '00024', 'Urgent', '00:00', '2024-08-23', 'washing machine ', 'lucknow ', NULL, NULL, NULL, 'this is for testing ', '965', NULL, NULL, NULL, NULL, '09:30-10:00', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', '4 hours', 'Cash', '0', '1000', '1000', NULL, NULL, 1, 3, NULL, NULL, NULL, NULL, NULL, 'order successfully', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-22 18:30:32', '2024-08-22 18:31:12');
+(32, '00024', 'Urgent', '03:02', '2020-08-23', 'washing machine ', 'lucknow ', NULL, NULL, '', 'this is for testing ', '965', NULL, NULL, NULL, NULL, '09:30-10:00', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', '4 hours', 'Cash', '0', '1000', '1000', NULL, NULL, 1, 3, NULL, NULL, NULL, NULL, NULL, 'order successfully', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-22 18:30:32', '2024-08-23 18:43:45');
 
 -- --------------------------------------------------------
 
@@ -3145,7 +3146,8 @@ INSERT INTO `otps` (`id`, `otp`, `otpid`, `otpExpireTime`, `createdAt`, `updated
 (100, '6639', '1|1|32281416082401132006288720604', '2024-08-15 19:44:00', '2024-08-15 19:43:20', '2024-08-15 19:43:20'),
 (101, '3250', '4', '2024-08-17 16:22:10', '2024-08-17 16:21:30', '2024-08-17 16:21:30'),
 (102, '9724', '1|1|32281417082410070624587980784', '2024-08-17 16:37:48', '2024-08-17 16:37:08', '2024-08-17 16:37:08'),
-(103, '7735', '1|1|32281419082401173963225010554', '2024-08-18 19:48:21', '2024-08-18 19:47:41', '2024-08-18 19:47:41');
+(103, '7735', '1|1|32281419082401173963225010554', '2024-08-18 19:48:21', '2024-08-18 19:47:41', '2024-08-18 19:47:41'),
+(104, '8496', '1|1|32281423082410555684725010819', '2024-08-23 17:26:39', '2024-08-23 17:25:59', '2024-08-23 17:25:59');
 
 -- --------------------------------------------------------
 
@@ -4088,7 +4090,7 @@ ALTER TABLE `members`
 -- AUTO_INCREMENT for table `monthlyservices`
 --
 ALTER TABLE `monthlyservices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `new_customers`
@@ -4124,7 +4126,7 @@ ALTER TABLE `order_process`
 -- AUTO_INCREMENT for table `otps`
 --
 ALTER TABLE `otps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
 
 --
 -- AUTO_INCREMENT for table `our_customers`

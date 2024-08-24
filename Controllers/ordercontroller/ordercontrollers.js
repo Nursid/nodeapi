@@ -250,7 +250,6 @@ const GetDeleteByID = async (req, res) => {
 		res.status(500).json({ status: 500, error: "Internal Server Error" });
 	}
 }
-
 const GetAllOrders = async (req, res) => {
 	try {
 
