@@ -12,7 +12,7 @@ const AddMonthlyService = async (req, res) => {
 			}
 		});
 		if (! UserId) {
-			return res.status(404).json({status: 404, message: "This Customer not Exist"});
+			return res.status(201).json({status: false, message: "This Customer not Exist"});
 		}
 		data.user_id = UserId.id
 		// Example code to create a new record in MonthlyServiceModel:
@@ -20,9 +20,9 @@ const AddMonthlyService = async (req, res) => {
 			...data
 		});
 		if (! newData) {
-			return res.status(404).json({status: 404, message: "Invalid error"});
+			return res.status(201).json({status: false, message: "Invalid error"});
 		}
-		return res.status(200).json({status: 200, message: newData,message:"Monthly Service Added!"});
+		return res.status(200).json({status: true, message: newData, message:"Monthly Service Added!"});
 	} catch (error) { // If any error occurs, respond with an error message
 		return res.status(500).json({error: true, message: "Internal Server Error"});
 	}
