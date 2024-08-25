@@ -28,13 +28,13 @@ const complain = require("./Routers/ComplainRouter")
 const Attendance = require("./Routers/AttendanceRouters")
 const app = express();
 const route= require("./Routers/index")
-
+app.use(cors());
 app.use(express.json());
 
 const bodyParser = require('body-parser');
 
 app.use(bodyParser.json());
-app.use(cors());
+
 app.use(bodyParser.urlencoded({  
   extended: true
 }));
@@ -53,8 +53,6 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-app.use(cors());
 
 // Routes section
 const port = process.env.PORT || 5000;
