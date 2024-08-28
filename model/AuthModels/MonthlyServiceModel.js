@@ -19,6 +19,9 @@ const MonthlyServiceModel = sequelize.define('monthlyservices', {
     serviceServeType: {
       type: DataTypes.STRING
     },
+    service_provider: {
+      type: DataTypes.STRING
+    },
     selectedTimeSlot: {
       type: DataTypes.STRING
     },
