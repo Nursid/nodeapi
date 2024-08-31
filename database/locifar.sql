@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306:3306
--- Generation Time: Aug 24, 2024 at 05:09 PM
+-- Generation Time: Aug 31, 2024 at 12:28 PM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.6
 
@@ -1013,7 +1013,43 @@ INSERT INTO `availabilities` (`id`, `date`, `emp_id`, `09:00-09:30`, `09:30-10:0
 (36, '2024-08-18', '42', NULL, NULL, NULL, 'Dog Walk-00021', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-17 16:30:25', '2024-08-17 16:30:25'),
 (37, '2024-08-17', '47', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', '2024-08-17 16:36:17', '2024-08-17 16:47:27'),
 (38, '2024-08-21', '42', NULL, NULL, 'washing machine -00023', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-21 17:45:51', '2024-08-21 17:45:51'),
-(39, '2024-08-23', '42', NULL, 'washing machine -00024', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-22 18:30:32', '2024-08-22 18:30:32');
+(39, '2024-08-23', '42', NULL, 'washing machine -00024', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-22 18:30:32', '2024-08-22 18:30:32'),
+(40, '2024-08-25', '42', 'Fridge-00026', 'washing machine -00027', 'washing machine -00025', NULL, NULL, NULL, 'Fridge-00028', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-25 08:58:27', '2024-08-25 10:54:35'),
+(52, '2024-08-29', '47', NULL, NULL, 'Car Washing-MonthlyService-Shruti', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:00:30', '2024-08-28 20:00:30'),
+(53, '2024-09-05', '47', NULL, NULL, 'Car Washing-MonthlyService-Shruti', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:00:30', '2024-08-28 20:00:30'),
+(54, '2024-09-12', '47', NULL, NULL, 'Car Washing-MonthlyService-Shruti', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:00:30', '2024-08-28 20:00:30'),
+(55, '2024-09-19', '47', NULL, NULL, 'Car Washing-MonthlyService-Shruti', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:00:30', '2024-08-28 20:00:30'),
+(56, '2024-09-26', '47', NULL, NULL, 'Car Washing-MonthlyService-Shruti', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:00:30', '2024-08-28 20:00:30'),
+(57, '2024-08-29', '42', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', 'leave', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:02:50'),
+(58, '2024-08-30', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(59, '2024-08-31', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(60, '2024-09-01', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(61, '2024-09-02', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(62, '2024-09-03', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(63, '2024-09-04', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(64, '2024-09-05', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(65, '2024-09-06', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(66, '2024-09-07', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(67, '2024-09-08', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(68, '2024-09-09', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(69, '2024-09-10', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(70, '2024-09-11', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(71, '2024-09-12', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(72, '2024-09-13', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(73, '2024-09-14', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(74, '2024-09-15', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(75, '2024-09-16', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(76, '2024-09-17', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(77, '2024-09-18', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(78, '2024-09-19', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(79, '2024-09-20', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(80, '2024-09-21', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(81, '2024-09-22', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(82, '2024-09-23', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(83, '2024-09-24', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(84, '2024-09-25', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(85, '2024-09-26', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57'),
+(86, '2024-09-27', '42', NULL, 'Dog Walk-MonthlyService-Suraj', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 20:01:57', '2024-08-28 20:01:57');
 
 -- --------------------------------------------------------
 
@@ -1856,9 +1892,10 @@ CREATE TABLE `monthlyservices` (
   `monthlyServices` varchar(255) DEFAULT NULL,
   `serviceType` varchar(255) DEFAULT NULL,
   `serviceServeType` varchar(255) DEFAULT NULL,
+  `service_provider` varchar(255) DEFAULT NULL,
   `selectedTimeSlot` varchar(255) DEFAULT NULL,
   `serviceFees` decimal(10,2) DEFAULT NULL,
-  `feesPaidDateTime` datetime DEFAULT NULL,
+  `feesPaidDateTime` date DEFAULT NULL,
   `user_id` varchar(255) DEFAULT NULL,
   `specialInterest` varchar(255) DEFAULT NULL,
   `createdAt` datetime NOT NULL,
@@ -1869,13 +1906,17 @@ CREATE TABLE `monthlyservices` (
 -- Dumping data for table `monthlyservices`
 --
 
-INSERT INTO `monthlyservices` (`id`, `cust_name`, `mobile_no`, `monthlyServices`, `serviceType`, `serviceServeType`, `selectedTimeSlot`, `serviceFees`, `feesPaidDateTime`, `user_id`, `specialInterest`, `createdAt`, `updatedAt`) VALUES
-(7, 'RAM', '7081002501', 'Service C', 'Car Washing', 'After', '11:00 AM', '1000.00', '2024-03-09 18:13:00', '941', 'this is for testing', '2024-03-10 19:59:39', '2024-07-12 16:29:43'),
-(10, 'Basant ', '9956700001', 'Service A', 'Car Washing', 'Daily', '2:00 PM', '1000.00', '2024-03-12 18:31:00', '1', 'this is for testing', '2024-03-11 18:32:44', '2024-03-11 18:42:32'),
-(11, 'Sonu', '9956700001', 'Service C', 'Car Washing', 'Daily', '1:00 PM', '1200.00', '2024-06-09 20:10:00', '1', 'this is for testing ', '2024-03-11 18:43:47', '2024-06-09 20:06:50'),
-(12, 'Samad', '9956700001', 'Service C', 'Car Washing', 'Daily', '3:00 PM', '1987.00', '2024-06-08 20:07:00', '1', 'he is taking extra service', '2024-03-11 18:45:46', '2024-06-09 20:06:06'),
-(13, 'Ram', '7290900835', 'Service B', 'Car Washing', 'After', '12:00 PM', '2000.00', '2024-07-14 18:28:00', '954', 'this is for testing ', '2024-07-12 16:29:06', '2024-07-12 16:29:06'),
-(14, 'Nursid ', '7081002501', 'Service B', 'Car Service', 'After', '1:00 PM', '2000.00', '2024-08-23 18:29:00', '941', 'this is for testing', '2024-08-23 18:30:37', '2024-08-23 18:30:59');
+INSERT INTO `monthlyservices` (`id`, `cust_name`, `mobile_no`, `monthlyServices`, `serviceType`, `serviceServeType`, `service_provider`, `selectedTimeSlot`, `serviceFees`, `feesPaidDateTime`, `user_id`, `specialInterest`, `createdAt`, `updatedAt`) VALUES
+(7, 'RAM', '7081002501', 'Service C', 'Car Washing', 'After', NULL, '11:00 AM', '1000.00', '2024-03-09', '941', 'this is for testing', '2024-03-10 19:59:39', '2024-07-12 16:29:43'),
+(10, 'Basant ', '9956700001', 'Service A', 'Car Washing', 'Daily', NULL, '2:00 PM', '1000.00', '2024-03-12', '1', 'this is for testing', '2024-03-11 18:32:44', '2024-03-11 18:42:32'),
+(11, 'Sonu', '9956700001', 'Service C', 'Car Washing', 'Daily', NULL, '1:00 PM', '1200.00', '2024-06-09', '1', 'this is for testing ', '2024-03-11 18:43:47', '2024-06-09 20:06:50'),
+(12, 'Samad', '9956700001', 'Service C', 'Car Washing', 'Daily', NULL, '3:00 PM', '1987.00', '2024-06-08', '1', 'he is taking extra service', '2024-03-11 18:45:46', '2024-06-09 20:06:06'),
+(13, 'Ram', '7290900835', 'Service B', 'Lighting', 'After', NULL, '10:00-10:30', '2000.00', '2024-07-14', '954', 'this is for testing ', '2024-07-12 16:29:06', '2024-08-25 06:02:18'),
+(14, 'Nursid ', '7081002501', 'Service B', 'Car Service', 'After', NULL, '1:00 PM', '2000.00', '2024-08-23', '941', 'this is for testing', '2024-08-23 18:30:37', '2024-08-23 18:30:59'),
+(15, 'Basant ', '7081002501', 'Service A', 'Fridge', 'Daily', 'Styam', '10:30-11:00', '3242.00', '2024-08-25', '941', 'this is for testing ', '2024-08-25 05:56:34', '2024-08-28 18:57:16'),
+(16, 'test', '7081002501', '', 'Fridge', '7', ' sujeet yadaw', '10:00-10:30', '1000.00', '2024-08-29', '941', 'this is foe testing ', '2024-08-28 18:56:01', '2024-08-28 18:56:01'),
+(19, 'Shruti', '7290900835', NULL, 'Car Washing', 'Weekly', 'sonu', '10:00-10:30', '1987.00', '2024-08-29', NULL, 'he is taking extra service', '2024-08-28 20:00:30', '2024-08-28 20:00:30'),
+(20, 'Suraj', '7081002501', '', 'Dog Walk', 'Daily', ' sujeet yadaw', '09:30-10:00', '2000.00', '2024-08-29', NULL, 'i need a helper to walk my dog', '2024-08-28 20:01:57', '2024-08-28 20:01:57');
 
 -- --------------------------------------------------------
 
@@ -2979,7 +3020,12 @@ INSERT INTO `orders` (`id`, `order_no`, `user_type`, `booktime`, `bookdate`, `se
 (29, '00021', 'Booking', '21:59', '2024-08-18', 'Dog Walk', 'Lucknow', NULL, NULL, NULL, '', '941', NULL, NULL, NULL, NULL, '10:30-11:00', 'Asta', NULL, ' sujeet yadaw', '', 'Cash', '0', '1000', '1000', NULL, NULL, 1, 3, NULL, 'this is for test', NULL, NULL, NULL, 'order successfully received ', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-17 16:30:25', '2024-08-17 16:32:36'),
 (30, '00022', 'Urgent', '22:05', '2024-08-17', 'Fridge', 'lucknow ', NULL, NULL, NULL, 'i need fridge machenics', '963', NULL, NULL, NULL, NULL, '09:00-09:30', 'MR. UMESH SHUKLA', NULL, 'Sonu', '', 'Online', '0', '2000', '2000', NULL, NULL, 1, 3, NULL, 'i have done this service', NULL, NULL, NULL, 'successfully completed this order ', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-17 16:36:17', '2024-08-17 16:38:49'),
 (31, '00023', 'Urgent', '23:15', '2024-08-21', 'washing machine ', 'Lucknow', NULL, NULL, NULL, 'this is for testing ', '964', NULL, NULL, NULL, NULL, '10:00-10:30', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', '4 hours', 'Online', '0', '1000', '1000', NULL, NULL, 1, 3, NULL, NULL, NULL, NULL, NULL, 'order successfully completed', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-21 17:45:51', '2024-08-22 17:15:44'),
-(32, '00024', 'Urgent', '03:02', '2020-08-23', 'washing machine ', 'lucknow ', NULL, NULL, '', 'this is for testing ', '965', NULL, NULL, NULL, NULL, '09:30-10:00', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', '4 hours', 'Cash', '0', '1000', '1000', NULL, NULL, 1, 3, NULL, NULL, NULL, NULL, NULL, 'order successfully', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-22 18:30:32', '2024-08-23 18:43:45');
+(32, '00024', 'Urgent', '03:02', '2020-08-23', 'washing machine ', 'lucknow ', NULL, NULL, '', 'this is for testing ', '965', NULL, NULL, NULL, NULL, '09:30-10:00', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', '4 hours', 'Cash', '0', '1000', '1000', NULL, NULL, 1, 3, NULL, NULL, NULL, NULL, NULL, 'order successfully', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-22 18:30:32', '2024-08-23 18:43:45'),
+(33, '00025', 'Regular', '16:27', '2024-08-25', 'washing machine ', NULL, NULL, NULL, NULL, 'this is for testing', '941', NULL, NULL, NULL, NULL, '10:00-10:30', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', NULL, 'Online', '0', '2000', '2000', NULL, NULL, 1, 3, 'very Good service Provider', NULL, NULL, NULL, NULL, 'Order successfully completed ', NULL, NULL, NULL, NULL, NULL, NULL, 'polytechnoc', NULL, '2024-08-25 08:57:34', '2024-08-25 09:01:15'),
+(34, '00026', NULL, '16:02', '2024-08-25', 'Fridge', 'Lucknow', NULL, NULL, NULL, '', '941', NULL, NULL, NULL, NULL, '09:00-09:30', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', '', 'Cash', '0', '2000', '2000', NULL, NULL, 1, 3, NULL, NULL, NULL, NULL, NULL, 'Order completed ', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-25 10:34:03', '2024-08-25 10:42:26'),
+(35, '00027', 'Urgent', '16:23', '2024-08-25', 'washing machine ', 'Lucknow', NULL, NULL, NULL, '', '941', NULL, NULL, NULL, NULL, '09:30-10:00', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-25 10:53:50', '2024-08-25 10:53:50'),
+(36, '00028', 'Urgent', '16:24', '2024-08-25', 'Fridge', 'Lucknow', NULL, NULL, NULL, '', '941', NULL, NULL, NULL, NULL, '12:00-12:30', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-25 10:54:35', '2024-08-25 10:54:35'),
+(37, '00029', 'Urgent', '00:28', '2024-08-29', 'Gas stove/ cylinder/ burner service', 'Lucknow', NULL, NULL, NULL, '', '941', NULL, NULL, NULL, NULL, '10:30-11:00', 'MR. UMESH SHUKLA', NULL, ' sujeet yadaw', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-08-28 18:58:31', '2024-08-28 18:58:31');
 
 -- --------------------------------------------------------
 
@@ -3147,7 +3193,11 @@ INSERT INTO `otps` (`id`, `otp`, `otpid`, `otpExpireTime`, `createdAt`, `updated
 (101, '3250', '4', '2024-08-17 16:22:10', '2024-08-17 16:21:30', '2024-08-17 16:21:30'),
 (102, '9724', '1|1|32281417082410070624587980784', '2024-08-17 16:37:48', '2024-08-17 16:37:08', '2024-08-17 16:37:08'),
 (103, '7735', '1|1|32281419082401173963225010554', '2024-08-18 19:48:21', '2024-08-18 19:47:41', '2024-08-18 19:47:41'),
-(104, '8496', '1|1|32281423082410555684725010819', '2024-08-23 17:26:39', '2024-08-23 17:25:59', '2024-08-23 17:25:59');
+(104, '8496', '1|1|32281423082410555684725010819', '2024-08-23 17:26:39', '2024-08-23 17:25:59', '2024-08-23 17:25:59'),
+(105, '9541', '1|1|32281425082402263797525010467', '2024-08-25 08:57:20', '2024-08-25 08:56:40', '2024-08-25 08:56:40'),
+(106, '6408', '4', '2024-08-25 10:38:37', '2024-08-25 10:37:57', '2024-08-25 10:37:57'),
+(107, '5790', '4', '2024-08-25 10:45:50', '2024-08-25 10:45:10', '2024-08-25 10:45:10'),
+(108, '3757', '1|1|32281425082404160710088720220', '2024-08-25 10:46:49', '2024-08-25 10:46:09', '2024-08-25 10:46:09');
 
 -- --------------------------------------------------------
 
@@ -3380,17 +3430,17 @@ INSERT INTO `service_providers` (`id`, `name`, `first_name`, `last_name`, `usern
 (23, 'Sandeep Yadav', 'Sandeep ', 'Yadav ', 'Sandeepyadav', '9005664787', '875123942875', 'n/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Dhanuwa sand, Bhadeshwa, Lucknow', 'Dhanuwa sand, Bhadeshwa, Lucknow', 'N/A', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana , Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 1, 'Driver', 'Experienced Driver ', 'WhatsApp_Image_2019-05-18_at_13_04_58.jpeg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '0', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (24, 'Pradeep Kumar Chaudhary', 'Pradeep Kumar ', 'Chaudhary ', 'pradeepkumar ', '8090250772', '736576541414', 'n/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'L2nd, 302, Sec-G, LDA Colony, Kanpur Road Lucknow ', 'L2nd, 302, Sec-G, LDA Colony, Kanpur Road Lucknow ', 'N/A', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana , Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 1, 'Electrician', 'experienced Electrician  ', 'WhatsApp_Image_2019-05-18_at_13_11_33.jpeg', 'pradeep@123', NULL, NULL, NULL, NULL, NULL, NULL, 1, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (25, 'Ram Avadh ', 'Ram ', 'Avadh ', 'ramavadh ', '8127888858', '476371691446', 'n/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Shivbalak Purva , Ranipur , Kaji, Shrawastki', 'Sec-H, Ashiyana Colony Lucknow ', 'N/A', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana , Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 1, 'Electrician', 'Specialist in AC, Washing Machine , Friz  ', 'WhatsApp_Image_2019-05-18_at_13_06_26.jpeg', 'ramavadh@123', NULL, NULL, NULL, NULL, NULL, NULL, 1, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(26, 'Vishambhar Singh ', 'Vishmbhar ', 'Singh ', 'vishambharsingh ', '8400238445', '263097941668', 'n/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Dhanuwa sand , bhadeshwar, Lucknow ', 'Dhanuwa sand , bhadeshwar, Lucknow ', 'N/A', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana , Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Driver', 'Experienced Driver  ', 'WhatsApp_Image_2019-05-18_at_13_24_17.jpeg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '0', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
+(26, 'Vishambhar Singh ', 'Vishmbhar ', 'Singh ', 'vishambharsingh ', '8400238445', '263097941668', 'n/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Dhanuwa sand , bhadeshwar, Lucknow ', 'Dhanuwa sand , bhadeshwar, Lucknow ', 'N/A', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana , Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Driver', 'Experienced Driver  ', 'WhatsApp_Image_2019-05-18_at_13_24_17.jpeg', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, '0', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-08-25 10:31:44'),
 (27, 'Arvind Verma', 'Arvind ', 'Verma ', 'arvindverma ', '9919193720', '239331662443', 'n/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'l-185, Sec-L, LDA Colony Lucknow , ', 'l-185, Sec-L, LDA Colony Lucknow ', 'N/A', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana , Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Electrician', 'specialist in AC, Friz, Washing Machine  ', 'WhatsApp_Image_2019-05-18_at_13_31_07.jpeg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
-(28, 'Amit Gupta ', 'Amit ', 'Gupta ', '9305397491', '9305397491', '982589144296', 'n/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', '483, Kanpur Raod , Sec-I, LDA Colony Lucknow ', '483, Kanpur Raod , Sec-I, LDA Colony Lucknow ', 'N/A', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana , Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Driver', ' Driver ', 'driver_a5.jpg', '', 'picture', 'driver_a6.jpg', 'adhar  1', 'driver_ad3.jpg', 'adhar2', 'driver_adh3.jpg', 1, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-08-07 19:26:15'),
+(28, 'Amit Gupta ', 'Amit ', 'Gupta ', '9305397491', '9305397491', '982589144296', 'n/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', '483, Kanpur Raod , Sec-I, LDA Colony Lucknow ', '483, Kanpur Raod , Sec-I, LDA Colony Lucknow ', 'N/A', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana , Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Driver', ' Driver ', 'driver_a5.jpg', '', 'picture', 'driver_a6.jpg', 'adhar  1', 'driver_ad3.jpg', 'adhar2', 'driver_adh3.jpg', 0, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-08-25 10:31:25'),
 (30, 'Malkhan Singh', 'Malkhan', 'Singh ', 'malkhansingh ', '9889504586 ', '580069380575', 'N/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', '555Kha/261, Bhola Kheda, Krishna Nagar, Manas Nagar, Lucknow \r\n', '555Kha/261, Bhola Kheda, Krishna Nagar, Manas Nagar, Lucknow \r\n', 'Office Enquiry ', 'N/A', 'N.A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Carpenter,Plumber ,Electrician', 'Experienced Helper  ', '0', 'malkhan@123', NULL, NULL, NULL, NULL, NULL, NULL, 1, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-08-07 19:26:10'),
 (31, 'Sushil Kumar ', 'Sushil ', 'Kumar ', 'sushikumar', '8400980364', '332763930285', 'N/A', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Saimar Ganj, Bhausi, Rae Bareli', 'Asiyana Lukcnow ', 'Office Enquiry ', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Security Guard', '.', 'photo1.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '1', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (32, 'Prince Kumar Dubey ', 'Prince ', 'Kumar Dubey ', 'princekumar', '7068922967', '583908048845', 'N/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Himmatnagar Road, Prathmik Vidyaaly, Prem Ka Pura, Jaunpur, Machhlishar U.P', 'Sec-H, ashiyana Lucknow ', 'N/A', 'N/A', 'N/A ', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Security Guard', 'Good Worker.', 'photo2.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '0', NULL, 0, 'Out Source', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-08-07 19:26:05'),
 (34, 'Anrudh Kumar ', 'Anrudh ', 'Kumar ', 'anurdhkumar', '7309705863', '968758470282', 'N/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', '156A,Saidapur, Rosan Garh, Ambedkar Nagar.', '156A,Saidapur, Rosan Garh, Ambedkar Nagar.', 'Office Enquiry ', 'N/A', 'N/A ', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 1, 'Carpenter', 'Good Carpenter', 'photo4.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '0', NULL, 0, 'outsource', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-08-07 19:26:00'),
 (35, 'Sonu Kaushal ', 'Sonu ', 'Kaushal', 'sonukaushal', '7609954719', '776597659382', 'N/a', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Baldikheda Krishna Nagar Lucknow ', 'Baldikheda Krishna Nagar Lucknow ', 'Office Enquiry ', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 1, 'Driver,Pathology Services', 'EXPERIENCED DRIVER ', 'photo5.jpg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '0', NULL, 0, 'outsource', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-05-22 18:16:03'),
 (36, 'Manoj Kumar ', 'Manoj ', 'Kumar ', 'manojkumar', '7084803274', '408873601249', 'N/A', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Madhubana, Dadhna Mau, Arthapur, Sitapur Misrikh.', 'Sec-H, ashiyana Lucknow', 'N/A', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 0, 'Plumber ', 'Good Plumber', 'photo6.jpg', '123456', NULL, NULL, NULL, NULL, NULL, NULL, 1, '1', NULL, 0, 'outsource', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-08-17 16:44:28'),
-(37, 'Nagendra Kumar ', 'Nagendra ', 'Kumar ', 'nagendrakumar', '9621899764', '821611745150', 'UP3220180047758', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Raipur, Kakari , Lucknow', 'Raipur, Kakari , Lucknow', 'Office Enquiry ', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 1, 'Driver', 'Good Driver', 'WhatsApp_Image_2019-05-21_at_11_27_00.jpeg', '', NULL, NULL, NULL, NULL, NULL, NULL, 1, '1', NULL, 0, 'outsource', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-04-22 09:49:25'),
-(39, 'Styam', ' vkjdjfhkjv', ' bjhvj', ' Umesh', '98899743274', ' 784382674242', ' DVD987432J', ' pradeep001@yopmail.com', '2024-05-23 18:30:00', ' BR Electric Works, Bhitoli Khurd', ' ALASKA', ' Locifar', ' BR Electric Works, Bhitoli Khurd', ' 23983389274', ' 7081002501', ' Lucknow', ' lucknow', ' Lucknow', 0, ' [{\"label\": \"Security Guard\", \"value\": 5}, {\"label\": \"Medicine\", \"value\": 7}]', ' this is service about', NULL, ' 123', ' adhar', NULL, ' bank', NULL, ' ashra', NULL, 1, NULL, NULL, NULL, ' staff', NULL, NULL, NULL, '2024-05-23 19:30:10', '2024-08-07 19:25:55'),
+(37, 'Nagendra Kumar ', 'Nagendra ', 'Kumar ', 'nagendrakumar', '9621899764', '821611745150', 'UP3220180047758', 'helperforyourservices@gmail.com', '0000-00-00 00:00:00', 'Raipur, Kakari , Lucknow', 'Raipur, Kakari , Lucknow', 'Office Enquiry ', 'N/A', 'N/A', 'N/A', 'Lucknow', 'Ashiyana, Alambagh ', 'Ashiyana, Lucknow, Uttar Pradesh, India', 1, 'Driver', 'Good Driver', 'WhatsApp_Image_2019-05-21_at_11_27_00.jpeg', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, '1', NULL, 0, 'outsource', NULL, NULL, NULL, '0000-00-00 00:00:00', '2024-08-25 10:31:19'),
+(39, 'Styam', ' vkjdjfhkjv', ' bjhvj', ' Umesh', '98899743274', ' 784382674242', ' DVD987432J', ' pradeep001@yopmail.com', '2024-05-23 18:30:00', ' BR Electric Works, Bhitoli Khurd', ' ALASKA', ' Locifar', ' BR Electric Works, Bhitoli Khurd', ' 23983389274', ' 7081002501', ' Lucknow', ' lucknow', ' Lucknow', 0, ' [{\"label\": \"Security Guard\", \"value\": 5}, {\"label\": \"Medicine\", \"value\": 7}]', ' this is service about', NULL, ' 123', ' adhar', NULL, ' bank', NULL, ' ashra', NULL, 0, NULL, NULL, NULL, ' staff', NULL, NULL, NULL, '2024-05-23 19:30:10', '2024-08-25 10:31:15'),
 (42, ' sujeet yadaw', ' sujeet', ' yadaw', ' sujeet', ' 87678678354', ' 876237432682', ' 87428479823', ' bcsdjhcbh@gmail.com', '0000-00-00 00:00:00', ' alaska', ' ALASKA', 'Shruti', ' BR Electric Works, Bhitoli Khurd', ' 23983389274', ' 874324987', ' Lucknow', 'Lucknow', 'Lucknow', 0, ' ', ' this is for testig ', 'holi2.jpg', ' 123', ' adhar', 'null', ' pan', 'null', ' ', ' IMG_4277.JPG', 0, NULL, NULL, NULL, 'outsource', NULL, NULL, NULL, '2024-05-23 20:04:18', '2024-08-16 19:48:59'),
 (47, 'Sonu', '', '', '', '8974928798', '867462732432', '82839128J', 'sonu@gmail.com', '2024-07-28 00:00:00', 'Lucknow', '', 'Nursid ', 'Lucknow', '', '', '', '', '', 0, '', 'He has many years of Experience ', 'null', '', '', 'null', '', 'null', '', '', 0, NULL, NULL, NULL, 'outsource', NULL, NULL, NULL, '2024-07-28 02:31:13', '2024-08-16 19:43:28');
 
@@ -3988,7 +4038,7 @@ ALTER TABLE `alloted_items`
 -- AUTO_INCREMENT for table `availabilities`
 --
 ALTER TABLE `availabilities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT for table `back_office_roles`
@@ -4090,7 +4140,7 @@ ALTER TABLE `members`
 -- AUTO_INCREMENT for table `monthlyservices`
 --
 ALTER TABLE `monthlyservices`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `new_customers`
@@ -4114,7 +4164,7 @@ ALTER TABLE `ordernos`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `order_process`
@@ -4126,7 +4176,7 @@ ALTER TABLE `order_process`
 -- AUTO_INCREMENT for table `otps`
 --
 ALTER TABLE `otps`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=105;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=109;
 
 --
 -- AUTO_INCREMENT for table `our_customers`

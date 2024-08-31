@@ -8,7 +8,8 @@ const ServiceProviderModel = db.ServiceProviderModel
 
 const AddMonthlyService = async (req, res) => {
 	const data = req.body;
-	try { // Example code:
+	try { 
+		
 		const UserId = await CustomerModel.findOne({
 			where: {
 				mobileno: data.mobile_no
@@ -34,17 +35,16 @@ const AddMonthlyService = async (req, res) => {
 			const [year, month, day] = feesPaidDateTime.split('-');
 			const currentDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
-	
-		  const incrementDays = serviceServeType === "Weekly" ? 7 : 1;
+			const incrementDays = serviceServeType === "Weekly" ? 7 : 1;
 
-		//   // Loop to generate entries with the correct gap
+          // Loop to generate entries with the correct gap
 		  for (let i = 0; i < 30; i += incrementDays) { 
 			const formattedDate =  currentDate.toLocaleDateString('en-CA') 
 
 			entries.push({
 			  emp_id: servicep_id.id,
 			  date: formattedDate, // Use formatted date here
-			  [selectedTimeSlot]: serviceType + '-MonthlyService-'+ data?.cust_name, // Assuming serviceType is a time range
+			  [selectedTimeSlot]: serviceType + '-MonthlyService-'+ data?.cust_name, 
 			});
 	
 			// Increment date by 7 days for "weekly" or 1 day for "daily"
