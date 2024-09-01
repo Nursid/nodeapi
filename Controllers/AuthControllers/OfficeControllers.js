@@ -207,6 +207,7 @@ const GetAllEmployeeData = async (req, res) => {
 				"mobile_no",
 				"aadhar_no",
 				"pan_no",
+				"alterno",
 				"address",
 				"doj",
 				"salary",

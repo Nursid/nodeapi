@@ -23,6 +23,10 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false
           },
+          alterno: {
+            type: DataTypes.STRING,
+            allowNull: false
+          },
           aadhar_no: {
             type: DataTypes.STRING
           },
