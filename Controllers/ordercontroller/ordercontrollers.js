@@ -723,63 +723,83 @@ const GetTimeSlot = async (req, res) => {
 }
 
 const GetReports = async (req, res) => {
-    const type = req.params.type;
-	
-    let startDate = "", endDate = "";
-
-    const today = moment();
-
-    switch (parseInt(type)) {
-        case 1: // Today
-            startDate = today.startOf('day').toDate();
-            endDate = new Date();
-            break;
-        case 3: // This Month
-            startDate = today.startOf('month').toDate();
-            endDate = new Date();
-            break;
-        case 6: // Last 6 Months
-            startDate = req.body?.from;
-            endDate = req.body?.to;
-            break;
-		case 7: // This Week
-			startDate = today.startOf('week').toDate();
-			endDate = new Date();
-			break;
-        default:
-            startDate = new Date(0); // Earliest date possible
-            endDate = new Date(); // Current date
-            break;
-    }
-	
-    try {
-        const orders = await OrderModel.findAll({
-            include: {
-                model: NewCustomerModel,
-                attributes: ['name', 'email', 'mobileno'],
-                include: {
-                    model: CustomerModel,
-                    attributes: ['age', 'address', 'member_id'],
-                }
-            },
-            order: [['id', 'DESC']],
-            where: {
-                createdAt: {
-                    [Op.between]: [startDate, endDate]
-                }
-            }
-        });
-
-		if(!orders){
-			return res.status(202).json({status: false, data: []})
+	const type = parseInt(req.params.type); // Ensure `type` is always an integer
+	const today = moment();
+	let startDate = "", endDate = "";
+	const serviceProvider = req.body?.serviceProvider; // Use `const` instead of `let` since it isn't reassigned
+	let where = {};
+  
+	// Determine date range based on report type
+	switch (type) {
+	  case 1: // Today
+		startDate = today.startOf('day').toDate();
+		endDate = new Date();
+		where = { createdAt: { [Op.between]: [startDate, endDate] } };
+		break;
+	  case 3: // This Month
+		startDate = today.startOf('month').toDate();
+		endDate = new Date();
+		where = { createdAt: { [Op.between]: [startDate, endDate] } };
+		break;
+	  case 6: // Last 6 Months
+		startDate = req.body?.from;
+		endDate = req.body?.to;
+  
+		// Validate that the dates are provided for the last 6 months
+		if (!startDate || !endDate) {
+		  return res.status(400).json({ error: "Start and end dates are required for the last 6 months." });
 		}
-
-        res.status(200).json({ status: 200, data: orders });
-
-    } catch (error) {
-        res.status(202).json({ error: "Internal Error" });
-    }
-}
+  
+		where = { 
+		  createdAt: { [Op.between]: [startDate, endDate] },
+		};
+  
+		// Add `serviceProvider` to `where` clause only if it's provided
+		if (serviceProvider) {
+		  where.servicep_id = serviceProvider;
+		}
+		break;
+	  case 7: // This Week
+		startDate = today.startOf('week').toDate();
+		endDate = new Date();
+		where = { createdAt: { [Op.between]: [startDate, endDate] } };
+		break;
+	  default:
+		// Default case covers all other scenarios
+		startDate = new Date(0); // Earliest possible date
+		endDate = new Date(); // Current date
+		where = { createdAt: { [Op.between]: [startDate, endDate] } };
+		break;
+	}
+  
+	try {
+	  // Fetch orders based on the computed `where` clause
+	  const orders = await OrderModel.findAll({
+		include: [{
+		  model: NewCustomerModel,
+		  attributes: ['name', 'email', 'mobileno'],
+		  include: {
+			model: CustomerModel,
+			attributes: ['age', 'address', 'member_id'],
+		  }
+		}],
+		order: [['id', 'DESC']],
+		where: where
+	  });
+  
+	  // Return an empty array if no orders are found
+	  if (!orders || orders.length === 0) {
+		return res.status(200).json({ status: false, data: [] });
+	  }
+  
+	  // Return the found orders
+	  res.status(200).json({ status: true, data: orders });
+	} catch (error) {
+	  console.error("Error fetching reports:", error); // Log the error for debugging
+	  res.status(500).json({ error: "Internal Error" }); // Changed to 500 for server errors
+	}
+  };
+  
 
 module.exports = {
 	GetAllOrders,
