@@ -52,6 +52,24 @@ module.exports = (sequelize) => {
           about: {
             type: DataTypes.TEXT
           },
+          f_name: {
+            type: DataTypes.STRING
+          },
+          f_mobile: {
+            type: DataTypes.STRING
+          },
+          m_name: {
+            type: DataTypes.STRING
+          },
+          m_mobile: {
+            type: DataTypes.STRING
+          },
+          v_name: {
+            type: DataTypes.STRING
+          },
+          v_date: {
+            type: DataTypes.DATE
+          },
           document1_name: {
             type: DataTypes.STRING
           },
