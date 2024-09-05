@@ -214,7 +214,15 @@ const GetAllEmployeeData = async (req, res) => {
 				"week_off",
 				"duty_hours",
 				"createdAt",
-				"is_block"
+				"is_block",
+				"v_name",
+				"v_date",
+				"f_name",
+				"f_mobile",
+				"m_name",
+				"m_mobile",
+				"gender",
+				"email"
 			],
 			include: [
 				{

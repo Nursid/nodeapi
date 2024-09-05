@@ -38,15 +38,33 @@ const SignupUser = async (req, res) => {
 
 	try {
 
-		const isMember = await CustomerModel.findOne({
-			where:{
-				member_id: data.member_id
-			}
-		});
+		let member_id;;
+		if (data.member_id === "true") {
 
-		if (isMember) {
-			return res.status(200).json({status:false, message: 'Member No Already Exist, Please Enter Different Member No.!'});
+			const lastEmp = await CustomerModel.findOne({
+				order: [
+					['member_id', 'DESC']
+				]
+			});
+
+			
+			if (lastEmp) {
+				const lastEmpId = parseInt(lastEmp.member_id.replace("HM", ""));
+				member_id = "HM" + (
+					lastEmpId + 1
+				);
+			
+			} else { // If no employee found in the database, start with EMP1
+				member_id = "HM20001";
+			} 
+			customer_data.member_id = member_id;
 		}
+
+		if (data.member_id === "false") {
+			customer_data.member_id = null
+		}
+
+		
 
 		const isServiceProvider = await ServiceProviderModel.findOne({
 			where: {
@@ -68,6 +86,16 @@ const SignupUser = async (req, res) => {
 			return res.status(200).json({status: false, message: 'User Already Exists!'});
 		}
 
+		const isCustomer = await NewCustomerModel.findOne({
+			where: {
+				mobileno: data.mobile
+			}
+		});
+
+		if (isCustomer) {
+			return res.status(200).json({status: false, message: 'User Already Exists!'});
+		}
+
 		const newCustomer = await NewCustomerModel.create(newCustomer_data);
 
 		if (!newCustomer) {
@@ -77,6 +105,9 @@ const SignupUser = async (req, res) => {
 		const user_id = newCustomer.id;
 
 		customer_data.user_id = user_id;
+
+		
+		
 
 		const formdata = await CustomerModel.create(customer_data);
 
@@ -231,15 +262,28 @@ const GetUpdateTheCustomer = async (req, res) => {
 			...customer_data
 		} = data;
 
+		
 
-		const isMember = await CustomerModel.findOne({
-			where:{
-				member_id: data.member_id
-			}
-		});
+		let member_id;;
+		if (data.member_id === "true") {
 
-		if (isMember) {
-			return res.status(200).json({status:false, message: 'Member No Already Exist, Please Enter Different Member No.!'});
+			const lastEmp = await CustomerModel.findOne({
+				order: [
+					['member_id', 'DESC']
+				]
+			});
+
+			
+			if (lastEmp) {
+				const lastEmpId = parseInt(lastEmp.member_id.replace("HM", ""));
+				member_id = "HM" + (
+					lastEmpId + 1
+				);
+			
+			} else { // If no employee found in the database, start with EMP1
+				member_id = "HM20001";
+			} 
+			customer_data.member_id = member_id;
 		}
 
 
@@ -262,6 +306,8 @@ const GetUpdateTheCustomer = async (req, res) => {
 		if (isSupervisor) {
 			return res.status(200).json({status:false, message: 'User Already Exists as Supervisor!'});
 		}
+
+		
 
 		const updatedCustomerRows = await NewCustomerModel.update(newCustomer_data, {
 			where: {
