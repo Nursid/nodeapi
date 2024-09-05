@@ -37,6 +37,17 @@ const SignupUser = async (req, res) => {
 	} = data;
 
 	try {
+
+		const isMember = await CustomerModel.findOne({
+			where:{
+				member_id: data.member_id
+			}
+		});
+
+		if (isMember) {
+			return res.status(200).json({status:false, message: 'Member No Already Exist, Please Enter Different Member No.!'});
+		}
+
 		const isServiceProvider = await ServiceProviderModel.findOne({
 			where: {
 				mobile_no: data.mobile
@@ -228,7 +239,7 @@ const GetUpdateTheCustomer = async (req, res) => {
 		});
 
 		if (isMember) {
-			return res.status(200).json({status:false, message: 'Member No Already Exist, Please Enter Different no.!'});
+			return res.status(200).json({status:false, message: 'Member No Already Exist, Please Enter Different Member No.!'});
 		}
 
 
