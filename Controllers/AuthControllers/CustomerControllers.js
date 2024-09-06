@@ -64,8 +64,6 @@ const SignupUser = async (req, res) => {
 			customer_data.member_id = null
 		}
 
-		
-
 		const isServiceProvider = await ServiceProviderModel.findOne({
 			where: {
 				mobile_no: data.mobile
@@ -106,8 +104,6 @@ const SignupUser = async (req, res) => {
 
 		customer_data.user_id = user_id;
 
-		
-		
 
 		const formdata = await CustomerModel.create(customer_data);
 

@@ -70,11 +70,7 @@ const GetOrderNow = async (req, res) => {
 		userId = isUser.id;
 	  }
   
-	  if (formdata.suprvisor_id || formdata.servicep_id) {
-		formdata.pending = 4;
-	  } else {
-		formdata.pending = 0;
-	  }
+	  formdata.pending = 0;
   
 	  const lastOrder = await OrderModel.findOne({
 		order: [['id', 'DESC']],
