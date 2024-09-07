@@ -4,16 +4,19 @@ const TestiMonialsModel = db.TestiMonialsModel
 
 const AddCustomerTestimonial= async (req, res) => {
     try {
-        const {image} = req.files;
         const data = req.body;
-        data.image = image ? image[0].filename : null;
+        if(req.files){
+            const {image} = req.files;
+            data.image = image ? image[0].filename : null;
+        }
+        
         
         const newPost = await TestiMonialsModel.create(data);
         return res.status(200).json({ status: true, message: "Testimonials Successfully Added!", data: newPost });
         
     } catch (error) {
         console.error("Error in adding customer post:", error);
-        return res.status(500).json({ status: false, message: "Internal Error" });
+        return res.status(500).json({ status: false, message: "Internal Error",error });
     }
 }
 

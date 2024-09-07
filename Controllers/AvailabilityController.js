@@ -156,7 +156,7 @@ try {
     });
 
     if (!isEmployee) {
-        return res.status(404).json({ status: false, message: "Employee Not Found" });
+        return res.status(202).json({ status: false, message: "Employee Not Found" });
     }
 
     await AvailabilityModel.update(data, {
@@ -174,9 +174,91 @@ try {
 }
 
 
+const TransferAvailability = async(req, res) =>{
+   
+    const { fromEmpId, fromDate, toEmpId, toDate, timeRange, service_name, totimeRange } = req.body;
+
+    if (!fromEmpId || !fromDate || !toEmpId || !toDate || !timeRange) {
+      return res.status(202).json({ message: 'fromEmpId, fromDate, toEmpId, toDate, and timeRange are required' });
+    }
+  
+    try {
+      // Step 1: Fetch the specific time slot value for the fromEmpId and fromDate
+      const recordToTransfer = await AvailabilityModel.findOne({
+        where: {
+          emp_id: fromEmpId,
+          date: fromDate,
+          [timeRange]: service_name
+        }
+      });
+
+  
+      if (!recordToTransfer) {
+        return res.status(202).json({ status: false, message: "No availability found"});
+      }
+
+      const isAvailability = await AvailabilityModel.findOne({
+        where:{
+            emp_id: toEmpId,
+            date: toDate,
+            [timeRange]: service_name
+        }
+      })
+      if(isAvailability){
+        return res.status(202).json({ status: false, message: "Already Assign another service"})
+      }
+
+      const IsAvailableTransferDate = await AvailabilityModel.findOne({
+        where: {
+            emp_id: toEmpId,
+            date: toDate,
+        }
+      })
+
+
+      const updateData = {
+        [totimeRange]: service_name
+      }
+
+      if(IsAvailableTransferDate){
+       const istransfer = await AvailabilityModel.update(updateData,{
+            where:{
+                emp_id: toEmpId,
+                date: toDate,
+            }
+          })
+
+          await AvailabilityModel.update( {[timeRange]: null},{
+            where:{
+                emp_id: fromEmpId,
+                date: fromDate,
+            }
+          })
+
+          return res.status(200).json({ status: true, message: "Availability Transferred Successfully" });
+       } else{
+        const istransfer = await AvailabilityModel.create({
+            emp_id: toEmpId,
+            date: toDate,
+            [totimeRange]: service_name,
+          })
+
+          await AvailabilityModel.update({[timeRange]: null},{
+            where:{
+                emp_id: fromEmpId,
+                date: fromDate,
+            }
+          })
+          return res.status(200).json({ status: true, message: "Availability Transferred Successfully" });
+      }
+    } catch (error) {
+      console.error('Error transferring availability:', error);
+      res.status(500).json({ message: 'An error occurred while transferring availability records' });
+    }x
+}
 
 
 
 module.exports = {
-	GetAllAvailability,AddLeave, AssignAvailability
+	GetAllAvailability,AddLeave, AssignAvailability, TransferAvailability
 }

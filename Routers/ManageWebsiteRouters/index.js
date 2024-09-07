@@ -50,7 +50,7 @@ router.put("/testimonial/approve/:id", TestimonialsController.ApprovedTestimonia
 router.post("/testimonial/create", upload.fields([{
 	name: 'image',
 	maxCount: 1
-}]), TestimonialsController.UpdateCustomerTestimonial);
+}]), TestimonialsController.AddCustomerTestimonial);
 
 router.post("/testimonial/update/:id", upload.fields([{
 name: 'image',

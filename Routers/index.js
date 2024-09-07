@@ -14,6 +14,7 @@ router.post("/edit-balance/:id",AccountController.EditBalnace);
 router.post("/listing-availability",AvailabilityController.GetAllAvailability )
 router.post("/add-leave",AvailabilityController.AddLeave );
 router.post("/assign-availability/:mobile_no/:date",AvailabilityController.AssignAvailability);
+router.post("/transfer-availability",AvailabilityController.TransferAvailability);
 
 
 //  Location API

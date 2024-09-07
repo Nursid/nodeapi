@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306:3306
--- Generation Time: Sep 05, 2024 at 11:07 PM
+-- Generation Time: Sep 07, 2024 at 07:03 PM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 8.1.6
 
@@ -867,7 +867,8 @@ INSERT INTO `advertisements` (`id`, `company_name`, `gst_no`, `payment`, `mobile
 (29, 'SHIVA MEDICAL STORE ', '.', '0', '9919214164', '05-06-2019', '05-06-2019', 'IMG_20190605_155935.jpg', 1, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (30, 'DENTAL SPA MULTISPECIALITY ', '.', '0', '8299652729', '05-06-2019', '05-06-2019', 'IMG_20190605_160010.jpg', 1, '0000-00-00 00:00:00', '0000-00-00 00:00:00'),
 (31, 'RAJ & RAJ RESTAURANT ', '.', '1276212', '9336616175', '2019-06-15', '2019-06-22', 'pexels-photo-699466.jpeg', 1, '0000-00-00 00:00:00', '2024-04-07 19:03:53'),
-(32, 'test', '4342', 'jndssdcjksnc', '7081002501', '2019-06-01', '2019-06-30', NULL, 1, '2024-04-07 18:51:00', '2024-04-07 19:00:26');
+(32, 'test', '4342', 'jndssdcjksnc', '7081002501', '2019-06-01', '2019-06-30', NULL, 1, '2024-04-07 18:51:00', '2024-04-07 19:00:26'),
+(33, 'sujeet', 'hcjbsdjh453', '3200', '8457465748', '2024-09-07', '2024-09-08', 'Screenshot 2024-07-06 023712.png', 1, '2024-09-07 16:16:02', '2024-09-07 16:16:02');
 
 -- --------------------------------------------------------
 
@@ -990,7 +991,13 @@ CREATE TABLE `availabilities` (
 --
 
 INSERT INTO `availabilities` (`id`, `date`, `emp_id`, `09:00-09:30`, `09:30-10:00`, `10:00-10:30`, `10:30-11:00`, `11:00-11:30`, `11:30-12:00`, `12:00-12:30`, `12:30-01:00`, `01:00-01:30`, `01:30-02:00`, `02:00-02:30`, `02:30-03:00`, `03:00-03:30`, `03:30-04:00`, `04:00-04:30`, `04:30-05:00`, `05:00-05:30`, `05:30-06:00`, `createdAt`, `updatedAt`) VALUES
-(1, '2024-09-06', '42', NULL, NULL, NULL, 'Gas stove/ cylinder/ burner service-00001', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-05 20:39:24', '2024-09-05 20:39:24');
+(1, '2024-09-06', '42', NULL, NULL, NULL, 'Gas stove/ cylinder/ burner service-00001', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-05 20:39:24', '2024-09-07 03:42:19'),
+(2, '2024-09-06', '37', NULL, NULL, NULL, 'Gas stove/ cylinder/ burner service-00002', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-06 03:38:32', '2024-09-06 03:38:32'),
+(3, '2024-09-07', '37', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-07 03:42:19', '2024-09-07 16:50:54'),
+(4, '2024-09-08', '42', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-07 03:43:23', '2024-09-07 03:48:03'),
+(5, '2024-09-07', '42', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-07 16:32:22', '2024-09-07 17:02:26'),
+(6, '2024-09-08', '39', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-07 16:50:54', '2024-09-07 16:53:15'),
+(7, '2024-09-07', '47', 'washing machine -00003', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-07 16:52:30', '2024-09-07 17:02:26');
 
 -- --------------------------------------------------------
 
@@ -1218,7 +1225,8 @@ INSERT INTO `customers` (`id`, `user_id`, `gender`, `age`, `address`, `land_mark
 (2, 2, 'Male', 0, 'D5-359/360, Sec-D, Kanpur Road Lda Colony', 'Ganga Childrens Hospital', 'Lucknow, Uttar Pradesh, India', '7081003501', 8423777773, '8618349016', 9695071465, 0, '***', '***', 'yes', '0000-00-00 00:00:00', '18 November', 'Verasha Kaura', NULL, NULL, NULL, NULL, '0000-00-00', '', 1000, 0, NULL, 0, 'Cash', '4', NULL, NULL, NULL, NULL, NULL, 'SUMI', NULL, NULL, NULL, 1, 'HM20002', 1, '2024-02-14 00:00:00', NULL, '2024-09-05 20:35:14', '2024-09-05 20:35:14'),
 (3, 3, 'Male', 21, 'lucknow', '', '', '9832984793', 0, '', 0, 0, '', '', 'undefined', '0000-00-00 00:00:00', '', NULL, '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', NULL, 'null', 0, 0, 0, 0, 'undefined', NULL, '', '', '', '', '', NULL, '', '', 'undefined', NULL, 'HM20003', NULL, NULL, NULL, '2024-09-05 20:39:24', '2024-09-05 21:03:38'),
 (4, 4, 'Female', 21, 'csdcsdc', '', '', '9832749827', 0, '', 0, 0, '', '', 'undefined', '0000-00-00 00:00:00', '', NULL, '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', NULL, 'null', 0, 0, 0, 0, 'undefined', NULL, '', '', '', '', '', NULL, '', '', 'undefined', NULL, 'HM20005', NULL, NULL, NULL, '2024-09-05 21:04:05', '2024-09-05 21:06:54'),
-(5, 5, 'Female', 21, 'BR Electric Works, Bhitoli Khurd', '', '', '9823794932', 0, '', 0, 0, '', '', 'undefined', '0000-00-00 00:00:00', '', NULL, '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', NULL, 'null', 0, 0, 0, 0, 'undefined', NULL, '', '', '', '', '', NULL, '', '', 'undefined', NULL, 'HM20004', NULL, NULL, NULL, '2024-09-05 21:06:34', '2024-09-05 21:06:44');
+(5, 5, 'Female', 21, 'BR Electric Works, Bhitoli Khurd', '', '', '9823794932', 0, '', 0, 0, '', '', 'undefined', '0000-00-00 00:00:00', '', NULL, '', '0000-00-00 00:00:00', '', '0000-00-00 00:00:00', NULL, 'null', 0, 0, 0, 0, 'undefined', NULL, '', '', '', '', '', NULL, '', '', 'undefined', NULL, 'HM20004', NULL, NULL, NULL, '2024-09-05 21:06:34', '2024-09-05 21:06:44'),
+(6, 6, NULL, NULL, 'csdcs', NULL, NULL, '9839432794', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-06 03:48:21', '2024-09-06 03:48:21');
 
 -- --------------------------------------------------------
 
@@ -1253,7 +1261,8 @@ INSERT INTO `cust_addposts` (`id`, `cust_id`, `type`, `name`, `mobile`, `image`,
 (2, 'office', 'sell', 'Nursid Ansari', '070 8100 2501', 'NURSID.jpg', 'BR Electric Works, Bhitoli Khurd', 'i want to sell', '2024-04-06', '2024-04-13', 0, '', 0, 1, '2024-04-04 19:00:04', '2024-04-06 19:42:08'),
 (3, 'office', 'buy', 'Nursid Ansari', '070 8100 2501', 'NURSID.jpg', 'BR Electric Works, Bhitoli Khurd', 'i want to buy i a car', '2024-04-07', '2024-04-14', 0, '', 0, 0, '2024-04-06 18:50:21', '2024-04-06 18:50:21'),
 (4, 'office', 'buy', 'Nursid Ansari', '070 8100 2501', 'polynesia-3021072_1280.png', 'BR Electric Works, Bhitoli Khurd', 'this is sell', '2024-04-07', '2024-04-15', 1, '', 0, 1, '2024-04-06 18:54:04', '2024-04-06 19:06:19'),
-(5, 'office', 'buy', 'Nursid Ansari', '070 8100 2501', 'download.png', 'BR Electric Works, Bhitoli Khurd', 'i want to sell this ', '2024-04-14', '2024-04-12', 0, '', 0, 1, '2024-04-06 19:06:53', '2024-04-06 19:08:07');
+(5, 'office', 'buy', 'Nursid Ansari', '070 8100 2501', 'download.png', 'BR Electric Works, Bhitoli Khurd', 'i want to sell this ', '2024-04-14', '2024-04-12', 0, '', 0, 1, '2024-04-06 19:06:53', '2024-04-06 19:08:07'),
+(6, 'office', 'buy', 'Nursid Ansari', '8754375987', 'Screenshot 2024-07-06 234248.png', 'BR Electric Works, Bhitoli Khurd', 'cskj cksd cjksd ', '2024-09-14', '2024-09-16', 0, '', 0, 1, '2024-09-07 16:19:08', '2024-09-07 16:19:08');
 
 -- --------------------------------------------------------
 
@@ -1768,7 +1777,8 @@ INSERT INTO `new_customers` (`id`, `name`, `ref_name`, `email`, `mobileno`, `pas
 (2, 'Locifar', '', 'locifar@gmail.com', '7081003501', 'Locifar', '', '', 0, 0, 0, 0, '', 0, 0, 0, '2024-09-05 20:35:14'),
 (3, 'test', '', '', '9832984793', '', '', '', 0, 0, 0, 0, '', 0, 0, 0, '2024-09-05 20:39:24'),
 (4, 'kjsdbc', '', '', '9832749827', 'kjsdbc', '', '', 0, 0, 0, 0, '', 0, 0, 0, '2024-09-05 21:04:05'),
-(5, 'shruti', '', '', '9823794932', 'shruti', '', '', 0, 0, 0, 0, '', 0, 0, 0, '2024-09-05 21:06:34');
+(5, 'shruti', '', '', '9823794932', 'shruti', '', '', 0, 0, 0, 0, '', 0, 0, 0, '2024-09-05 21:06:34'),
+(6, 'csdcdsc', '', '', '9839432794', '', '', '', 0, 0, 0, 0, '', 0, 0, 0, '2024-09-06 03:48:21');
 
 -- --------------------------------------------------------
 
@@ -1872,7 +1882,9 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `order_no`, `user_type`, `booktime`, `bookdate`, `service_name`, `city`, `service_address`, `alterno`, `pincode`, `problem_des`, `cust_id`, `create_date`, `issapproved`, `emp_status`, `emp_id`, `allot_time_range`, `suprvisor_id`, `serstatus`, `servicep_id`, `approx_duration`, `paymethod`, `totalamt`, `piadamt`, `netpayamt`, `reservprovider`, `review`, `admin_approve`, `pending`, `cust_remark`, `servp_remark`, `suerv_remark`, `admin_remark`, `bakof_remark`, `sueadmin_remark`, `cancle_reson`, `service_status`, `reotrans`, `checkstatus`, `checkintime`, `checkouttime`, `land_mark`, `vehicle_inventory`, `createdAt`, `updatedAt`) VALUES
-(1, '00001', 'Regular', '02:09', '2024-09-06', 'Gas stove/ cylinder/ burner service', NULL, NULL, '8372643228', NULL, '', '3', NULL, NULL, NULL, NULL, '10:30-11:00', 'Japhar ', NULL, ' sujeet yadaw', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 4, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-05 20:39:24', '2024-09-05 20:39:24');
+(1, '00001', 'Regular', '02:09', '2020-09-06', 'Gas stove/ cylinder/ burner service', '', NULL, '8372643228', '', '', '3', NULL, NULL, NULL, NULL, '10:30-11:00', 'Japhar ', NULL, ' sujeet yadaw', '', 'Online', '0', '1000', '1000', NULL, NULL, 0, 3, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-05 20:39:24', '2024-09-07 16:08:33'),
+(2, '00002', 'Booking', '09:08', '2020-09-06', 'Gas stove/ cylinder/ burner service', '', NULL, '9823432749', '', 'this is for testing ', '3', NULL, NULL, NULL, NULL, '10:30-11:00', 'Pranshu', NULL, 'Nagendra Kumar ', '', NULL, '', '', '', NULL, NULL, 0, 5, NULL, NULL, NULL, NULL, NULL, NULL, 'this is for testing', NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-06 03:38:32', '2024-09-07 16:08:12'),
+(3, '00003', 'Paid Service', '09:17', '2020-09-06', 'washing machine ', '', NULL, '', '274401', 'this is for testing ', '6', NULL, NULL, NULL, NULL, '09:30-10:00', 'Japhar ', NULL, ' sujeet yadaw', '', 'Online', '0', '1000', '1000', NULL, NULL, 1, 3, NULL, NULL, NULL, NULL, NULL, 'order successfully', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2024-09-06 03:48:21', '2024-09-07 16:09:32');
 
 -- --------------------------------------------------------
 
@@ -2438,7 +2450,8 @@ CREATE TABLE `testimonials` (
 
 INSERT INTO `testimonials` (`id`, `name`, `mobile`, `email`, `occupation`, `image`, `address`, `about`, `is_approved`, `block`, `createdAt`, `updatedAt`) VALUES
 (8, ' Vimal Tiwari ', ' 7081002501', ' duet@gmail.com', ' councillor', 'IMG20230925133119 (4).jpg', ' Lucknow', ' Helper For your Services is \"a modern way of finding a domestic service providers\"  ', 0, 1, '2019-05-29 23:34:40', '2024-04-08 15:36:27'),
-(9, 'Arvind Chobey ', '9450662626', 'pradeep001@yopmail.com', 'Director of Rajdhani Bank', 'WhatsApp_Image_2019-05-18_at_14_27_20.jpeg', 'alaska\r\nALASKA', 'I used helper for your service  for my current helper, and it was an awesome experience. Best helper I\'ve ever had! Would not hire a helper any other way! Whoever built the site is a genius and I love them.    ', 1, 1, '2019-06-01 07:48:06', '2024-04-08 15:36:05');
+(9, 'Arvind Chobey ', '9450662626', 'pradeep001@yopmail.com', 'Director of Rajdhani Bank', 'WhatsApp_Image_2019-05-18_at_14_27_20.jpeg', 'alaska\r\nALASKA', 'I used helper for your service  for my current helper, and it was an awesome experience. Best helper I\'ve ever had! Would not hire a helper any other way! Whoever built the site is a genius and I love them.    ', 1, 1, '2019-06-01 07:48:06', '2024-04-08 15:36:05'),
+(11, 'Nursid Ansari', '9836472368', 'pradeep001@yopmail.com', 'Python Developer', 'Screenshot 2024-07-06 023712.png', 'BR Electric Works, Bhitoli Khurd', 'This is testimonials ', 0, 0, '2024-09-07 16:29:27', '2024-09-07 16:29:52');
 
 -- --------------------------------------------------------
 
@@ -2760,7 +2773,7 @@ ALTER TABLE `admin_roles`
 -- AUTO_INCREMENT for table `advertisements`
 --
 ALTER TABLE `advertisements`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `alloted_items`
@@ -2772,7 +2785,7 @@ ALTER TABLE `alloted_items`
 -- AUTO_INCREMENT for table `availabilities`
 --
 ALTER TABLE `availabilities`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `back_office_roles`
@@ -2802,13 +2815,13 @@ ALTER TABLE `customerids`
 -- AUTO_INCREMENT for table `customers`
 --
 ALTER TABLE `customers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `cust_addposts`
 --
 ALTER TABLE `cust_addposts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `departments`
@@ -2880,7 +2893,7 @@ ALTER TABLE `monthlyservices`
 -- AUTO_INCREMENT for table `new_customers`
 --
 ALTER TABLE `new_customers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `offers`
@@ -2898,7 +2911,7 @@ ALTER TABLE `ordernos`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `order_process`
@@ -2970,7 +2983,7 @@ ALTER TABLE `super_admin_roles`
 -- AUTO_INCREMENT for table `testimonials`
 --
 ALTER TABLE `testimonials`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `time_slot`
