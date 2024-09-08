@@ -65,13 +65,11 @@ const AddEmployee = async (req, res) => {
 
 		let nextEmpId;
 		if (lastEmp) {
-			const lastEmpId = parseInt(lastEmp.emp_id.replace("EMP", ""));
-			nextEmpId = "EMP" + (
-				lastEmpId + 1
-			);
-		} else { // If no employee found in the database, start with EMP1
-			nextEmpId = "EMP1";
-		} 
+		const lastEmpId = parseInt(lastEmp.emp_id.replace("EMP", ""), 10); // Convert to an integer
+		nextEmpId = "EMP" + String(lastEmpId + 1).padStart(4, '0'); // Pad the number with leading zeros
+		} else { // If no employee found in the database, start with EMP0001
+		nextEmpId = "EMP0001";
+		}
 		data.emp_id = nextEmpId;
 
 		// Create the new employee

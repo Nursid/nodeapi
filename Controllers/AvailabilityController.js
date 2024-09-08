@@ -24,10 +24,6 @@ const GetAllAvailability = async (req, res) => {
             }]
         });
         
-    
-       
-      
-
         // Check if combinedData is empty
         if (providersWithAvailabilities.length === 0) {
             return res.status(200).json({ status: false, message: "User Not Found!" });

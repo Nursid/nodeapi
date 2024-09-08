@@ -21,8 +21,11 @@ require("dotenv").config;
 const SignupUser = async (req, res) => {
 	const data = req.body;
 
-	const image = req.file;
-	data.image = image?.originalname || '';
+	if(req.file){
+		const image = req.file;
+		data.image = image?.originalname || '';
+	}
+	
 
 	const newCustomer_data = {
 		"name": data.name,
@@ -39,16 +42,15 @@ const SignupUser = async (req, res) => {
 	try {
 
 		let member_id;;
-		if (data.member_id === "true") {
+		if (data?.member_id === "true") {
 
 			const lastEmp = await CustomerModel.findOne({
 				order: [
 					['member_id', 'DESC']
 				]
 			});
-
 			
-			if (lastEmp) {
+			if (lastEmp.member_id) {
 				const lastEmpId = parseInt(lastEmp.member_id.replace("HM", ""));
 				member_id = "HM" + (
 					lastEmpId + 1
@@ -60,7 +62,7 @@ const SignupUser = async (req, res) => {
 			customer_data.member_id = member_id;
 		}
 
-		if (data.member_id === "false") {
+		if (data?.member_id === "false") {
 			customer_data.member_id = null
 		}
 
@@ -110,8 +112,8 @@ const SignupUser = async (req, res) => {
 		return res.status(200).json({status: true, data: formdata, message: "Customer Added Successfully!"});
 
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({error: 'Internal Server Error'});
+		console.log(error);
+		return res.status(500).json({status: false, error: 'Internal Server Error',error});
 	}
 };
 

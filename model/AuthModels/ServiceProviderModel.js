@@ -100,6 +100,10 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: false
           },
+          supervisor_type: {
+            type: DataTypes.STRING,
+            allowNull: false
+          },
           document1_name: {
             type: DataTypes.STRING,
             allowNull: true
@@ -125,8 +129,8 @@ module.exports = (sequelize) => {
             allowNull: true
           },
           block_id: {
-            type: DataTypes.INTEGER,
-            allowNull: true
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
           },
           work_as: {
             type: DataTypes.STRING,
