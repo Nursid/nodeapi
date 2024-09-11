@@ -677,6 +677,7 @@ const GetTotalSummary = async (req, res) => {
         const totalCancel = orders.filter(order => order.pending === 5).length;
         const totalHold = orders.filter(order => order.pending === 1).length;
         const totalPending = orders.filter(order => order.pending === 0).length;
+        const totalRunning = orders.filter(order => order.pending === 4).length;
         
         const totalMonthlyService = monthlyServices.length;
         const TotalserviceFees = monthlyServices.reduce((total, service) => total + parseFloat(service.serviceFees), 0);
@@ -694,7 +695,8 @@ const GetTotalSummary = async (req, res) => {
             TotalserviceFees,
             TotalExpenses,
 			TotalCash: TotalAcount[0]?.dataValues?.total_cash || 0,
-			TotalBank: TotalAcount[0]?.dataValues?.total_upi || 0
+			TotalBank: TotalAcount[0]?.dataValues?.total_upi || 0,
+			totalRunning
         };
 
         // Sending the summary as JSON response
