@@ -84,12 +84,6 @@ app.use("/inventry",InventoryRouter)
 app.use("/complain",complain)
 app.use("/attendance",Attendance)
 
-
-
-
-
-
-
 // Start the server
 app.listen(port, () => {
   console.log(`Server started at port ${port}`);
