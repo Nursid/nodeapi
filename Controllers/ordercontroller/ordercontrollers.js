@@ -92,6 +92,14 @@ const GetOrderNow = async (req, res) => {
 		const [bookdate, booktime] =  formdata.serviceDateTime.split('T');
 		formdata.bookdate = bookdate;
 		formdata.booktime = booktime;
+
+		const currentDate = new Date();
+		const currentDateFormatted = currentDate.toISOString().split('T')[0]; // Format currentDate as 'YYYY-MM-DD'
+
+		if (currentDateFormatted !== bookdate) {
+		formdata.pending = 2;
+		}
+
 	  }
   
 	  const data = await OrderModel.create(formdata, { transaction });
@@ -797,6 +805,25 @@ const GetReports = async (req, res) => {
 	  res.status(500).json({ error: "Internal Error" }); // Changed to 500 for server errors
 	}
   };
+
+
+const GetOrderByOrderNo = async (req, res) => {
+	try {
+		const order_no = req.params.order_no
+
+		const orders = await OrderModel.findOne({
+			attributes: ['pending'],
+			where: {
+				order_no: order_no
+			},
+		});
+
+		res.status(200).json({status: 200, data: orders})
+
+	} catch (error) {
+		return res.status(500).json({status: false, message: "Interal Error"})
+	}
+}
   
 
 module.exports = {
@@ -821,5 +848,6 @@ module.exports = {
 	GetOrderAssingServiceProvider,
 	AddOrderCustomer,
 	AddOrderCustomer,
-	GetReports
+	GetReports,
+	GetOrderByOrderNo
 }
