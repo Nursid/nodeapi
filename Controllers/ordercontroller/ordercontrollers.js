@@ -680,12 +680,13 @@ const GetTotalSummary = async (req, res) => {
         ]);
 
         // Calculating totals
-        const totalOrders = orders.length;
+        const totalOrders = parseInt(orders.length)+parseInt(monthlyServices.length);
         const totalCompleted = orders.filter(order => order.pending === 3).length;
         const totalCancel = orders.filter(order => order.pending === 5).length;
         const totalHold = orders.filter(order => order.pending === 1).length;
         const totalPending = orders.filter(order => order.pending === 0).length;
         const totalRunning = orders.filter(order => order.pending === 4).length;
+        const totalDue = orders.filter(order => order.pending === 2).length;
         
         const totalMonthlyService = monthlyServices.length;
         const TotalserviceFees = monthlyServices.reduce((total, service) => total + parseFloat(service.serviceFees), 0);
@@ -704,7 +705,8 @@ const GetTotalSummary = async (req, res) => {
             TotalExpenses,
 			TotalCash: TotalAcount[0]?.dataValues?.total_cash || 0,
 			TotalBank: TotalAcount[0]?.dataValues?.total_upi || 0,
-			totalRunning
+			totalRunning,
+			totalDue
         };
 
         // Sending the summary as JSON response
