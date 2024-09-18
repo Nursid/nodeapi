@@ -45,7 +45,7 @@ const AddServiceProviderAttendance = async (req, res) => {
         check_in: formattedTime,
         in_date:  new Date().toISOString().split('T')[0],
         createdby: data.createdby,
-        status: true,
+        status: 'Working',
         check_out: null,
         out_date: null
       })
@@ -62,7 +62,7 @@ const AddServiceProviderAttendance = async (req, res) => {
       newAttendance = await ServiceProviderAttendance.update({
         check_out: formattedTime,
         out_date: new Date().toISOString().split('T')[0],
-        status: false,
+        status: 'Present',
       }, {
         where: {
           servp_id: data.servp_id,
@@ -129,7 +129,7 @@ const AddSupervisorAttendance = async (req, res) => {
         check_in: formattedTime,
         in_date: new Date().toISOString().split('T')[0],
         createdby: data.createdby,
-        status: true,
+        status: 'Working',
         check_out: null,
         out_date: null
       })
@@ -144,7 +144,7 @@ const AddSupervisorAttendance = async (req, res) => {
       newAttendance = await SupervisorAttendance.update({
         check_out: formattedTime,
         out_date: new Date().toISOString().split('T')[0],
-        status: false
+        status: 'Present'
       }, {
         where: {
           emp_id: data.emp_id,

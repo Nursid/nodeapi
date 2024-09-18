@@ -3,7 +3,7 @@ const { DataTypes } = require('sequelize')
 module.exports = (sequelize) => {
   const ServiceProviderAttendance = sequelize.define('serviceProviderAttendance', {
     servp_id: {
-      type: DataTypes.STRING,
+      type: DataTypes.NUMBER,
       allowNull: false
     },
     in_date: {
@@ -27,8 +27,8 @@ module.exports = (sequelize) => {
       allowNull: true
     },
     status: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
+      type: DataTypes.STRING,
+      allowNull: true
     },
     message: {
       type: DataTypes.STRING,

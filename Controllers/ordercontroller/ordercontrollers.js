@@ -267,7 +267,7 @@ const GetAllOrders = async (req, res) => {
 					],
 				}
 			},
-			order: [['id', 'DESC']]
+			order: [['bookdate', 'DESC']]
 		});
 
 
