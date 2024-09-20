@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize')
 
 module.exports = (sequelize) => {
-  const ServiceProviderAttendance = sequelize.define('serviceProviderAttendance', {
+  const ServiceProviderAttendance = sequelize.define('serviceproviderattendance', {
     servp_id: {
       type: DataTypes.NUMBER,
       allowNull: false
@@ -36,7 +36,7 @@ module.exports = (sequelize) => {
     }
   }, {
     timestamps: true,
-    tableName: 'serviceProviderAttendance',
+    tableName: 'serviceproviderattendance',
   });
 
   return ServiceProviderAttendance

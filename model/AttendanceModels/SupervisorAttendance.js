@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize')
 
 module.exports = (sequelize) => {
-  const SupervisorAttendance = sequelize.define('supervisorAttendance', {
+  const SupervisorAttendance = sequelize.define('supervisorattendance', {
     emp_id: {
       type: DataTypes.STRING,
       allowNull: false
@@ -36,7 +36,7 @@ module.exports = (sequelize) => {
     }
   }, {
     timestamps: true,
-    tableName: 'supervisorAttendance',
+    tableName: 'supervisorattendance',
   });
 
   return SupervisorAttendance

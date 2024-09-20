@@ -39,8 +39,7 @@ db.ServiceProviderRolesModel=require("./RolesAndPermission/ServiceProviderModel"
 db.SuperAdminRolesModel=require("./RolesAndPermission/SuperAdminModel")(sequelize,DataTypes);
 db.SuperVisorRolesModel=require("./RolesAndPermission/SupervisorModel")(sequelize,DataTypes);
 db.ServiceModel=require("./ServiceModal/ServiceModal")(sequelize, DataTypes);
-db.CustomerID=require("./Misc/customerId")(sequelize,DataTypes);
-db.OrderNo=require("./Misc/orderNo")(sequelize,DataTypes);
+
 db.Empservices=require("./Misc/empservices")(sequelize, DataTypes);
 db.EnquiryModel=require("./enquirymodel")(sequelize, DataTypes);
 db.VerifyModel=require("./VerifyModel")(sequelize, DataTypes);
