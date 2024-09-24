@@ -6,11 +6,7 @@ const moment = require('moment')
 
 const ListingAccount = async (req, res) => {
 	try {
-		const data = await AccountModel.findAll({
-			order: [
-				['id', 'DESC']
-			]
-		});
+		const data = await AccountModel.findAll({});
 		if (! data) {
 			res.status(204).json({error: true, message: "Not found data"});
 		}
