@@ -159,7 +159,8 @@ const GetOrderNow = async (req, res) => {
 	  await transaction.rollback(); // Rollback transaction in case of error
 	  res.status(500).json({ error: true, message: error.message });
 	}
-  };
+};
+
 const OrderComplain = async (req, res) => {
 	try {
 		const formdata = req.body;
@@ -433,7 +434,6 @@ const AddOrderCustomer = async (req, res) => {
 	  const lastOrderNumber = lastOrder ? parseInt(lastOrder.order_no, 10) : 0;
 	  const nextOrderNumber = lastOrderNumber + 1;
 
-// Convert to string and pad with leading zeros to 5 digits
 	const formattedOrderNumber = nextOrderNumber.toString().padStart(5, '0');
 	formdata.order_no = formattedOrderNumber
 
@@ -666,17 +666,34 @@ const GetTotalSummary = async (req, res) => {
         };
 
         // Fetching all necessary data in parallel
-        const [orders, monthlyServices, Allexpense, TotalAcount] = await Promise.all([
+        const [orders, monthlyServices, TotalAcount,TotalExpenses ] = await Promise.all([
             OrderModel.findAll({ where: dateFilter }),
             MonthlyServiceModel.findAll({ where: dateFilter }),
-            AddExpenseModel.findAll({ where: dateFilter }),
-            AccountModel.findAll({
-                attributes: [
-                    [Sequelize.fn('SUM', Sequelize.col('cash')), 'total_cash'],
-                    [Sequelize.fn('SUM', Sequelize.col('upi')), 'total_upi']
-                ],
-                where: dateFilter
-            })
+			AccountModel.findAll({
+				attributes: [
+					[sequelize.fn('SUM', sequelize.col('amount')), 'total_amount'],
+					[sequelize.fn('SUM', sequelize.literal("CASE WHEN payment_mode = 'Cash' THEN amount ELSE 0 END")), 'total_cash'],
+					[sequelize.fn('SUM', sequelize.literal("CASE WHEN payment_mode = 'Online' THEN amount ELSE 0 END")), 'total_online']
+				],
+				where: {
+					type_payment: 0,
+					date: {
+						[Op.between]: [from, to]
+					}
+				}
+			}),
+			AccountModel.findAll({
+				attributes: [
+					[sequelize.fn('SUM', sequelize.col('amount')), 'total_expense'],
+				],
+				where: {
+					type_payment: 1,
+					date: {
+						[Op.between]: [from, to]
+					}
+				}
+			})
+
         ]);
 
         // Calculating totals
@@ -687,11 +704,12 @@ const GetTotalSummary = async (req, res) => {
         const totalPending = orders.filter(order => order.pending === 0).length;
         const totalRunning = orders.filter(order => order.pending === 4).length;
         const totalDue = orders.filter(order => order.pending === 2).length;
-        
+
         const totalMonthlyService = monthlyServices.length;
         const TotalserviceFees = monthlyServices.reduce((total, service) => total + parseFloat(service.serviceFees), 0);
+
+		const Netbalance = TotalAcount[0]?.dataValues?.total_cash + TotalAcount[0]?.dataValues?.total_online + totalMonthlyService - TotalExpenses[0]?.dataValues?.total_expense
         
-        const TotalExpenses = Allexpense.reduce((total, expense) => total + parseFloat(expense.amount), 0);
         
         // Constructing summary object
         const summary = {
@@ -702,11 +720,12 @@ const GetTotalSummary = async (req, res) => {
             totalPending,
             totalMonthlyService,
             TotalserviceFees,
-            TotalExpenses,
+            TotalExpenses: TotalExpenses[0]?.dataValues?.total_expense || 0,
 			TotalCash: TotalAcount[0]?.dataValues?.total_cash || 0,
-			TotalBank: TotalAcount[0]?.dataValues?.total_upi || 0,
+			TotalBank: TotalAcount[0]?.dataValues?.total_online || 0,
 			totalRunning,
-			totalDue
+			totalDue,
+			Netbalance
         };
 
         // Sending the summary as JSON response
@@ -806,7 +825,7 @@ const GetReports = async (req, res) => {
 	  console.error("Error fetching reports:", error); // Log the error for debugging
 	  res.status(500).json({ error: "Internal Error" }); // Changed to 500 for server errors
 	}
-  };
+};
 
 
 const GetOrderByOrderNo = async (req, res) => {
@@ -814,7 +833,11 @@ const GetOrderByOrderNo = async (req, res) => {
 		const order_no = req.params.order_no
 
 		const orders = await OrderModel.findOne({
-			attributes: ['pending'],
+			attributes: ['pending','service_name'],
+			include: {
+				model: NewCustomerModel,
+				attributes: ['name']
+			},
 			where: {
 				order_no: order_no
 			},

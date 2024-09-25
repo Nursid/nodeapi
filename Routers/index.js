@@ -3,7 +3,7 @@ const router = require('express').Router()
 const AccountController = require('../Controllers/AccountController');
 const AvailabilityController = require("../Controllers/AvailabilityController")
 const LocationModel = require("../Controllers/misc/LocationController")
-router.post('/account-listing',AccountController.ListingAccount);
+router.get('/account-listing',AccountController.ListingAccount);
 router.post('/add-balance',AccountController.AddBalnace);
 router.get('/total-amount',AccountController.TotalAmount);
 router.post("/edit-balance/:id",AccountController.EditBalnace);

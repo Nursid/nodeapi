@@ -31,11 +31,11 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: true,
         },
-        upi: {
+        order_no: {
             type: DataTypes.STRING,
             allowNull: true,
         },
-        cash: {
+        amount: {
             type: DataTypes.STRING,
             allowNull: true,
         },

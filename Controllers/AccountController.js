@@ -6,7 +6,7 @@ const moment = require('moment')
 
 const ListingAccount = async (req, res) => {
 	try {
-		const data = await AccountModel.findAll({});
+		const data = await AccountModel.findAll();
 		if (! data) {
 			res.status(204).json({error: true, message: "Not found data"});
 		}
@@ -19,6 +19,8 @@ const ListingAccount = async (req, res) => {
 const AddBalnace = async (req, res) => {
 	try {
 		const data = req.body;
+		data.date = moment(new Date()).format('YYYY-MM-DD');
+
 		const Amount = await AccountModel.create(data);
 		if (! Amount) {
 			res.status(204).json({error: true, message: "Not Found Data"});
@@ -90,20 +92,33 @@ const TotalAmount = async (req, res) => {
 		const data = await AccountModel.findAll({
 			attributes: [
 				[
-					Sequelize.fn('SUM', Sequelize.col('cash')),
+					Sequelize.fn('SUM', Sequelize.fn('CASE', 
+						{ 
+							[Op.eq]: ['payment_mode', 'Cash'] 
+						}, 
+						Sequelize.col('amount'), 
+						0
+					)),
 					'total_cash'
 				],
 				[
-					Sequelize.fn('SUM', Sequelize.col('upi')),
-					'total_upi'
+					Sequelize.fn('SUM', Sequelize.fn('CASE', 
+						{ 
+							[Op.eq]: ['payment_mode', 'Online'] 
+						}, 
+						Sequelize.col('amount'), 
+						0
+					)),
+					'total_online'
 				]
 			],
-            where: {
-                createdAt: {
-                    [Op.between]: [startDate, endDate]
-                }
-            }
+			where: {
+				createdAt: {
+					[Op.between]: [startDate, endDate]
+				}
+			}
 		});
+		
 		if (! data) {
 			res.status(200).json({status: false, message: "Not Found Data"});
 		}
