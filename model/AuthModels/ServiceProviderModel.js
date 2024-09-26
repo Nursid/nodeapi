@@ -1,7 +1,7 @@
 const { Sequelize, DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-    const ServiceProviderModel = sequelize.define('ServiceProvider', {
+    const ServiceProviderModel = sequelize.define('service_providers', {
         id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -13,15 +13,15 @@ module.exports = (sequelize) => {
           },
           first_name: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           last_name: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           username: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           mobile_no: {
             type: DataTypes.STRING,
@@ -29,59 +29,59 @@ module.exports = (sequelize) => {
           },
           aadhar_no: {
             type: DataTypes.STRING,
-            allowNull: false,
+            allowNull: true
           },
           pan_no: {
             type: DataTypes.STRING,
-            allowNull: false,
+            allowNull: true
           },
           email: {
             type: DataTypes.STRING,
-            allowNull: false,
+            allowNull: true
           },
           doj: {
             type: DataTypes.DATE,
-            allowNull: false
+            allowNull: true
           },
           permanent_address: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           current_address: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           ref_name: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           ref_address: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           ref_aadhar_no: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           ref_mobile_no: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           ref_city: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           ref_area: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           location: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           is_approved: {
             type: DataTypes.BOOLEAN,
-            allowNull: false,
+            allowNull: true,
             defaultValue: false
           },
           service_id: {
@@ -98,11 +98,11 @@ module.exports = (sequelize) => {
           },
           password: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           supervisor_type: {
             type: DataTypes.STRING,
-            allowNull: false
+            allowNull: true
           },
           document1_name: {
             type: DataTypes.STRING,

@@ -43,7 +43,7 @@ const EditBalnace = async (req, res) => {
 				id: amount_id
 			}
 		});
-		if (! IsAmount) {
+		if (!IsAmount) {
 			res.status(204).json({error: true, message: "Not Found Data"});
 		}
 		await AccountModel.update(data, {
