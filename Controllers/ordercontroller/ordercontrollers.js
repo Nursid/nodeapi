@@ -353,10 +353,11 @@ const GetCompleted = async (req, res) => {
 
 		const order_no = req.params.order_no
 		const isUpdated = await OrderModel.update({
-			pending: 3
+			pending: 3,
+			checkouttime: moment(new Date()).format('DD/MM/YYYY, h:mm A')
 		}, {
 			where: {
-				order_no: order_no
+				order_no: order_no,
 			}
 		});
 		if (! isUpdated) {

@@ -84,21 +84,7 @@ const GetSingleServiceData = async (req, res) => {
         })
     }
 }
-const DeleteServices = async (req, res) => {
-    try {
-        const id = req.body._id
 
-        // check is the data in db
-        const result = await ServiceModal.findByIdAndDelete(id)
-        if (result.deletedCount === 0) return res.status(400).json("Service Not Deleted")
-
-        res.status(200).json("successfully deleted")
-    } catch (error) {
-        res.status(500).json({
-            error: error,
-        })
-    }
-}
 const DeleteByID = async (req, res) => {
     try {
         const id = req.params.id;
@@ -214,6 +200,6 @@ const BlockUpdate = async (req,res)=>{
 
 
 
-module.exports = { AddService, GetAllServices, DeleteServices, UpdateService, GetSingleServiceData, DeleteByID, GetTheService,BlockUpdate }
+module.exports = { AddService, GetAllServices, UpdateService, GetSingleServiceData, DeleteByID, GetTheService,BlockUpdate }
 
 

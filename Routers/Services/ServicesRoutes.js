@@ -28,7 +28,6 @@ router.post("/get", GetAllServices);
 // get single data
 router.get("/get-service/:id", GetSingleServiceData);
 // delete by sevice id 
-router.post("/deleteservice", DeleteServices);
 
 // delete by params id 
 router.get("/deleteservice/:id", DeleteByID);
@@ -40,8 +39,6 @@ router.post("/update/:id",upload.fields([
 
 // search for service
 router.get("/search", GetTheService);
-
-
 router.put('/block/:id',BlockUpdate)
 
 

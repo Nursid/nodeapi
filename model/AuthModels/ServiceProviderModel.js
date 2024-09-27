@@ -40,7 +40,7 @@ module.exports = (sequelize) => {
             allowNull: true
           },
           doj: {
-            type: DataTypes.DATE,
+            type: DataTypes.STRING,
             allowNull: true
           },
           permanent_address: {

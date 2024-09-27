@@ -3,6 +3,7 @@ const {Sequelize, Model, DataTypes} = require('sequelize');
 const Op = Sequelize.Op;
 const AccountModel = db.Account
 const moment = require('moment')
+const sequelize = require('../config/sequalize');
 
 const ListingAccount = async (req, res) => {
 	try {
@@ -84,39 +85,24 @@ const TotalAmount = async (req, res) => {
             endDate = new Date();
                 break;
             default:
-                startDate = new Date(0); // Earliest date possible
+                startDate = new Date(); // Earliest date possible
                 endDate = new Date(); // Current date
                 break;
         }
 
 		const data = await AccountModel.findAll({
 			attributes: [
-				[
-					Sequelize.fn('SUM', Sequelize.fn('CASE', 
-						{ 
-							[Op.eq]: ['payment_mode', 'Cash'] 
-						}, 
-						Sequelize.col('amount'), 
-						0
-					)),
-					'total_cash'
-				],
-				[
-					Sequelize.fn('SUM', Sequelize.fn('CASE', 
-						{ 
-							[Op.eq]: ['payment_mode', 'Online'] 
-						}, 
-						Sequelize.col('amount'), 
-						0
-					)),
-					'total_online'
-				]
+				[sequelize.fn('SUM', sequelize.col('amount')), 'total_amount'],
+				[sequelize.fn('SUM', sequelize.literal("CASE WHEN payment_mode = 'Cash' THEN amount ELSE 0 END")), 'total_cash'],
+				[sequelize.fn('SUM', sequelize.literal("CASE WHEN payment_mode = 'Online' THEN amount ELSE 0 END")), 'total_online']
 			],
 			where: {
+				type_payment: 0,
 				createdAt: {
 					[Op.between]: [startDate, endDate]
 				}
 			}
+			
 		});
 		
 		if (! data) {
