@@ -770,8 +770,8 @@ const GetReports = async (req, res) => {
 		where = { createdAt: { [Op.between]: [startDate, endDate] } };
 		break;
 	  case 6: // Last 6 Months
-		startDate = req.body?.from;
-		endDate = req.body?.to;
+		startDate = req.body?.from || new Date(0);
+		endDate = req.body?.to || new Date();
   
 		// Validate that the dates are provided for the last 6 months
 		if (!startDate || !endDate) {
@@ -779,7 +779,7 @@ const GetReports = async (req, res) => {
 		}
   
 		where = { 
-		  createdAt: { [Op.between]: [startDate, endDate] },
+		  bookdate: { [Op.between]: [startDate, endDate] },
 		};
   
 		// Add `serviceProvider` to `where` clause only if it's provided
