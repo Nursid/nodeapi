@@ -8,4 +8,8 @@ router.get('/supervisor/getall', AttendanceControllers.GetAllSupervisorAttendanc
 router.post('/service-provider/add', AttendanceControllers.AddServiceProviderAttendance)
 router.get('/service-provider/getall', AttendanceControllers.GetAllServiceProviderAttendance)
 
+
+router.post('/supervisor/leave', AttendanceControllers.AddLeaveSupervisor)
+router.post('/service-provider/leave', AttendanceControllers.AddLeaveServiceProvider)
+
 module.exports = router

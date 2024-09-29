@@ -762,12 +762,12 @@ const GetReports = async (req, res) => {
 	  case 1: // Today
 		startDate = today.startOf('day').toDate();
 		endDate = new Date();
-		where = { createdAt: { [Op.between]: [startDate, endDate] } };
+		where = { bookdate: { [Op.between]: [startDate, endDate] } };
 		break;
 	  case 3: // This Month
 		startDate = today.startOf('month').toDate();
 		endDate = new Date();
-		where = { createdAt: { [Op.between]: [startDate, endDate] } };
+		where = { bookdate: { [Op.between]: [startDate, endDate] } };
 		break;
 	  case 6: // Last 6 Months
 		startDate = req.body?.from || new Date(0);
@@ -790,13 +790,13 @@ const GetReports = async (req, res) => {
 	  case 7: // This Week
 		startDate = today.startOf('week').toDate();
 		endDate = new Date();
-		where = { createdAt: { [Op.between]: [startDate, endDate] } };
+		where = { bookdate: { [Op.between]: [startDate, endDate] } };
 		break;
 	  default:
 		// Default case covers all other scenarios
 		startDate = new Date(0); // Earliest possible date
 		endDate = new Date(); // Current date
-		where = { createdAt: { [Op.between]: [startDate, endDate] } };
+		where = { bookdate: { [Op.between]: [startDate, endDate] } };
 		break;
 	}
   

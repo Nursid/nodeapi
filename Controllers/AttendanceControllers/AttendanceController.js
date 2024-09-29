@@ -90,7 +90,7 @@ const AddSupervisorAttendance = async (req, res) => {
   try {
     const data = req.body
 
-  let date = new Date();
+    let date = new Date();
 
   // Convert the date to Kolkata time zone (IST) with milliseconds
   let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
@@ -211,4 +211,90 @@ const GetAllServiceProviderAttendance = async (req, res) => {
   }
 }
 
-module.exports = { AddSupervisorAttendance, AddServiceProviderAttendance, GetAllSupervisorAttendance, GetAllServiceProviderAttendance }
+
+const AddLeaveSupervisor = async (req, res) => {
+  const data = req.body;
+
+  try {
+    const { emp_id, in_date, message, status, createdby } = data;
+
+    // Check if an entry already exists with the same emp_id and in_date
+    const existingEntry = await SupervisorAttendance.findOne({
+      where: {
+        emp_id,
+        in_date
+      }
+    });
+
+    if (existingEntry) {
+      // Update the existing entry
+      await existingEntry.update({
+        message,
+        status,
+        createdby,
+        out_date: null,
+        check_in: null,
+        check_out: null
+      });
+      return res.status(200).json({ status: 200, message: 'Record updated successfully' });
+    } else {
+      // Create a new entry
+      const newEntry = await SupervisorAttendance.create({
+        emp_id,
+        in_date,
+        message,
+        status,
+        createdby,
+      });
+      return res.status(200).json({ status: 200,  message: 'Record created successfully' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'An error occurred', error: error.message });
+  }
+};
+
+
+const AddLeaveServiceProvider = async (req, res) => {
+  const data = req.body;
+
+  try {
+    const { servp_id, in_date, message, status, createdby } = data;
+
+    // Check if an entry already exists with the same emp_id and in_date
+    const existingEntry = await ServiceProviderAttendance.findOne({
+      where: {
+        servp_id,
+        in_date
+      }
+    });
+
+    if (existingEntry) {
+      // Update the existing entry
+      await existingEntry.update({
+        message,
+        status,
+        createdby,
+        out_date: null,
+        check_in: null,
+        check_out: null
+      });
+      return res.status(200).json({ status: 200, message: 'Record updated successfully' });
+    } else {
+      // Create a new entry
+      const newEntry = await ServiceProviderAttendance.create({
+        servp_id,
+        in_date,
+        message,
+        status,
+        createdby,
+      });
+      return res.status(200).json({ status: 200,  message: 'Record created successfully' });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: 'An error occurred', error: error.message });
+  }
+};
+
+module.exports = { AddSupervisorAttendance, AddServiceProviderAttendance, GetAllSupervisorAttendance, GetAllServiceProviderAttendance, AddLeaveSupervisor, AddLeaveServiceProvider }
