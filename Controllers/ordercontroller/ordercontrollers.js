@@ -96,8 +96,9 @@ const GetOrderNow = async (req, res) => {
 		const currentDate = new Date();
 		const currentDateFormatted = currentDate.toISOString().split('T')[0]; 
 
-		if (currentDateFormatted !== bookdate) {
-		formdata.pending = 2;
+		// Ensure bookdate is defined and in the correct format
+		if (bookdate && currentDateFormatted !== bookdate) {
+			formdata.pending = 2;
 		}
 
 	  }
