@@ -54,7 +54,7 @@ const GetOrderNow = async (req, res) => {
 		  // Create new entry in CustomerModel
 		  await CustomerModel.create({
 			user_id: newUser.id,
-			address: formdata.address,
+			address: formdata.service_address,
 			land_mark: formdata.land_mark,
 			age: formdata.age,
 			mobile: formdata.mobile
@@ -291,7 +291,7 @@ const GetByStatus = async (req, res) => {
 				attributes: ['name', 'email', 'mobileno'],
 				include: {
 					model: CustomerModel,
-					attributes: ['age', 'address', 'member_id'],
+					attributes: ['age', 'address', 'member_id', "user_id"],
 				}
 			},
 			order: [['id', 'DESC']],

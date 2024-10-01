@@ -16,7 +16,7 @@ module.exports = (sequelize) => {
             allowNull: true
           },
           age: {
-            type: DataTypes.BIGINT,
+            type: DataTypes.STRING,
             allowNull: true
           },
           address: {
@@ -36,7 +36,7 @@ module.exports = (sequelize) => {
             allowNull: true
           },
           tel_no: {
-            type: DataTypes.BIGINT,
+            type: DataTypes.STRING,
             allowNull: true
           },
           office_no: {
@@ -44,11 +44,11 @@ module.exports = (sequelize) => {
             allowNull: true
           },
           alternate_no: {
-            type: DataTypes.BIGINT,
+            type: DataTypes.STRING,
             allowNull: true
           },
           aadhar_no: {
-            type: DataTypes.BIGINT,
+            type: DataTypes.STRING,
             allowNull: true
           },
           occupation: {
@@ -64,7 +64,7 @@ module.exports = (sequelize) => {
             allowNull: true
           },
           dob: {
-            type: DataTypes.DATE,
+            type: DataTypes.STRING,
             allowNull: true
           },
           doa: {
@@ -80,7 +80,7 @@ module.exports = (sequelize) => {
             allowNull: true
           },
           spouse_dob1: {
-            type: DataTypes.DATE,
+            type: DataTypes.STRING,
             allowNull: true
           },
           spouse_name2: {
@@ -88,7 +88,7 @@ module.exports = (sequelize) => {
             allowNull: true
           },
           spouse_dob2: {
-            type: DataTypes.DATE,
+            type: DataTypes.STRING,
             allowNull: true
           },
           spouse_dob: {
@@ -172,11 +172,11 @@ module.exports = (sequelize) => {
             allowNull: true
           },
           todate: {
-            type: DataTypes.DATE,
+            type: DataTypes.STRING,
             allowNull: true
           },
           validtodate: {
-            type: DataTypes.DATE,
+            type: DataTypes.STRING,
             allowNull: true
           }
     }, 

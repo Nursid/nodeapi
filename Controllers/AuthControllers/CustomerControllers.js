@@ -262,7 +262,7 @@ const GetUpdateTheCustomer = async (req, res) => {
 
 		
 
-		let member_id;;
+		let member_id;
 		if (data.member_id === "true") {
 
 			const lastEmp = await CustomerModel.findOne({
@@ -283,7 +283,6 @@ const GetUpdateTheCustomer = async (req, res) => {
 			} 
 			customer_data.member_id = member_id;
 		}
-
 
 		const isServiceProvider = await ServiceProviderModel.findOne({
 			where:{
