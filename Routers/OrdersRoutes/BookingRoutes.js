@@ -22,17 +22,17 @@ const {
 	GetOrderByOrderNo
 } = require("../../Controllers/ordercontroller/ordercontrollers");
 
+const AuthenticateToken = require('../../Middleware/AuthenticateToken')
 const router = require("express").Router();
 
 // book order
-
-router.post('/add', GetOrderNow);
+router.post('/add',GetOrderNow);
 router.patch("/update/:id", GetOrderUpdate)
 router.get("/get/:id/:cust_id", GetSingleOrder);
-router.get("/delete/:order_no", GetDeleteByID)
-router.post("/cancel/:order_no", GetCancel)
-router.get("/hold/:order_no/:cust_id", GetHold)
-router.get("/complete/:order_no", GetCompleted)
+router.get("/delete/:order_no", AuthenticateToken, GetDeleteByID)
+router.post("/cancel/:order_no", AuthenticateToken, GetCancel)
+router.get("/hold/:order_no/:cust_id", AuthenticateToken, GetHold)
+router.get("/complete/:order_no", AuthenticateToken, GetCompleted)
 router.get("/getall", GetAllOrders)
 router.get("/getall/:status", GetByStatus)
 router.get("/getorderById/:id", GetOrderByID)

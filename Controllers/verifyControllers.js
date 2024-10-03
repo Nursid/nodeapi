@@ -35,8 +35,6 @@ module.exports = async (req, res) => {
     const smsApiUrl = "http://173.45.76.227/send.aspx?";
     const response = await axios.get(smsApiUrl + generatedString);
 
-    console.log(response)
-
     if (response.status === 200) {
       const data = {
         otp: otp,

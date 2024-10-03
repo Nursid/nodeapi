@@ -12,9 +12,9 @@ const {isEmail, isMobileNumber, isOptValid} = require("../utils");
 const generateCustomerID = db.CustomerID
 // const generateCustomerID = require("../misc/customeridgenerator");
 
-
 // const generateOrderNo = require("../misc/orderNoGenerator");
 const generateOrderNo = db.OrderNo
+
 
 require("dotenv").config;
 
