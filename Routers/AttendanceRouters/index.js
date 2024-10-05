@@ -4,6 +4,7 @@ const router = express.Router()
 
 router.post('/supervisor/add', AttendanceControllers.AddSupervisorAttendance)
 router.get('/supervisor/getall', AttendanceControllers.GetAllSupervisorAttendance)
+router.post('/supervisor/report', AttendanceControllers.GetAllSupervisorAttendanceReport)
 
 router.post('/service-provider/add', AttendanceControllers.AddServiceProviderAttendance)
 router.get('/service-provider/getall', AttendanceControllers.GetAllServiceProviderAttendance)

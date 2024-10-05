@@ -72,6 +72,8 @@ db.ServiceProviderAttendance = require("./AttendanceModels/ServiceProviderAttend
 db.OrderModel.belongsTo(db.NewCustomerModel, {foreignKey: 'cust_id'})
 db.NewCustomerModel.hasOne(db.CustomerModel, { foreignKey: 'user_id' });
 
+db.SupervisorAttendance.belongsTo(db.EmployeeModel, { foreignKey: 'emp_id', targetKey: 'emp_id' });
+
 db.CustomerModel.belongsTo(db.NewCustomerModel, { foreignKey: 'user_id' });
 // db.OrderModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
 db.ComplainModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
