@@ -229,11 +229,63 @@ const ResetPassword = async (req, res) => {
 		});
 	}
 };
+
+const PasswordReset = async (req, res) => {
+	try {
+		const data = req.body;
+        
+
+		// Check if email and password are provided
+		if (!data?.currentPassword) {
+			return res.status(202).json({ status: false, message: "Current password is required!" });
+		}
+		
+		if (!data?.password) {
+			return res.status(202).json({ status: false, message: "New password is required!" });
+		}
+		
+		if (!data?.confirmPassword) {
+			return res.status(202).json({ status: false, message: "Confirm password is required!" });
+		}
+
+		const isAdmin = await AdminModel.findOne({
+			where: {
+				email: data?.email
+			}
+		});
+
+		const isMatch = await bcrypt.compare(data.currentPassword, isAdmin.password );
+
+		if (!isMatch) {
+			return res.status(202).json({error: true, message: 'Current password is incorrect!'});
+		}
+
+
+		// Hash the new password
+		const hashedNewPassword = await bcrypt.hash(data.password, 10);
+
+		// Update the password in the database
+		await AdminModel.update(
+			{ password: hashedNewPassword },
+			{ where: { email: data?.email } } 
+		);
+
+		res.status(200).json({ status: true, message: "Password successfully reset!" });
+
+	} catch (error) {
+		res.status(500).json({
+			status: false,
+			message: "Internal Server Error! " + error.message
+		});
+	}
+};
+
 module.exports = {
 	createTheAdmin,
 	loginAdmin,
 	updateAdmin,
 	ForgetPassword,
 	VerifyPassword,
-	ResetPassword
+	ResetPassword,
+	PasswordReset
 };
