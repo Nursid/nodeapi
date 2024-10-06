@@ -23,8 +23,10 @@ const AddBalance = async (req, res) => {
 		data.date = moment(new Date()).format('YYYY-MM-DD');
 
 		// Check if the order_no exists
-		const existingAccount = await AccountModel.findOne({ order_no: data.order_no });
-
+		const existingAccount = await AccountModel.findOne({
+			where: { order_no: data.order_no 
+			}
+			});
 		if (existingAccount) {
 			// If exists, update the existing record
 			await AccountModel.update(data, {
