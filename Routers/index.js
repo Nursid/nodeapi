@@ -4,7 +4,7 @@ const AccountController = require('../Controllers/AccountController');
 const AvailabilityController = require("../Controllers/AvailabilityController")
 const LocationModel = require("../Controllers/misc/LocationController")
 router.get('/account-listing',AccountController.ListingAccount);
-router.post('/add-balance',AccountController.AddBalnace);
+router.post('/add-balance',AccountController.AddBalance);
 router.get('/total-amount',AccountController.TotalAmount);
 router.post("/edit-balance/:id",AccountController.EditBalnace);
 

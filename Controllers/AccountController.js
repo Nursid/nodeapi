@@ -17,20 +17,33 @@ const ListingAccount = async (req, res) => {
 	}
 }
 
-const AddBalnace = async (req, res) => {
+const AddBalance = async (req, res) => {
 	try {
 		const data = req.body;
 		data.date = moment(new Date()).format('YYYY-MM-DD');
 
-		const Amount = await AccountModel.create(data);
-		if (! Amount) {
-			res.status(204).json({error: true, message: "Not Found Data"});
+		// Check if the order_no exists
+		const existingAccount = await AccountModel.findOne({ order_no: data.order_no });
+
+		if (existingAccount) {
+			// If exists, update the existing record
+			await AccountModel.update(data, {
+				where: {
+					order_no: data.order_no
+				}
+			});
+			return res.status(200).json({ status: true, message: "Amount Updated Successfully!" });
+		} else {
+			// If not exists, create a new record
+			const newAccount = await AccountModel.create(data);
+			return res.status(200).json({ status: true, message: "Amount Added Successfully!" });
 		}
-		res.status(200).json({status: true, message: "Amount Added Successfully!"});
 	} catch (error) {
-		res.status(400).json({message: "Invalid url"});
+		console.error('Error:', error); // Log the error for debugging
+		res.status(400).json({ message: "Invalid URL or data" });
 	}
 }
+
 
 const EditBalnace = async (req, res) => {
 
@@ -159,7 +172,7 @@ const FilterAmount = async (req, res) => {
 
 module.exports = {
 	ListingAccount,
-	AddBalnace,
+	AddBalance,
 	TotalAmount,
 	EditBalnace,
     FilterAmount
