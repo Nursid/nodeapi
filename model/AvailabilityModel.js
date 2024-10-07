@@ -9,7 +9,23 @@ module.exports = (sequelize) => {
         emp_id: {
             type: DataTypes.STRING,
             allowNull: true,
+        },
+        "07:00-07:30": {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        "07:30-08:00": {
+            type: DataTypes.STRING,
+            allowNull: true,
         }, 
+        "08:00-08:30": {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
+        "08:30-09:00": {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
         "09:00-09:30": {
             type: DataTypes.STRING,
             allowNull: true,

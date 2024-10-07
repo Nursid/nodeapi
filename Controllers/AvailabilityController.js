@@ -55,6 +55,10 @@ const AddLeave = async (req, res) => {
         if (data.leaveDay === '1') {
             // Full Day Leave: Add leave for all time slots
             leaveSlots = {
+                '07:00-07:30': 'leave',
+                '07:30-08:00': 'leave',
+                '08:00-08:30': 'leave',
+                '08:30-09:00': 'leave',
                 '09:00-09:30': 'leave',
                 '09:30-10:00': 'leave',
                 '10:00-10:30': 'leave',
@@ -78,6 +82,10 @@ const AddLeave = async (req, res) => {
             if (data.half === '1') {
                 // First Half Day Leave: Add leave for the morning slots
                 leaveSlots = {
+                    '07:00-07:30': 'leave',
+                    '07:30-08:00': 'leave',
+                    '08:00-08:30': 'leave',
+                    '08:30-09:00': 'leave',
                     '09:00-09:30': 'leave',
                     '09:30-10:00': 'leave',
                     '10:00-10:30': 'leave',
