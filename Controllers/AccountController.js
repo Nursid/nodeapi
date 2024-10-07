@@ -22,6 +22,12 @@ const AddBalance = async (req, res) => {
 		const data = req.body;
 		data.date = moment(new Date()).format('YYYY-MM-DD');
 
+		if (!data.order_no) {
+			// If order_no is not provided, create a new record directly	
+			const newAccount = await AccountModel.create(data);
+			return res.status(200).json({ status: true, message: "Amount Added Successfully!" });
+		}
+
 		// Check if the order_no exists
 		const existingAccount = await AccountModel.findOne({
 			where: { order_no: data.order_no 
