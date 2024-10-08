@@ -17,6 +17,9 @@ const AddServiceProviderAttendance = async (req, res) => {
     // Format the time with milliseconds
     let formattedTime = kolkataTime.split(', ')[1] + `.${milliseconds}`;
 
+    const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+    const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+
     if (data.action !== 'check_in' && data.action !== 'check_out') {
       return res.status(202).json({
         success: false,
@@ -27,7 +30,7 @@ const AddServiceProviderAttendance = async (req, res) => {
     const attendanceRecord = await ServiceProviderAttendance.findOne({
       where: {
         servp_id: data.servp_id,
-        in_date: new Date().toISOString().split('T')[0]
+        in_date: formattedDate
       }
     })
 
@@ -45,7 +48,7 @@ const AddServiceProviderAttendance = async (req, res) => {
       newAttendance = await ServiceProviderAttendance.create({
         servp_id: data.servp_id,
         check_in: formattedTime,
-        in_date:  new Date().toISOString().split('T')[0],
+        in_date:  formattedDate,
         createdby: data.createdby,
         status: 'Working',
         check_out: null,
@@ -63,7 +66,7 @@ const AddServiceProviderAttendance = async (req, res) => {
       }
       newAttendance = await ServiceProviderAttendance.update({
         check_out: formattedTime,
-        out_date: new Date().toISOString().split('T')[0],
+        out_date: formattedDate,
         status: 'Present',
       }, {
         where: {
@@ -93,6 +96,8 @@ const AddSupervisorAttendance = async (req, res) => {
     const data = req.body
 
     let date = new Date();
+    const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+    const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
 
   // Convert the date to Kolkata time zone (IST) with milliseconds
   let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
@@ -112,7 +117,7 @@ const AddSupervisorAttendance = async (req, res) => {
     const attendanceRecord = await SupervisorAttendance.findOne({
       where: {
         emp_id: data.emp_id,
-        in_date: new Date().toISOString().split('T')[0]
+        in_date: formattedDate
       }
     })
 
@@ -129,7 +134,7 @@ const AddSupervisorAttendance = async (req, res) => {
       newAttendance = await SupervisorAttendance.create({
         emp_id: data.emp_id,
         check_in: formattedTime,
-        in_date: new Date().toISOString().split('T')[0],
+        in_date: formattedDate,
         createdby: data.createdby,
         status: 'Working',
         check_out: null,
@@ -145,7 +150,7 @@ const AddSupervisorAttendance = async (req, res) => {
       }
       newAttendance = await SupervisorAttendance.update({
         check_out: formattedTime,
-        out_date: new Date().toISOString().split('T')[0],
+        out_date: formattedDate,
         status: 'Present'
       }, {
         where: {
@@ -171,9 +176,14 @@ const AddSupervisorAttendance = async (req, res) => {
 
 const GetAllSupervisorAttendance = async (req, res) => {
   try {
+
+    const date = new Date();
+const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+
     const allAttendance = await SupervisorAttendance.findAll({
       where:{
-        in_date: new Date().toISOString().split('T')[0]
+        in_date: formattedDate
       }
     })
     
@@ -193,16 +203,21 @@ const GetAllSupervisorAttendance = async (req, res) => {
 
 const GetAllServiceProviderAttendance = async (req, res) => {
   try {
+
+    const date = new Date();
+const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+
     const allAttendance = await ServiceProviderAttendance.findAll({
       where:{
-        in_date: new Date().toISOString().split('T')[0]
+        in_date: formattedDate
       }
     })
     
     res.status(200).json({
       success: true,
       message: 'All attendance records retrieved successfully',
-      data: allAttendance
+      data: allAttendance,
     })
   } catch (error) {
     res.status(500).json({

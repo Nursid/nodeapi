@@ -8,17 +8,19 @@ module.exports = (sequelize) => {
     },
     icon: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     image: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     details: {
       type: DataTypes.STRING,
+      allowNull: true,
     },
     adminStatus: {
       type: DataTypes.STRING,
+      allowNull: true,
     },
     block: {
       type: DataTypes.BOOLEAN,
