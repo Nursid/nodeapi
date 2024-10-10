@@ -64,6 +64,7 @@ db.TimeSlotModel = require("./TimeSlotModel")(sequelize, DataTypes)
 db.SupervisorAttendance = require("./AttendanceModels/SupervisorAttendance")(sequelize, DataTypes)
 
 db.ServiceProviderAttendance = require("./AttendanceModels/ServiceProviderAttendance")(sequelize, DataTypes)
+db.SupervisorAvailability = require("./SupervisorAvailability")(sequelize, DataTypes)
 
 
 
@@ -71,24 +72,28 @@ db.ServiceProviderAttendance = require("./AttendanceModels/ServiceProviderAttend
 // db.OrderModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
 db.OrderModel.belongsTo(db.NewCustomerModel, {foreignKey: 'cust_id'})
 db.NewCustomerModel.hasOne(db.CustomerModel, { foreignKey: 'user_id' });
-
 db.SupervisorAttendance.belongsTo(db.EmployeeModel, { foreignKey: 'emp_id', targetKey: 'emp_id' });
-
 db.CustomerModel.belongsTo(db.NewCustomerModel, { foreignKey: 'user_id' });
 // db.OrderModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
 db.ComplainModel.belongsTo(db.NewCustomerModel, { foreignKey: 'cust_id' });
 db.OrderProcessModel.belongsTo(db.NewCustomerModel, { foreignKey: 'registered_id'});
 db.EmployeeModel.belongsTo(db.DepartmentsModel,{foreignKey: 'department_id'});
 db.EmployeeModel.belongsTo(db.DesignationModel,{foreignKey: 'designation_id'});
-
 db.EmployeeModel.hasMany(db.Empservices, { foreignKey: 'mobile_no', sourceKey: 'mobile_no' });
 db.Empservices.belongsTo(db.EmployeeModel, { foreignKey: 'mobile_no', targetKey: 'mobile_no' });
 db.ServiceProviderModel.hasMany(db.SpServices, { foreignKey: 'mobile_no', sourceKey: 'mobile_no' });
 db.SpServices.belongsTo(db.ServiceProviderModel, { foreignKey: 'mobile_no', targetKey: 'mobile_no' });
 
-
 db.ServiceProviderModel.hasMany(db.Availability, { foreignKey: 'emp_id' });
 db.Availability.belongsTo(db.ServiceProviderModel, { foreignKey: 'emp_id' });
+
+// db.EmployeeModel.hasMany(db.SupervisorAvailability, {foreignKey: 'emp_id'})
+// db.SupervisorAvailability.belongsTo(db.EmployeeModel, {foreignKey: 'emp_id'})
+
+
+db.EmployeeModel.hasMany(db.SupervisorAvailability, {
+  foreignKey: 'emp_id'    // Foreign key in SupervisorAvailability
+});
 
 // db.NewCustomerModel.hasMany(db.CustomerModel,{foreignKey : 'user_id'});
 
