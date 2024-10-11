@@ -90,10 +90,12 @@ db.Availability.belongsTo(db.ServiceProviderModel, { foreignKey: 'emp_id' });
 // db.EmployeeModel.hasMany(db.SupervisorAvailability, {foreignKey: 'emp_id'})
 // db.SupervisorAvailability.belongsTo(db.EmployeeModel, {foreignKey: 'emp_id'})
 
+db.EmployeeModel.belongsTo(db.SupervisorAvailability, { foreignKey: 'emp_id', targetKey: 'emp_id' });
 
-db.EmployeeModel.hasMany(db.SupervisorAvailability, {
-  foreignKey: 'emp_id'    // Foreign key in SupervisorAvailability
-});
+// db.EmployeeModel.hasMany(db.SupervisorAvailability, {
+//   foreignKey: 'emp_id',
+//   targetKey: 'emp_id'  
+// });
 
 // db.NewCustomerModel.hasMany(db.CustomerModel,{foreignKey : 'user_id'});
 

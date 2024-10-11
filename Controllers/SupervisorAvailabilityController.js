@@ -9,12 +9,14 @@ const GetAllSupervisorAvailability = async (req, res) => {
     try {
 
         if (!filterDate) {
-            const today = new Date();
-            filterDate = today.toISOString().split('T')[0];
+            const date = new Date();
+            const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+            const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+            filterDate = formattedDate
         }
 
         const providersWithAvailabilities = await EmployeeModel.findAll({
-            attributes: ['emp_id', 'name', 'image'],
+            attributes: ['name', 'image'],
             // where: { is_block: false }, // Filter on ServiceProvider
             include: [{
                 model: AvailabilityModel,

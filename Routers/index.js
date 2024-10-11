@@ -23,7 +23,7 @@ router.post("/transfer-availability",AvailabilityController.TransferAvailability
 
 /* Supervisor  Availability API */
 router.post("/supervisor-availability-list",supervisorAvailabilityController.GetAllSupervisorAvailability )
-router.post("/supervisor-add-leave",supervisorAvailabilityController.AddLeave );
+router.post("/supervisor-add-leave",supervisorAvailabilityController.AddLeave);
 router.post("/supervisor-assign-availability/:mobile_no/:date",supervisorAvailabilityController.AssignAvailability);
 router.post("/supervisor-transfer-availability",supervisorAvailabilityController.TransferAvailability);
 
