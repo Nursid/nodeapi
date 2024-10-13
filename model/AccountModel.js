@@ -47,6 +47,10 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: true,
         },
+        expense_remark: {
+            type: DataTypes.STRING,
+            allowNull: true,
+        },
 
     }, {
         timestamps: true,
