@@ -3,37 +3,89 @@ const AvailabilityModel = db.Availability;
 const EmployeeModel = db.EmployeeModel
 const ServiceProvider = db.ServiceProviderModel
 const moment = require('moment');
+const { Op } = require('sequelize');
+
+// const GetAllAvailability = async (req, res) => {
+//     const filterDate = req.body.date;
+
+//     try {
+//         if (!filterDate) {
+//             const today = new Date();
+//             // Format the date to match the format used in your database (e.g., 'YYYY-MM-DD')
+//             filterDate = today.toISOString().split('T')[0];
+//         }
+
+//         const providersWithAvailabilities = await ServiceProvider.findAll({
+//             attributes: ['id', 'name', 'provider_type'],
+//             where: { block_id: false }, // Filter on ServiceProvider
+//             include: [{
+//                 model: AvailabilityModel,
+//                 where: { date: filterDate }, // Optional: Filter on AvailabilityModel
+//                 required: false, // This ensures a LEFT JOIN
+//             }]
+//         });
+        
+//         // Check if combinedData is empty
+//         if (providersWithAvailabilities.length === 0) {
+//             return res.status(200).json({ status: false, message: "User Not Found!" });
+//         }
+
+//         // Respond with combined data
+//         res.status(200).json({ status: true, data: providersWithAvailabilities });
+
+//     } catch (error) {
+//         res.status(500).json({ error });
+//     }
+// };
 
 const GetAllAvailability = async (req, res) => {
-    const filterDate = req.body.date;
+    const { date: filterDate, from, to, emp_id } = req.body;
 
     try {
-        if (!filterDate) {
+        let whereConditions = {}; 
+        let where = {}; 
+        
+        // If emp_id exists, add it to the conditions
+        if (emp_id) {
+            where.id = emp_id;
+            whereConditions.emp_id = emp_id;
+        }
+
+        // If both from and to exist, we'll filter on date range
+        if (from && to) {
+            // Ensure the dates are in the correct format
+            const startDate = new Date(from).toISOString().split('T')[0];
+            const endDate = new Date(to).toISOString().split('T')[0];
+            whereConditions.date = {
+                [Op.between]: [startDate, endDate]
+            };
+        } else if (filterDate) {
+            // If only a date is present, filter by that date
             const today = new Date();
-            // Format the date to match the format used in your database (e.g., 'YYYY-MM-DD')
-            filterDate = today.toISOString().split('T')[0];
+            const formattedDate = filterDate || today.toISOString().split('T')[0];
+            whereConditions.date = formattedDate;
         }
 
         const providersWithAvailabilities = await ServiceProvider.findAll({
             attributes: ['id', 'name', 'provider_type'],
-            where: { block_id: false }, // Filter on ServiceProvider
-            include: [{
+                include: [{
                 model: AvailabilityModel,
-                where: { date: filterDate }, // Optional: Filter on AvailabilityModel
                 required: false, // This ensures a LEFT JOIN
-            }]
+                where: whereConditions,
+            }],
+            where: where
         });
-        
+
         // Check if combinedData is empty
         if (providersWithAvailabilities.length === 0) {
-            return res.status(200).json({ status: false, message: "User Not Found!" });
+            return res.status(200).json({ status: false, message: "No availability found!" });
         }
 
         // Respond with combined data
         res.status(200).json({ status: true, data: providersWithAvailabilities });
 
     } catch (error) {
-        res.status(500).json({ error });
+        res.status(500).json({ error: error.message });
     }
 };
 
