@@ -8,7 +8,7 @@ const sequelize = require('../config/sequalize');
 const ListingAccount = async (req, res) => {
 	try {
 		const data = await AccountModel.findAll();
-		if (! data) {
+		if (!data) {
 			res.status(204).json({error: true, message: "Not found data"});
 		}
 		res.status(200).json({status: true, data: data});
