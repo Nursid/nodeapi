@@ -327,9 +327,7 @@ const GetAllTheServiceProvider = async (req, res) => {
 			attributes: ['emp_id'],
 			where: {
 			  date: data.date,
-			  [data.time_range]: {
-				[Op.ne]: null
-			  }
+			  [data.time_range]: "p"
 			}
 		  });
 		  
@@ -339,8 +337,9 @@ const GetAllTheServiceProvider = async (req, res) => {
 				.map(entry => entry.dataValues);
 
 		
-		const filterData = serviceProvider.filter(item => !availableEmpIds.includes(item.id.toString()));
+		// const filterData = serviceProvider.filter(item => !availableEmpIds.includes(item.id.toString()));
 	
+		const filterData = serviceProvider.filter(item => availableEmpIds.includes(item.id.toString()));
 
 		if (filterData.length === 0){
 			return res.status(202).json({error: true, message: "No Data Found"});

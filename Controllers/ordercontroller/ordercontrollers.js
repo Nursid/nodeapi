@@ -137,25 +137,25 @@ const GetOrderNow = async (req, res) => {
   
 	  // Check if the record exists and if the dynamic field already has a value
 	  if (existingAvailability) {
-		if (existingAvailability[allot_time_range]) {
-		  await transaction.rollback();
-		  return res.status(202).json({ status: false,
-			message: 'Already assigned to someone at this time range.',
-		  });
-		} else {
-
-		await existingAvailability.update({
-			[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
-			}, { transaction });
-  
-		  await transaction.commit();
-		  return res.status(200).json({ status: true, message: 'Availability updated successfully.' });
-		}
-	  } else {
-		await Availability.create(AllotData, { transaction });
-		await transaction.commit();
-		return res.status(200).json({ status: true, message: 'Availability created successfully.' });
+		if (existingAvailability[allot_time_range] === 'p') {
+			await existingAvailability.update({
+				[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
+				}, { transaction });
+			  await transaction.commit();
+			  return res.status(200).json({ status: true, message: 'Availability created successfully.' });
+			}
+			else {
+				await transaction.rollback();
+				return res.status(202).json({ status: false,
+				  message: 'Service Provider Not Available',
+				});
+		} 
 	  }
+	//    else {
+	// 	await Availability.create(AllotData, { transaction });
+	// 	await transaction.commit();
+	// 	return res.status(200).json({ status: true, message: 'Availability created successfully.' });
+	//   }
 	} catch (error) {
 	  await transaction.rollback(); // Rollback transaction in case of error
 	  res.status(500).json({ error: true, message: error.message });
