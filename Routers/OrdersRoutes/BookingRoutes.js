@@ -19,7 +19,8 @@ const {
 	GetOrderAssingServiceProvider,
 	AddOrderCustomer,
 	GetReports,
-	GetOrderByOrderNo
+	GetOrderByOrderNo,
+	AddDueBeforeOneday
 } = require("../../Controllers/ordercontroller/ordercontrollers");
 
 const AuthenticateToken = require('../../Middleware/AuthenticateToken')
@@ -46,6 +47,7 @@ router.get("/time-slot", GetTimeSlot)
 router.get("/getall-service-provider/:id", GetOrderAssingServiceProvider)
 router.post("/add-customer-order", AddOrderCustomer)
 router.get("/getbyorderno/:order_no", GetOrderByOrderNo)
+router.post("/add-due-order", AddDueBeforeOneday)
 
 // report API 
 router.post("/reports/:type", GetReports)

@@ -93,13 +93,13 @@ const GetOrderNow = async (req, res) => {
 		formdata.bookdate = bookdate;
 		formdata.booktime = booktime;
 
-		const currentDate = new Date();
-		const currentDateFormatted = currentDate.toISOString().split('T')[0]; 
+		// const currentDate = new Date();
+		// const currentDateFormatted = currentDate.toISOString().split('T')[0]; 
 
 		// Ensure bookdate is defined and in the correct format
-		if (bookdate && currentDateFormatted !== bookdate) {
-			formdata.pending = 2;
-		}
+		// if (bookdate && currentDateFormatted !== bookdate) {
+		// 	formdata.pending = 2;
+		// }
 
 	  }
   
@@ -111,51 +111,55 @@ const GetOrderNow = async (req, res) => {
 	  }
   
 	  const allot_time_range = formdata.allot_time_range;
-	  const serProvider = await ServiceProviderModel.findOne({
-		where: { name: formdata.servicep_id },
-		transaction
-	  });
-  
-	  if (!serProvider) {
-		await transaction.rollback();
-		return res.status(202).json({ status: false, message: 'Service Provider not found!' });
+
+	  if(formdata?.servicep_id){
+		const serProvider = await ServiceProviderModel.findOne({
+			where: { name: formdata.servicep_id },
+			transaction
+		  });
+	  
+		  if (!serProvider) {
+			await transaction.rollback();
+			return res.status(202).json({ status: false, message: 'Service Provider not found!' });
+		  }
+	  
+		  const AllotData = {
+			date: formdata.bookdate,
+			[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
+			emp_id: serProvider.id,
+		  };
+	  
+		  const existingAvailability = await Availability.findOne({
+			where: {
+			  date: formdata.bookdate,
+			  emp_id: serProvider.id,
+			},
+			transaction
+		  });
+	  
+		  // Check if the record exists and if the dynamic field already has a value
+		  if (existingAvailability) {
+			if (existingAvailability[allot_time_range] === 'p') {
+				await existingAvailability.update({
+					[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
+					}, { transaction });
+				  await transaction.commit();
+				  return res.status(200).json({ status: true, message: 'Availability created successfully.' });
+				}
+				else {
+					await transaction.rollback();
+					return res.status(202).json({ status: false,
+					  message: 'Service Provider Not Available',
+					});
+			} 
+		  }
 	  }
-  
-	  const AllotData = {
-		date: formdata.bookdate,
-		[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
-		emp_id: serProvider.id,
-	  };
-  
-	  const existingAvailability = await Availability.findOne({
-		where: {
-		  date: formdata.bookdate,
-		  emp_id: serProvider.id,
-		},
-		transaction
-	  });
-  
-	  // Check if the record exists and if the dynamic field already has a value
-	  if (existingAvailability) {
-		if (existingAvailability[allot_time_range] === 'p') {
-			await existingAvailability.update({
-				[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
-				}, { transaction });
-			  await transaction.commit();
-			  return res.status(200).json({ status: true, message: 'Availability created successfully.' });
-			}
-			else {
-				await transaction.rollback();
-				return res.status(202).json({ status: false,
-				  message: 'Service Provider Not Available',
-				});
-		} 
-	  }
+
+	  
 	//    else {
 	// 	await Availability.create(AllotData, { transaction });
-	// 	await transaction.commit();
-	// 	return res.status(200).json({ status: true, message: 'Availability created successfully.' });
-	//   }
+		await transaction.commit();
+		return res.status(200).json({ status: true, message: 'Availability created successfully.' });
 	} catch (error) {
 	  await transaction.rollback(); // Rollback transaction in case of error
 	  res.status(500).json({ error: true, message: error.message });
@@ -500,25 +504,42 @@ const GetOrderAssing = async (req, res) => {
         });
 
         // Check if the record exists and if the dynamic field already has a value
-        if (existingAvailability) {
-            if (existingAvailability[allot_time_range]) {
-                await transaction.rollback();
-                return res.status(202).json({
-                    message: 'Already assigned to someone at this time range.',
-                });
-            } else {
-                await existingAvailability.update({
-                    [allot_time_range]: `${updatedOrder.service_name}-${order_no}`,
-                }, { transaction });
+        // if (existingAvailability) {
+        //     if (existingAvailability[allot_time_range]) {
+        //         await transaction.rollback();
+        //         return res.status(202).json({
+        //             message: 'Already assigned to someone at this time range.',
+        //         });
+        //     } else {
+        //         await existingAvailability.update({
+        //             [allot_time_range]: `${updatedOrder.service_name}-${order_no}`,
+        //         }, { transaction });
 
-                await transaction.commit();
-                return res.status(200).json({ status: true, message: 'Availability updated successfully.' });
-            }
-        } else {
-            const newAvailability = await Availability.create(AllotData, { transaction });
-            await transaction.commit();
-            return res.status(200).json({ message: 'Availability created successfully.' });
-        }
+        //         await transaction.commit();
+        //         return res.status(200).json({ status: true, message: 'Availability updated successfully.' });
+        //     }
+        // } else {
+        //     const newAvailability = await Availability.create(AllotData, { transaction });
+        //     await transaction.commit();
+        //     return res.status(200).json({ message: 'Availability created successfully.' });
+        // }
+
+
+		if (existingAvailability) {
+			if (existingAvailability[allot_time_range] === 'p') {
+				await existingAvailability.update({
+					[allot_time_range]: `${updatedOrder.service_name}-${order_no}`,
+					}, { transaction });
+				  await transaction.commit();
+				  return res.status(200).json({ status: true, message: 'Availability created successfully.' });
+				}
+				else {
+					await transaction.rollback();
+					return res.status(202).json({ status: false,
+					  message: 'Service Provider Not Available',
+					});
+			} 
+		  }
 
     } catch (error) {
         await transaction.rollback();
@@ -851,6 +872,53 @@ const GetOrderByOrderNo = async (req, res) => {
 }
   
 
+const AddDueBeforeOneday = async (req, res) => {
+    try {
+        // Get the current date in UTC
+        const today = new Date();
+
+        // Convert to Asia/Kolkata time (UTC+5:30)
+        
+		const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+    	const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(today);
+
+        let tomorrow = new Date(formattedDate);
+        tomorrow.setDate(tomorrow.getDate() + 1); // Add one day
+
+        // Format the date to YYYY-MM-DD
+        tomorrow = tomorrow.toISOString().split('T')[0];
+		
+        const orders = await OrderModel.findAll({
+            attributes: ['pending', 'order_no'],
+            where: {
+                bookdate: tomorrow,
+				pending: {
+                    [Op.or]: [0, 4], 
+                },
+            },
+        });
+
+		if (orders.length > 0) {
+            // Update each order with pending status 4
+            await Promise.all(
+                orders.map(order => {
+                    return OrderModel.update(
+                        { pending: 2 },
+                        { where: { order_no: order.order_no } }
+                    );
+                })
+            );
+
+          return  res.status(200).json({ status: 200, message: "Orders updated successfully", data: orders });
+        } else {
+			return  res.status(200).json({ status: 200, message: "No orders found for tomorrow." });
+        }
+    } catch (error) {
+        return res.status(202).json({ status: false, message: "Internal Error",error });
+    }
+};
+
+
 module.exports = {
 	GetAllOrders,
 	GetOrderNow,
@@ -874,5 +942,6 @@ module.exports = {
 	AddOrderCustomer,
 	AddOrderCustomer,
 	GetReports,
-	GetOrderByOrderNo
+	GetOrderByOrderNo,
+	AddDueBeforeOneday
 }
