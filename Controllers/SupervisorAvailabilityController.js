@@ -2,38 +2,83 @@ const db = require("../model/index")
 const AvailabilityModel = db.SupervisorAvailability;
 const EmployeeModel = db.EmployeeModel
 const moment = require('moment');
+const { Op } = require('sequelize');
+
+var AllLeaveSlots = {
+    '07:00-07:30': 'p',
+    '07:30-08:00': 'p',
+    '08:00-08:30': 'p',
+    '08:30-09:00': 'p',
+    '09:00-09:30': 'p',
+    '09:30-10:00': 'p',
+    '10:00-10:30': 'p',
+    '10:30-11:00': 'p',
+    '11:00-11:30': 'p',
+    '11:30-12:00': 'p',
+    '12:00-12:30': 'p',
+    '12:30-01:00': 'p',
+    '01:00-01:30': 'p',
+    '01:30-02:00': 'p',
+    '02:00-02:30': 'p',
+    '02:30-03:00': 'p',
+    '03:00-03:30': 'p',
+    '03:30-04:00': 'p',
+    '04:00-04:30': 'p',
+    '04:30-05:00': 'p',
+    '05:00-05:30': 'p',
+    '05:30-06:00': 'p',
+}
 
 const GetAllSupervisorAvailability = async (req, res) => {
-    let filterDate = req.body.date;
+    const { date: filterDate, from, to, emp_id } = req.body;
 
     try {
+        let whereConditions = {}; 
+        let where = {}; 
+        
+        // If emp_id exists, add it to the conditions
+        if (emp_id) {
+            where.emp_id = emp_id;
+            whereConditions.emp_id = emp_id;
+        }
 
-        if (!filterDate) {
-            const date = new Date();
-            const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
-            const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
-            filterDate = formattedDate
+        // If both from and to exist, we'll filter on date range
+        if (from && to) {
+            // Ensure the dates are in the correct format
+            const startDate = new Date(from).toISOString().split('T')[0];
+            const endDate = new Date(to).toISOString().split('T')[0];
+            whereConditions.date = {
+                [Op.between]: [startDate, endDate]
+            };
+        } else if (filterDate) {
+            // If only a date is present, filter by that date
+            const today = new Date();
+            const formattedDate = filterDate || today.toISOString().split('T')[0];
+            whereConditions.date = formattedDate;
         }
 
         const providersWithAvailabilities = await EmployeeModel.findAll({
             attributes: ['name', 'image'],
-            // where: { is_block: false }, // Filter on ServiceProvider
-            include: [{
+                include: [{
                 model: AvailabilityModel,
-                where: { date: filterDate }, // Optional: Filter on AvailabilityModel
                 required: false, // This ensures a LEFT JOIN
-            }]
+                where: whereConditions,
+            }],
+            where: where
         });
-       
+
+        // Check if combinedData is empty
+        if (providersWithAvailabilities.length === 0) {
+            return res.status(200).json({ status: false, message: "No availability found!" });
+        }
 
         // Respond with combined data
         res.status(200).json({ status: true, data: providersWithAvailabilities });
 
     } catch (error) {
-        res.status(500).json({ error });
+        res.status(500).json({ error: error.message });
     }
 };
-
 
 const AddLeave = async (req, res) => {
     const data = req.body;
@@ -257,7 +302,111 @@ const TransferAvailability = async(req, res) =>{
 }
 
 
+const AddAttendance = async (req, res) => { 
+ 
+    const empId = String(req.params.empId); 
+    try {
+
+        let date = new Date();
+
+        // Convert the date to Kolkata time zone (IST) without milliseconds
+        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
+
+        // Extract the hours and minutes
+        let timeParts = kolkataTime.split(', ')[1].split(':');
+        let hours = parseInt(timeParts[0]);
+        let minutes = parseInt(timeParts[1]);
+        // Check if the time is between 6:00 PM and 6:00 AM
+        let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
+        let isBeforeSixAM = (hours < 6); // 6 AM is less than 6 in 24-hour format
+
+        if (isAfterSixPM || isBeforeSixAM) {
+            return  res.status(200).json({status: false, Message: "Invailid Time To Check" });
+        } else {
+            // Convert to 12-hour format
+        
+            
+            // Convert to 12-hour format
+            let period = hours >= 12 ? 'PM' : 'AM';
+            let formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+            
+            // Format the final output
+            let formattedTime = `${formattedHours}:${minutes}`;
+            
+
+            const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+            const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+        
+            const existingLeave = await AvailabilityModel.findOne({
+            where:{ 
+                date: formattedDate,
+                emp_id: empId
+            }
+            });
+            
+            if(existingLeave){
+                return res.status(201).json({status: true, message: "Already Exist"});
+            }
+                // Full Day Leave: Add leave for all time slots
+                // Create a new leave record
+
+            let leaveSlots = filterLeaveSlots(formattedTime)
+
+            const  isAttendance = await AvailabilityModel.create({
+                    date: formattedDate,
+                    emp_id: empId,
+                    ...leaveSlots
+                })
+
+                return  res.status(200).json({status: true, message: "Availability Added Successfully!"});
+    }
+
+    } catch (error) {
+        return res.status(202).json({ message: "Internal Error", error: error.message });
+    }
+};
+
+
+function filterLeaveSlots(time) {
+    const result = {};
+    
+    // Convert the input time to minutes
+    const inputHours = parseInt(time.split(':')[0]);
+    const inputMinutes = parseInt(time.split(':')[1]);
+    const inputTotalMinutes = inputHours * 60 + inputMinutes;
+
+    // Iterate through the leave slots
+    for (const slot in AllLeaveSlots) {
+        const [start, end] = slot.split('-');
+        
+        // Convert start and end times to minutes
+        const [startHours, startMinutes] = start.split(':').map(Number);
+        const [endHours, endMinutes] = end.split(':').map(Number);
+        
+        const startTotalMinutes = startHours * 60 + startMinutes;
+        const endTotalMinutes = endHours * 60 + endMinutes;
+
+        // Check if the input time is within the slot's time range
+        if (inputTotalMinutes >= startTotalMinutes && inputTotalMinutes < endTotalMinutes) {
+            result[slot] = AllLeaveSlots[slot];
+        }
+    }
+
+    // Return all slots from the matched one onward
+    const finalResult = {};
+    let found = false;
+    for (const slot in AllLeaveSlots) {
+        if (found || slot in result) {
+            finalResult[slot] = AllLeaveSlots[slot];
+            found = true;
+        }
+    }
+
+    return finalResult;
+}
+
+
 
 module.exports = {
-	GetAllSupervisorAvailability, AddLeave, AssignAvailability, TransferAvailability
+	GetAllSupervisorAvailability, AddLeave, AssignAvailability, TransferAvailability, AddAttendance
 }

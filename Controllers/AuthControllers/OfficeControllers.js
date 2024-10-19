@@ -8,6 +8,7 @@ const ServiceProviderModel = db.ServiceProviderModel
 const NewCustomerModel = db.NewCustomerModel
 const jwt = require("jsonwebtoken");
 const {isEmail, isMobileNumber, isOptValid} = require("../utils");
+const SupervisorAvailability = db.SupervisorAvailability;
 
 // Add the Service Provider
 const AddEmployee = async (req, res) => {
@@ -193,6 +194,9 @@ const DeleteAllEmployeeData = async (req, res) => {
 // get all the service provider
 
 const GetAllEmployeeData = async (req, res) => {
+
+	const data = req.query;
+
 	try {
 		const result = await EmployeeModel.findAll({
 			attributes: [
@@ -239,12 +243,35 @@ const GetAllEmployeeData = async (req, res) => {
 				['id', 'DESC']
 			]
 		});
-		if (! result) 
-			return res.status(400).json({error: true, message: "No Data Found"});
-		
-		res.status(200).json({status: 200, data: result});
+
+
+		if (!data || !data.date || !data.time_range) {
+			return res.status(200).json({error: false, data: result});
+		}
+
+
+		const Available = await SupervisorAvailability.findAll({
+			attributes: ['emp_id'],
+			where: {
+			  date: data.date,
+			  [data.time_range]: "p"
+			}
+		  });
+		  
+		  const availableEmpIds = Available.map(entry => entry.dataValues.emp_id);
+		  const serviceProvider = result
+				.filter(entry => entry.dataValues.is_block !== 1)
+				.map(entry => entry.dataValues);
+	
+		const filterData = serviceProvider.filter(item => availableEmpIds.includes(item.emp_id.toString()));
+
+		if (filterData.length === 0){
+			return res.status(202).json({error: true, message: "No Data Found"});
+		}
+	return	res.status(200).json({error: false, data: filterData});
+
 	} catch (error) {
-		res.status(500).json({error});
+		return res.status(500).json({error});
 	}
 };
 

@@ -283,26 +283,18 @@ const TransferAvailability = async(req, res) =>{
         where:{
             emp_id: toEmpId,
             date: toDate,
-            [timeRange]: service_name
+            [timeRange]: 'p'
         }
       })
-      if(isAvailability){
-        return res.status(202).json({ status: false, message: "Already Assign another service"})
+      if(!isAvailability){
+        return res.status(202).json({ status: false, message: "Not  Available ServiceProvider" });
       }
-
-      const IsAvailableTransferDate = await AvailabilityModel.findOne({
-        where: {
-            emp_id: toEmpId,
-            date: toDate,
-        }
-      })
 
 
       const updateData = {
         [totimeRange]: service_name
       }
 
-      if(IsAvailableTransferDate){
        const istransfer = await AvailabilityModel.update(updateData,{
             where:{
                 emp_id: toEmpId,
@@ -318,21 +310,22 @@ const TransferAvailability = async(req, res) =>{
           })
 
           return res.status(200).json({ status: true, message: "Availability Transferred Successfully" });
-       } else{
-        const istransfer = await AvailabilityModel.create({
-            emp_id: toEmpId,
-            date: toDate,
-            [totimeRange]: service_name,
-          })
+    //    } else{
+    //     const istransfer = await AvailabilityModel.create({
+    //         emp_id: toEmpId,
+    //         date: toDate,
+    //         [totimeRange]: service_name,
+    //       })
 
-          await AvailabilityModel.update({[timeRange]: null},{
-            where:{
-                emp_id: fromEmpId,
-                date: fromDate,
-            }
-          })
-          return res.status(200).json({ status: true, message: "Availability Transferred Successfully" });
-      }
+    //       await AvailabilityModel.update({[timeRange]: null},{
+    //         where:{
+    //             emp_id: fromEmpId,
+    //             date: fromDate,
+    //         }
+    //       })
+    //       return res.status(200).json({ status: true, message: "Availability Transferred Successfully" });
+    //   }
+    
     } catch (error) {
       console.error('Error transferring availability:', error);
       res.status(500).json({ message: 'An error occurred while transferring availability records' });

@@ -335,9 +335,6 @@ const GetAllTheServiceProvider = async (req, res) => {
 		  const serviceProvider = result
 				.filter(entry => entry.dataValues.block_id !== 1)
 				.map(entry => entry.dataValues);
-
-		
-		// const filterData = serviceProvider.filter(item => !availableEmpIds.includes(item.id.toString()));
 	
 		const filterData = serviceProvider.filter(item => availableEmpIds.includes(item.id.toString()));
 
