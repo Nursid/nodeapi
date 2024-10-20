@@ -276,25 +276,33 @@ const TransferAvailability = async(req, res) =>{
 
   
       if (!recordToTransfer) {
-        return res.status(202).json({ status: false, message: "No availability found"});
+        return res.status(202).json({ status: false, message: "No availability found", fromEmpId, fromDate, toEmpId, toDate, timeRange, service_name, totimeRange});
       }
 
       const isAvailability = await AvailabilityModel.findOne({
         where:{
             emp_id: toEmpId,
             date: toDate,
-            [timeRange]: 'p'
+            [timeRange]: service_name
         }
       })
-      if(!isAvailability){
-        return res.status(202).json({ status: false, message: "Not  Available ServiceProvider" });
+      if(isAvailability){
+        return res.status(202).json({ status: false, message: "Already Assign another service"})
       }
+
+      const IsAvailableTransferDate = await AvailabilityModel.findOne({
+        where: {
+            emp_id: toEmpId,
+            date: toDate,
+        }
+      })
 
 
       const updateData = {
         [totimeRange]: service_name
       }
 
+      if(IsAvailableTransferDate){
        const istransfer = await AvailabilityModel.update(updateData,{
             where:{
                 emp_id: toEmpId,
@@ -310,28 +318,26 @@ const TransferAvailability = async(req, res) =>{
           })
 
           return res.status(200).json({ status: true, message: "Availability Transferred Successfully" });
-    //    } else{
-    //     const istransfer = await AvailabilityModel.create({
-    //         emp_id: toEmpId,
-    //         date: toDate,
-    //         [totimeRange]: service_name,
-    //       })
+       } else{
+        const istransfer = await AvailabilityModel.create({
+            emp_id: toEmpId,
+            date: toDate,
+            [totimeRange]: service_name,
+          })
 
-    //       await AvailabilityModel.update({[timeRange]: null},{
-    //         where:{
-    //             emp_id: fromEmpId,
-    //             date: fromDate,
-    //         }
-    //       })
-    //       return res.status(200).json({ status: true, message: "Availability Transferred Successfully" });
-    //   }
-    
+          await AvailabilityModel.update({[timeRange]: null},{
+            where:{
+                emp_id: fromEmpId,
+                date: fromDate,
+            }
+          })
+          return res.status(200).json({ status: true, message: "Availability Transferred Successfully" });
+      }
     } catch (error) {
       console.error('Error transferring availability:', error);
       res.status(500).json({ message: 'An error occurred while transferring availability records' });
     }x
 }
-
 
 
 const AddAttendance = async (req, res) => { 
@@ -348,6 +354,8 @@ const AddAttendance = async (req, res) => {
         let timeParts = kolkataTime.split(', ')[1].split(':');
         let hours = parseInt(timeParts[0]);
         let minutes = parseInt(timeParts[1]);
+        // let hours = 9
+        // let minutes = 40
 
 
         // Check if the time is between 6:00 PM and 6:00 AM
@@ -371,31 +379,55 @@ const AddAttendance = async (req, res) => {
             const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
             const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
         
-            const existingLeave = await AvailabilityModel.findOne({
-            where:{ 
-                date: formattedDate,
-                emp_id: empId
-            }
-            });
-            
-            if(existingLeave){
-                return res.status(201).json({status: true, message: "Already Exist"});
-            }
-                // Full Day Leave: Add leave for all time slots
-                // Create a new leave record
 
             let leaveSlots = filterLeaveSlots(formattedTime)
 
-            const  isAttendance = await AvailabilityModel.create({
+            const existingRecords = await AvailabilityModel.findAll({
+                where: { date: formattedDate,
+                   emp_id: empId 
+                 },
+                raw: true, // Get plain JavaScript objects instead of Sequelize instances
+            });
+            if(existingRecords){
+                const existingSlots = existingRecords.reduce((acc, record) => {
+                    for (const [slot, status] of Object.entries(record)) {
+                        if (status !== null) {
+                            acc[slot] = true; // Mark this slot as filled
+                        }
+                    }
+                    return acc;
+                }, {});
+                
+                const slotsToInsert = {};
+                
+                for (const [slot, status] of Object.entries(leaveSlots)) {
+                    if (!existingSlots[slot]) {
+                        slotsToInsert[slot] = status; 
+                    }
+                }
+                
+                if (Object.keys(slotsToInsert).length > 0) {
+                    const isAttendance = await AvailabilityModel.update({...slotsToInsert},
+                        {
+                       where: {
+                        date: formattedDate,
+                        emp_id: empId,
+                        } 
+                    });
+                }
+    
+            }else{
+                const isAttendance = await AvailabilityModel.create({
                     date: formattedDate,
                     emp_id: empId,
                     ...leaveSlots
-                })
+                });
+            }
 
-      return  res.status(200).json({status: true, message: "Availability Added Successfully!"});
+            return  res.status(200).json({status: true, message: "Availability Added Successfully!"});
     }
 
-    } catch (error) {
+    } catch (error) {   
         return res.status(202).json({ message: "Internal Error", error: error.message });
     }
 };

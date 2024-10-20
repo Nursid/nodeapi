@@ -218,6 +218,102 @@ try {
 }
 }
 
+
+const AddAttendance = async (req, res) => { 
+ 
+    const empId = String(req.params.empId); 
+    try {
+
+        let date = new Date();
+
+        // Convert the date to Kolkata time zone (IST) without milliseconds
+        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
+
+        // Extract the hours and minutes
+        let timeParts = kolkataTime.split(', ')[1].split(':');
+        let hours = parseInt(timeParts[0]);
+        let minutes = parseInt(timeParts[1]);
+        // let hours = 7
+        // let minutes = 20
+
+
+        // Check if the time is between 6:00 PM and 6:00 AM
+        let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
+        let isBeforeSixAM = (hours < 6); // 6 AM is less than 6 in 24-hour format
+
+        if (isAfterSixPM || isBeforeSixAM) {
+            return  res.status(200).json({status: false, Message: "Invailid Time To Check" });
+        } else {
+            // Convert to 12-hour format
+        
+            
+            // Convert to 12-hour format
+            let period = hours >= 12 ? 'PM' : 'AM';
+            let formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
+            
+            // Format the final output
+            let formattedTime = `${formattedHours}:${minutes}`;
+            
+
+            const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+            const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+        
+
+            let leaveSlots = filterLeaveSlots(formattedTime)
+
+            const existingRecords = await AvailabilityModel.findAll({
+                where: { date: formattedDate,
+                   emp_id: empId 
+                 },
+                raw: true, // Get plain JavaScript objects instead of Sequelize instances
+            });
+            if(existingRecords){
+                const existingSlots = existingRecords.reduce((acc, record) => {
+                    for (const [slot, status] of Object.entries(record)) {
+                        if (status !== null) {
+                            acc[slot] = true; // Mark this slot as filled
+                        }
+                    }
+                    return acc;
+                }, {});
+                
+                const slotsToInsert = {};
+                
+                for (const [slot, status] of Object.entries(leaveSlots)) {
+                    if (!existingSlots[slot]) {
+                        slotsToInsert[slot] = status; // Only include slots that are not already filled
+                    }
+                }
+                
+                if (Object.keys(slotsToInsert).length > 0) {
+                    const isAttendance = await AvailabilityModel.update({...slotsToInsert},
+                        {
+                            where: {
+                                date: formattedDate,
+                                emp_id: empId,
+                            },
+                        }
+                 );
+                }
+    
+            }else{
+                const isAttendance = await AvailabilityModel.create({
+                    date: formattedDate,
+                    emp_id: empId,
+                    ...leaveSlots
+                });
+            }
+            
+            
+            return  res.status(200).json({status: true, message: "Availability Added Successfully!"});
+    }
+
+    } catch (error) {
+        return res.status(202).json({ message: "Internal Error", error: error.message });
+    }
+};
+
+
 const TransferAvailability = async(req, res) =>{
    
     const { fromEmpId, fromDate, toEmpId, toDate, timeRange, service_name, totimeRange } = req.body;
@@ -245,7 +341,7 @@ const TransferAvailability = async(req, res) =>{
         where:{
             emp_id: toEmpId,
             date: toDate,
-            [timeRange]: service_name
+            [totimeRange]: service_name
         }
       })
       if(isAvailability){
@@ -300,71 +396,6 @@ const TransferAvailability = async(req, res) =>{
       res.status(500).json({ message: 'An error occurred while transferring availability records' });
     }x
 }
-
-
-const AddAttendance = async (req, res) => { 
- 
-    const empId = String(req.params.empId); 
-    try {
-
-        let date = new Date();
-
-        // Convert the date to Kolkata time zone (IST) without milliseconds
-        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
-
-        // Extract the hours and minutes
-        let timeParts = kolkataTime.split(', ')[1].split(':');
-        let hours = parseInt(timeParts[0]);
-        let minutes = parseInt(timeParts[1]);
-        // Check if the time is between 6:00 PM and 6:00 AM
-        let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
-        let isBeforeSixAM = (hours < 6); // 6 AM is less than 6 in 24-hour format
-
-        if (isAfterSixPM || isBeforeSixAM) {
-            return  res.status(200).json({status: false, Message: "Invailid Time To Check" });
-        } else {
-            // Convert to 12-hour format
-        
-            
-            // Convert to 12-hour format
-            let period = hours >= 12 ? 'PM' : 'AM';
-            let formattedHours = hours % 12 || 12; // Convert 0 to 12 for midnight
-            
-            // Format the final output
-            let formattedTime = `${formattedHours}:${minutes}`;
-            
-
-            const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
-            const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
-        
-            const existingLeave = await AvailabilityModel.findOne({
-            where:{ 
-                date: formattedDate,
-                emp_id: empId
-            }
-            });
-            
-            if(existingLeave){
-                return res.status(201).json({status: true, message: "Already Exist"});
-            }
-                // Full Day Leave: Add leave for all time slots
-                // Create a new leave record
-
-            let leaveSlots = filterLeaveSlots(formattedTime)
-
-            const  isAttendance = await AvailabilityModel.create({
-                    date: formattedDate,
-                    emp_id: empId,
-                    ...leaveSlots
-                })
-
-                return  res.status(200).json({status: true, message: "Availability Added Successfully!"});
-    }
-
-    } catch (error) {
-        return res.status(202).json({ message: "Internal Error", error: error.message });
-    }
-};
 
 
 function filterLeaveSlots(time) {
