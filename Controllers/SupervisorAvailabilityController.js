@@ -406,7 +406,6 @@ function filterLeaveSlots(time) {
 }
 
 
-
 module.exports = {
 	GetAllSupervisorAvailability, AddLeave, AssignAvailability, TransferAvailability, AddAttendance
 }
