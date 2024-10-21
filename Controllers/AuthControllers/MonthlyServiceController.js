@@ -18,46 +18,52 @@ const AddMonthlyService = async (req, res) => {
 		if (! UserId) {
 			return res.status(201).json({status: false, message: "This Customer not Exist"});
 		}
-		const { serviceServeType, feesPaidDateTime, service_provider, serviceType, selectedTimeSlot } = data;
-		const servicep_id = await ServiceProviderModel.findOne({
-			where: {
-				name: service_provider
-			}
-		});
-		if (! servicep_id) {
-			return res.status(201).json({status: false, message: "This Service Provider not Exist"});
-		}
+
+		data.user_id = UserId.id
+
+		const newData = await MonthlyServiceModel.create(data);
+
+
+		// const { serviceServeType, feesPaidDateTime, service_provider, serviceType, selectedTimeSlot } = data;
+		// const servicep_id = await ServiceProviderModel.findOne({
+		// 	where: {
+		// 		name: service_provider
+		// 	}
+		// });
+		// if (! servicep_id) {
+		// 	return res.status(201).json({status: false, message: "This Service Provider not Exist"});
+		// }
 
 		// // Check the serviceServeType and insert accordingly
-		if (data?.serviceServeType === "Weekly" || data?.serviceServeType === "Daily") {
-			const entries = [];
+		// if (data?.serviceServeType === "Weekly" || data?.serviceServeType === "Daily") {
+		// 	const entries = [];
 
-			const [year, month, day] = feesPaidDateTime.split('-');
-			const currentDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+		// 	const [year, month, day] = feesPaidDateTime.split('-');
+		// 	const currentDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
-			const incrementDays = serviceServeType === "Weekly" ? 7 : 1;
+		// 	const incrementDays = serviceServeType === "Weekly" ? 7 : 1;
 
-          // Loop to generate entries with the correct gap
-		  for (let i = 0; i < 30; i += incrementDays) { 
-			const formattedDate =  currentDate.toLocaleDateString('en-CA') 
+        //   // Loop to generate entries with the correct gap
+		//   for (let i = 0; i < 30; i += incrementDays) { 
+		// 	const formattedDate =  currentDate.toLocaleDateString('en-CA') 
 
-			entries.push({
-			  emp_id: servicep_id.id,
-			  date: formattedDate, // Use formatted date here
-			  [selectedTimeSlot]: serviceType + '-MonthlyService-'+ data?.cust_name, 
-			});
+		// 	entries.push({
+		// 	  emp_id: servicep_id.id,
+		// 	  date: formattedDate, // Use formatted date here
+		// 	  [selectedTimeSlot]: serviceType + '-MonthlyService-'+ data?.cust_name, 
+		// 	});
 	
-			// Increment date by 7 days for "weekly" or 1 day for "daily"
-			currentDate.setDate(currentDate.getDate() + incrementDays);
+		// 	// Increment date by 7 days for "weekly" or 1 day for "daily"
+		// 	currentDate.setDate(currentDate.getDate() + incrementDays);
 	
-		  }
-		  // Bulk insert data for "weekly" or "daily" entries
-		  await AvailabilityModel.bulkCreate(entries);
-		}
-		const newData = await MonthlyServiceModel.create({
-			...data
-		});
-		if (! newData) {
+		//   }
+		//   // Bulk insert data for "weekly" or "daily" entries
+		//   await AvailabilityModel.bulkCreate(entries);
+		// }
+		// const newData = await MonthlyServiceModel.create({
+		// 	...data
+		// });
+		if (!newData) {
 			return res.status(201).json({status: false, message: "Invalid error"});
 		}
 

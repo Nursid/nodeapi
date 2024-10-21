@@ -1,45 +1,99 @@
 const { Sequelize, DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-const MonthlyServiceModel = sequelize.define('monthlyservices', {
-    cust_name: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    mobile_no: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    monthlyServices: {
-      type: DataTypes.STRING
-    },
-    serviceType: {
-      type: DataTypes.STRING
-    },
-    serviceServeType: {
-      type: DataTypes.STRING
-    },
-    service_provider: {
-      type: DataTypes.STRING
-    },
-    selectedTimeSlot: {
-      type: DataTypes.STRING
-    },
-    serviceFees: {
-      type: DataTypes.DECIMAL(10, 2)
-    },
-    feesPaidDateTime: {
-      type: DataTypes.DATE
-    },
-    user_id: {
-        type: DataTypes.STRING
-    },
-    specialInterest: {
-      type: DataTypes.STRING
-    }}, {
+    const MonthlyServiceModel = sequelize.define('monthlyservices', {
+        cust_name: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        mobile_no: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        monthlyServices: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        serviceType: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        serviceServeType: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        service_provider: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        selectedTimeSlot: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        serviceFees: {
+            type: DataTypes.DECIMAL(10, 2),
+            allowNull: true
+        },
+        feesPaidDateTime: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+        specialInterest: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        kit_no: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        bike_no: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        paymethod: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        netpayamt: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        piadamt: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        totalamt: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        near_by: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        land_mark: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        location: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        mohalla: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        area: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        user_id: {
+          type: DataTypes.STRING,
+          allowNull: false
+        }
+    }, {
         timestamps: true, 
         tableName: 'monthlyservices'
     });
 
-    return MonthlyServiceModel
+    return MonthlyServiceModel;
 };
