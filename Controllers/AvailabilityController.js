@@ -383,12 +383,13 @@ const AddAttendance = async (req, res) => {
             let leaveSlots = filterLeaveSlots(formattedTime)
 
             const existingRecords = await AvailabilityModel.findAll({
-                where: { date: formattedDate,
+                where: {
+                    date: formattedDate,
                    emp_id: empId 
                  },
                 raw: true, // Get plain JavaScript objects instead of Sequelize instances
             });
-            if(existingRecords){
+            if(existingRecords.length > 0){
                 const existingSlots = existingRecords.reduce((acc, record) => {
                     for (const [slot, status] of Object.entries(record)) {
                         if (status !== null) {
@@ -414,6 +415,8 @@ const AddAttendance = async (req, res) => {
                         emp_id: empId,
                         } 
                     });
+
+                    return res.status(200).json({ status: true, message: "Availability Updated Successfully!", });
                 }
     
             }else{
@@ -422,9 +425,9 @@ const AddAttendance = async (req, res) => {
                     emp_id: empId,
                     ...leaveSlots
                 });
+                return res.status(200).json({ status: true, message: "Availability Added Successfully!", });
             }
-
-            return  res.status(200).json({status: true, message: "Availability Added Successfully!"});
+            return res.status(200).json({ status: true, message: "No changes made to availability."});
     }
 
     } catch (error) {   

@@ -233,8 +233,6 @@ const AddAttendance = async (req, res) => {
         let timeParts = kolkataTime.split(', ')[1].split(':');
         let hours = parseInt(timeParts[0]);
         let minutes = parseInt(timeParts[1]);
-        // let hours = 7
-        // let minutes = 20
 
 
         // Check if the time is between 6:00 PM and 6:00 AM
@@ -267,7 +265,7 @@ const AddAttendance = async (req, res) => {
                  },
                 raw: true, // Get plain JavaScript objects instead of Sequelize instances
             });
-            if(existingRecords){
+            if(existingRecords.length > 0){
                 const existingSlots = existingRecords.reduce((acc, record) => {
                     for (const [slot, status] of Object.entries(record)) {
                         if (status !== null) {
