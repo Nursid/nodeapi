@@ -21,27 +21,48 @@ const AddMonthlyService = async (req, res) => {
 
 		data.user_id = UserId.id
 
-		const newData = await MonthlyServiceModel.create(data);
-
-
+		
 		const { serviceServeType, feesPaidDateTime, service_provider, serviceType, selectedTimeSlot } = data;
+
+
 		const servicep_id = await ServiceProviderModel.findOne({
 			where: {
 				name: service_provider
 			}
 		});
+
 		if (! servicep_id) {
 			return res.status(201).json({status: false, message: "This Service Provider not Exist"});
 		}
 
 		// Check the serviceServeType and insert accordingly
-		if (data?.serviceServeType === "Weekly" || data?.serviceServeType === "Daily") {
+		if (data?.serviceServeType === "Weekly" || data?.serviceServeType === "Daily" || data?.serviceServeType === "Alternative" ) {
 			const entries = [];
 
-			const [year, month, day] = feesPaidDateTime.split('-');
+
+			const [date] = feesPaidDateTime.split('T'); // Get the date part
+			const [year, month, day] = date.split('-'); 
+
 			const currentDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
-			const incrementDays = serviceServeType === "Weekly" ? 7 : 1;
+			// const incrementDays = serviceServeType === "Weekly" ? 7 : 1;
+
+
+			let incrementDays;
+			switch (data.serviceServeType) {
+				case "Weekly":
+					incrementDays = 7;
+					break;
+				case "Alternative":
+					incrementDays = 2;
+					break;
+				case "Daily":
+					incrementDays = 1;
+					break;
+				default:
+					incrementDays = 0; // Just in case, although this shouldn't happen
+					break;
+			}
 
           // Loop to generate entries with the correct gap
 		  for (let i = 0; i < 30; i += incrementDays) { 
@@ -55,7 +76,6 @@ const AddMonthlyService = async (req, res) => {
 	
 			// Increment date by 7 days for "weekly" or 1 day for "daily"
 			currentDate.setDate(currentDate.getDate() + incrementDays);
-	
 		  }
 		  // Bulk insert data for "weekly" or "daily" entries
 		  await AvailabilityModel.bulkCreate(entries);
@@ -63,6 +83,7 @@ const AddMonthlyService = async (req, res) => {
 		const newData = await MonthlyServiceModel.create({
 			...data
 		});
+
 		if (!newData) {
 			return res.status(201).json({status: false, message: "Invalid error"});
 		}
