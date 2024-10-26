@@ -9,7 +9,13 @@ const ServiceProviderModel = db.ServiceProviderModel
 const AddMonthlyService = async (req, res) => {
 	const data = req.body;
 	try { 
-		
+
+		if(req.files){
+			const {before_cleaning, after_cleaning} = req.files;
+			data.after_cleaning = after_cleaning ? after_cleaning[0].filename : null;
+			data.before_cleaning = before_cleaning ? before_cleaning[0].filename : null;
+		}
+
 		const UserId = await CustomerModel.findOne({
 			where: {
 				mobileno: data.mobile_no
@@ -130,6 +136,11 @@ const UpdateMonthlyService = async (req,res) =>{
 	const id=req.params.id;
 	const data=req.body
     try{
+		if(req.files){
+			const {before_cleaning, after_cleaning} = req.files;
+			data.after_cleaning = after_cleaning ? after_cleaning[0].filename : null;
+			data.before_cleaning = before_cleaning ? before_cleaning[0].filename : null;
+		}
 		
         const Isdata=await MonthlyServiceModel.update(data,{
 			where: {

@@ -78,6 +78,27 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+
+        before_cleaning: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        after_cleaning: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        shift: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        reference: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
+        reference2: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         mohalla: {
             type: DataTypes.STRING,
             allowNull: true
