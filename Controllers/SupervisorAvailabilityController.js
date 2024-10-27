@@ -58,7 +58,7 @@ const GetAllSupervisorAvailability = async (req, res) => {
         }
 
         const providersWithAvailabilities = await EmployeeModel.findAll({
-            attributes: ['name', 'image'],
+            attributes: ['name', 'image', 'duty_hours', 'week_off'],
                 include: [{
                 model: AvailabilityModel,
                 required: false, // This ensures a LEFT JOIN
