@@ -8,6 +8,7 @@ router.post('/supervisor/report', AttendanceControllers.GetAllSupervisorAttendan
 
 router.post('/service-provider/add', AttendanceControllers.AddServiceProviderAttendance)
 router.get('/service-provider/getall', AttendanceControllers.GetAllServiceProviderAttendance)
+router.post('/service-provider/report', AttendanceControllers.GetAllServiceProvderAttendanceReport)
 
 
 router.post('/supervisor/leave', AttendanceControllers.AddLeaveSupervisor)

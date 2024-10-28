@@ -1,6 +1,7 @@
 const db = require('../../model');
 const SupervisorAttendance = db.SupervisorAttendance
 const ServiceProviderAttendance = db.ServiceProviderAttendance
+const ServiceProviderModel = db.ServiceProviderModel
 const EmployeeModel = db.EmployeeModel
 const { Op } = require('sequelize');
 
@@ -411,4 +412,66 @@ const GetAllSupervisorAttendanceReport = async (req, res) => {
 
 
 
-module.exports = { AddSupervisorAttendance, AddServiceProviderAttendance, GetAllSupervisorAttendance, GetAllServiceProviderAttendance, AddLeaveSupervisor, AddLeaveServiceProvider, GetAllSupervisorAttendanceReport }
+
+const GetAllServiceProvderAttendanceReport = async (req, res) => {
+  const { from, to, emp_id} = req.body;
+
+  try {
+    let dateCondition;
+
+    if (from && to) {
+      // Convert and validate provided dates
+      const startDate = new Date(from);
+      const endDate = new Date(to);
+
+      dateCondition = {
+        in_date: {
+          [Op.between]: [startDate, endDate]
+        },
+        servp_id: emp_id
+      };
+    } else {
+      const now = new Date();
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1); // First day of current month
+      const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0); // Last day of current month
+      dateCondition = {
+        in_date: {
+          [Op.between]: [currentMonthStart, currentMonthEnd]
+        }
+      };
+    }
+
+    // Fetch attendance records based on the date condition
+    const allAttendance = await ServiceProviderAttendance.findAll({
+      include: [{
+        model: ServiceProviderModel,
+      }],
+      order: [['id', 'DESC']],
+      where: dateCondition
+    });
+
+    // const allAttendance = await  ServiceProviderModel.findAll({
+    //   include: [{
+    //     model: ServiceProviderAttendance,
+    //     where: dateCondition,
+    //     order: [['id', 'DESC']],
+    //   }],
+    // });
+
+
+    res.status(200).json({
+      success: true,
+      message: 'All attendance records retrieved successfully',
+      data: allAttendance
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error retrieving attendance records',
+      error: error.message
+    });
+  }
+};
+
+
+module.exports = { AddSupervisorAttendance, AddServiceProviderAttendance, GetAllSupervisorAttendance, GetAllServiceProviderAttendance, AddLeaveSupervisor, AddLeaveServiceProvider, GetAllSupervisorAttendanceReport,GetAllServiceProvderAttendanceReport }
