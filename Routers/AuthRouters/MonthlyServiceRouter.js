@@ -29,5 +29,9 @@ router.post("/update/:id",upload.fields([
     { name: 'after_cleaning', maxCount: 1 }
   ]), MonthlyServiceController.UpdateMonthlyService);
 
+router.put("/assign/:id", MonthlyServiceController.MonthlyServiceAssign)
+
+
+
 
 module.exports = router;

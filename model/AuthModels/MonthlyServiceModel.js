@@ -35,7 +35,7 @@ module.exports = (sequelize) => {
             allowNull: true
         },
         feesPaidDateTime: {
-            type: DataTypes.DATE,
+            type: DataTypes.STRING,
             allowNull: true
         },
         specialInterest: {
@@ -110,7 +110,23 @@ module.exports = (sequelize) => {
         user_id: {
           type: DataTypes.STRING,
           allowNull: false
-        }
+        },
+         checkintime: {
+          type: DataTypes.STRING,
+          allowNull: true
+        },
+         checkouttime: {
+          type: DataTypes.STRING,
+          allowNull: true
+        },
+         pending: {
+          type: DataTypes.INTEGER,
+          allowNull: true
+        },
+        orderNo: {
+          type: DataTypes.STRING,
+          allowNull: true
+        },
     }, {
         timestamps: true, 
         tableName: 'monthlyservices'
