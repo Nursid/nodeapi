@@ -26,6 +26,10 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING,
             allowNull: true
         },
+        supervisor: {
+            type: DataTypes.STRING,
+            allowNull: true
+        },
         selectedTimeSlot: {
             type: DataTypes.STRING,
             allowNull: true

@@ -112,19 +112,9 @@ const AddMonthlyService = async (req, res) => {
 	}
 }
 
-
 const GetAllMonthlyService = async (req,res) =>{
     try{
-		
-		// const specifiedDate = req.body.date;
-
-		const data = await MonthlyServiceModel.findAll({
-			// where:{
-			// 	feesPaidDateTime: specifiedDate
-			// },
-			order: [["id", "DESC"]]
-		});
-
+		const data = await MonthlyServiceModel.findAll();
 
         if(data){
             return res.status(200).json({status:200, data})
@@ -155,29 +145,36 @@ const DeleteMonthlyService = async (req,res) =>{
     }
 }
 
-const UpdateMonthlyService = async (req,res) =>{
-	const orderNo=req.params.id;
-	const data=req.body
-    try{
-		if(req.files){
-			const {before_cleaning, after_cleaning} = req.files;
-			data.after_cleaning = after_cleaning ? after_cleaning[0].filename : null;
-			data.before_cleaning = before_cleaning ? before_cleaning[0].filename : null;
-		}
-		
-        const Isdata=await MonthlyServiceModel.update(data,{
-			where: {
-				orderNo: orderNo
-			}
-		});
-        if(Isdata){
-            return res.status(200).json({status:200,message:"Your Monthly Service Updated"})
+const UpdateMonthlyService = async (req, res) => {
+    const orderNo = req.params.id;
+    let data = req.body;
+
+    try {
+        // Destructure feesPaidDateTime and ignore it
+        const { feesPaidDateTime, ...updateData } = data;
+
+        if (req.files) {
+            const { before_cleaning, after_cleaning } = req.files;
+            updateData.after_cleaning = after_cleaning ? after_cleaning[0].filename : null;
+            updateData.before_cleaning = before_cleaning ? before_cleaning[0].filename : null;
         }
+
+        const isDataUpdated = await MonthlyServiceModel.update(updateData, {
+            where: {
+                orderNo: orderNo
+            }
+        });
+
+        if (isDataUpdated[0] > 0) {
+            return res.status(200).json({ status: 200, message: "Your Monthly Service Updated" });
+        } else {
+            return res.status(404).json({ status: 404, message: "Order Not Found" });
+        }
+    } catch (error) {
+        console.error(error); // Log the error for debugging
+        return res.status(500).json({ error: true, message: "Internal Server Error" });
     }
-    catch(error){
-        return res.status(500).json({error:true,message:"Internal Server Error "})
-    }
-}
+};
 
 
 const getNextOrderNumber = async () => {
@@ -194,7 +191,6 @@ const getNextOrderNumber = async () => {
     
     return 'MORDN-0001'; // Start with MORDN-0001 if no entries exist
 };
-
 
 const MonthlyServiceAssign = async (req, res) => {
 	try {
@@ -216,7 +212,6 @@ const MonthlyServiceAssign = async (req, res) => {
 		res.status(200).json("Internal Server Error");
 	}
 }
-
 
 module.exports = {
 	AddMonthlyService,
