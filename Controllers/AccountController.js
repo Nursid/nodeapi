@@ -24,14 +24,15 @@ const AddBalance = async (req, res) => {
 
 		// Check if the order_no exists
 		const existingAccount = await AccountModel.findOne({
-			where: { order_no: data.order_no 
+			where: { order_no: data?.order_no 
 			}
 			});
+
 		if (existingAccount) {
 			// If exists, update the existing record
 			await AccountModel.update(data, {
 				where: {
-					order_no: data.order_no
+					order_no: data?.order_no
 				}
 			});
 			return res.status(200).json({ status: true, message: "Amount Updated Successfully!" });
@@ -172,10 +173,29 @@ const FilterAmount = async (req, res) => {
 	}
 }
 
+
+const AddExpense = async (req, res) => {
+	try {
+		const data = req.body;
+		data.date = moment(new Date()).format('YYYY-MM-DD');
+
+		// Check if the order_no exists
+			// If not exists, create a new record
+			const newAccount = await AccountModel.create(data);
+			return res.status(200).json({ status: true, message: "Expense Added Successfully!" });
+	} catch (error) {
+		console.error('Error:', error); // Log the error for debugging
+		res.status(400).json({ message: "Invalid URL or data" });
+	}
+}
+
+
+
 module.exports = {
 	ListingAccount,
 	AddBalance,
 	TotalAmount,
 	EditBalnace,
-    FilterAmount
+    FilterAmount,
+	AddExpense
 }
