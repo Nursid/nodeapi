@@ -39,13 +39,7 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 
-// app.use(express.static("./uploads"));
-
-// app.use('/uploads', express.static('uploads'));
-
-
-app.use(express.static('public'));
-app.use('/uploads', express.static('uploads'));
+app.use("/uploads", express.static("uploads"));
 
 app.use(
   cookieSession({
@@ -62,9 +56,8 @@ app.use(passport.session());
 const port = process.env.PORT || 5000;
 
 app.get("/", (req, res) => {
-  res.send("Welcome to the Helper Services");
+  res.status(200).json({path: __dirname});
 });
-app.use('/uploads', express.static('uploads'));
 app.use("/api",route)
 app.use("/customer", CustomerRouter);
 app.use("/service", ServiceRouter);
@@ -89,6 +82,6 @@ app.use("/complain",complain)
 app.use("/attendance",Attendance)
 
 // Start the server
-app.listen(port, () => {
-  console.log(`Server started at port ${port}`);
+app.listen(5000, () => {
+  console.log(`Server started at port 5000`);
 });
