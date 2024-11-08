@@ -93,7 +93,7 @@ const GetAllAvailability = async (req, res) => {
         }
 
         const providersWithAvailabilities = await ServiceProvider.findAll({
-            attributes: ['id', 'name', 'provider_type'],
+            attributes: ['id', 'name', 'provider_type', 'image'],
                 include: [{
                 model: AvailabilityModel,
                 required: false, // This ensures a LEFT JOIN

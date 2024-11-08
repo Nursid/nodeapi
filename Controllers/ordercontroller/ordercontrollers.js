@@ -938,7 +938,7 @@ const AddDueBeforeOneday = async (req, res) => {
             where: {
                 bookdate: tomorrow,
 				pending: {
-                    [Op.or]: [0, 4], 
+                    [Op.or]: [0], 
                 },
             },
         });
