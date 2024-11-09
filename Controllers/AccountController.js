@@ -243,6 +243,19 @@ const AddExpense = async (req, res) => {
 }
 
 
+const AddFund = async (req, res) => {
+	try {
+		const data = req.body;
+
+		const newAccount = await AccountModel.create(data);
+		return res.status(200).json({ status: true, message: "Amount Added Successfully!" });
+
+	} catch (error) {
+		console.error('Error:', error); // Log the error for debugging
+		res.status(400).json({ message: "Invalid URL or data" });
+	}
+}
+
 
 module.exports = {
 	ListingAccount,
@@ -250,5 +263,6 @@ module.exports = {
 	TotalAmount,
 	EditBalnace,
     FilterAmount,
-	AddExpense
+	AddExpense,
+	AddFund
 }

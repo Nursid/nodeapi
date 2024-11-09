@@ -8,6 +8,7 @@ const supervisorAvailabilityController = require("../Controllers/SupervisorAvail
 
 router.get('/account-listing',AccountController.ListingAccount);
 router.post('/add-balance',AccountController.AddBalance);
+router.post('/add-fund',AccountController.AddFund);
 router.post('/add-expense',AccountController.AddExpense);
 router.get('/total-amount',AccountController.TotalAmount);
 router.post("/edit-balance/:id",AccountController.EditBalnace);

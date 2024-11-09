@@ -734,7 +734,11 @@ const GetTotalSummary = async (req, res) => {
         // Fetching all necessary data in parallel
         const [orders, monthlyServices, TotalAcount,TotalExpenses ] = await Promise.all([
             OrderModel.findAll({ where: dateFilter }),
-            MonthlyServiceModel.findAll({ where: dateFilter }),
+			 MonthlyServiceModel.findAll({
+				where: dateFilter,
+				attributes: [
+				  [Sequelize.fn('DISTINCT', Sequelize.col('orderNo')), 'orderNo']],
+			  }),
 			AccountModel.findAll({
 				attributes: [
 					[sequelize.fn('SUM', sequelize.col('amount')), 'total_amount'],
