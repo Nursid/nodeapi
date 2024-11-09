@@ -778,7 +778,7 @@ const GetTotalSummary = async (req, res) => {
         const totalMonthlyService = monthlyServices.length;
         const TotalserviceFees = monthlyServices.reduce((total, service) => total + parseFloat(service.serviceFees), 0);
 
-		const Netbalance = TotalAcount[0]?.dataValues?.total_cash + TotalAcount[0]?.dataValues?.total_online + totalMonthlyService - TotalExpenses[0]?.dataValues?.total_expense
+		const Netbalance = TotalAcount[0]?.dataValues?.total_cash + TotalAcount[0]?.dataValues?.total_online  - TotalExpenses[0]?.dataValues?.total_expense
         
         
         // Constructing summary object
