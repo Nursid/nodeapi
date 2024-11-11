@@ -5,10 +5,14 @@ const AvailabilityModel = db.Availability;
 const SupervisorAvailability = db.SupervisorAvailability
 const ServiceProviderModel = db.ServiceProviderModel
 const EmployeeModel = db.EmployeeModel
+const sequelize = require('../../config/sequalize'); 
 
 const AddMonthlyService = async (req, res) => {
+
 	const data = req.body;
 	try { 
+		const transaction = await sequelize.transaction();
+
 		if (req.files) {
 			const { before_cleaning, after_cleaning } = req.files;
 			data.after_cleaning = after_cleaning ? after_cleaning[0].filename : null;
@@ -26,16 +30,26 @@ const AddMonthlyService = async (req, res) => {
 
 		const { serviceServeType, feesPaidDateTime, service_provider, serviceType, selectedTimeSlot, supervisor } = data;
 
-		const servicep_id = await ServiceProviderModel.findOne({
-			where: { name: service_provider }
-		});
+		const multiServiceProvider = service_provider.split(',').map(item => item.trim()) 
+
+
+		const servicep_ids = await Promise.all(
+			multiServiceProvider.map(async (providerName) => {
+				const serviceProvider = await ServiceProviderModel.findOne({
+					where: { name: providerName }
+				});
+				return serviceProvider ? serviceProvider.id : null;
+			})
+		);
 		
+		// Filter out any null values in case some providers were not found
+		const valid_servicep_ids = servicep_ids.filter(id => id !== null);
+
 		const supervisorData = await EmployeeModel.findOne({
 			where: { name: supervisor }
 		});
 
-
-		if (!servicep_id) {
+		if (valid_servicep_ids.length === 0) {
 			return res.status(201).json({ status: false, message: "This Service Provider not Exist" });
 		}
 
@@ -64,50 +78,101 @@ const AddMonthlyService = async (req, res) => {
 			}
 
 			const orderNumber = await getNextOrderNumber(); 
+		
+				for (let i = 0; i < 30; i += incrementDays) {
+					const formattedDate = currentDate.toLocaleDateString('en-CA');
+	
+					valid_servicep_ids.map((servicepId)=>{
+						availabilityEntries.push({
+							emp_id: servicepId,
+							date: formattedDate,
+							[selectedTimeSlot]: serviceType + '-MonthlyService-' + data.cust_name + '-'+orderNumber,
+						});
+					})
+	
+					availabilitySupervisor.push({
+						emp_id: supervisorData.emp_id,
+						date: formattedDate,
+						[selectedTimeSlot]: serviceType + '-MonthlyService-' + data.cust_name + '-'+orderNumber,
+					});
+	
+					const newdata = {
+						...data,
+						feesPaidDateTime: formattedDate,	
+						orderNo: orderNumber,
+						pending: 0,
+					}
+	
+					// Prepare monthly service entry
+					monthlyEntries.push({
+						...newdata	
+					});
+	
+					// Increment date
+					currentDate.setDate(currentDate.getDate() + incrementDays);
+				}
 			
 
-			for (let i = 0; i < 30; i += incrementDays) {
-				const formattedDate = currentDate.toLocaleDateString('en-CA');
+	
+    for (const entry of availabilityEntries) {
+        // Check if a record with the same emp_id and date already exists
+        const existingEntry = await AvailabilityModel.findOne({
+            where: {
+                emp_id: entry.emp_id,
+                date: entry.date,
+            },
+            transaction,
+        });
 
-				// Prepare availability entry
-				availabilityEntries.push({
-					emp_id: servicep_id.id,
-					date: formattedDate,
-					[selectedTimeSlot]: serviceType + '-MonthlyService-' + data.cust_name + '-'+orderNumber,
-				});
-
-				availabilitySupervisor.push({
-					emp_id: supervisorData.emp_id,
-					date: formattedDate,
-					[selectedTimeSlot]: serviceType + '-MonthlyService-' + data.cust_name + '-'+orderNumber,
-				});
-
-				const newdata = {
-					...data,
-					feesPaidDateTime: formattedDate,	
-					orderNo: orderNumber,
-					pending: 0,
+        if (existingEntry) {
+            // If it exists, update the record
+            await existingEntry.update(entry,{
+				where: {
+					emp_id: entry.emp_id,
+					date: entry.date,
 				}
+			},{ transaction });
+        } else {
+            // If it doesn't exist, insert a new record
+            await AvailabilityModel.create(entry, { transaction });
+        }
+    }
 
-				// Prepare monthly service entry
-				monthlyEntries.push({
-					...newdata	
-				});
+    for (const supervisorEntry of availabilitySupervisor) {
+        // Check if a record with the same emp_id and date already exists
+        const existingSupervisor = await SupervisorAvailability.findOne({
+            where: {
+                emp_id: supervisorEntry.emp_id,
+                date: supervisorEntry.date,
+            },
+            transaction,
+        });
 
-				// Increment date
-				currentDate.setDate(currentDate.getDate() + incrementDays);
-			}
-		
+        if (existingSupervisor) {
+            // If it exists, update the record
+            await existingSupervisor.update(supervisorEntry,{
+				where: {
+					emp_id: supervisorEntry.emp_id,
+					date: supervisorEntry.date,
+			}},
+			{ transaction });
+        } else {
+            // If it doesn't exist, insert a new record
+            await SupervisorAvailability.create(supervisorEntry, { transaction });
+        }
+    }
 
-			// Bulk insert availability entries
-			await AvailabilityModel.bulkCreate(availabilityEntries);
-			await SupervisorAvailability.bulkCreate(availabilitySupervisor);
-			// Bulk insert monthly service entries
-			await MonthlyServiceModel.bulkCreate(monthlyEntries);
+    // Commit the transaction
+	await MonthlyServiceModel.bulkCreate(monthlyEntries, {
+		transaction
+	});
+    await transaction.commit();
 			return res.status(200).json({ status: true, message: 'Monthly Service Added!', orderNo: orderNumber });
 		}
 
 	} catch (error) {
+		
+		await transaction.rollback();
 		return res.status(500).json({ error: true, message: "Internal Server Error", error });
 	}
 }
