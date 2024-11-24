@@ -14,4 +14,7 @@ router.post('/service-provider/report', AttendanceControllers.GetAllServiceProvd
 router.post('/supervisor/leave', AttendanceControllers.AddLeaveSupervisor)
 router.post('/service-provider/leave', AttendanceControllers.AddLeaveServiceProvider)
 
+
+router.post('/getall', AttendanceControllers.GetAllAttendanceReport)
+
 module.exports = router

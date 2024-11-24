@@ -4,6 +4,7 @@ const ServiceProviderAttendance = db.ServiceProviderAttendance
 const ServiceProviderModel = db.ServiceProviderModel
 const EmployeeModel = db.EmployeeModel
 const { Op } = require('sequelize');
+const DesignationModel = db.DesignationModel
 
 const AddServiceProviderAttendance = async (req, res) => {
   try {
@@ -474,4 +475,90 @@ const GetAllServiceProvderAttendanceReport = async (req, res) => {
 };
 
 
-module.exports = { AddSupervisorAttendance, AddServiceProviderAttendance, GetAllSupervisorAttendance, GetAllServiceProviderAttendance, AddLeaveSupervisor, AddLeaveServiceProvider, GetAllSupervisorAttendanceReport,GetAllServiceProvderAttendanceReport }
+
+const GetAllAttendanceReport = async (req, res) => {
+  const  data = req.body; // Optional specific date for filtering
+  try {
+    let dateCondition;
+
+    if (data && data.date) {
+      const specificDate = new Date(data.date);
+      dateCondition = {
+        in_date: {
+          [Op.eq]: specificDate
+        }
+      };
+    }else {
+      const now = new Date();
+      dateCondition = {
+        in_date: {
+          [Op.eq]: now
+        }
+      };
+    }
+
+    // Fetch attendance for both supervisors and service providers
+    const [supervisorAttendance, serviceProviderAttendance] = await Promise.all([
+      SupervisorAttendance.findAll({
+        include: [{ model: EmployeeModel,
+          attributes:  ["name","mobile_no", "designation_id" ],
+         include: [{
+            model: DesignationModel,
+            attributes: ['name', "id"]
+          }],
+         }],
+        attributes:  ["check_in", "check_out","status" , "in_date"] ,
+        order: [["id", "DESC"]],
+        where: dateCondition
+      }),
+      ServiceProviderAttendance.findAll({
+        include: [{ model: ServiceProviderModel ,
+          attributes:  ["name","mobile_no",  ],
+        }],
+        order: [["id", "DESC"]],
+        attributes:  ["check_in", "check_out", "status" , "in_date"] ,
+        where: dateCondition
+      })
+    ]);
+
+    const supervisorAttendanceData = supervisorAttendance.map((record) => ({
+      check_in: record.check_in,
+      check_out: record.check_out,
+      status: record.status,
+      in_date: record.in_date,
+      name: record?.employee?.name,
+      mobile_no: record?.employee?.mobile_no,
+      role: record?.employee?.designation?.name
+    }));
+  
+    // Map service providers data to the same structure
+    const serviceProviderAttendanceData = serviceProviderAttendance.map((record) => ({
+      check_in: record.check_in,
+      check_out: record.check_out,
+      status: record.status,
+      in_date: record.in_date,
+      name: record?.service_provider?.name,
+      mobile_no: record?.service_provider?.mobile_no,
+      role: "Service Provider" // Add a role for service providers
+    }));
+    const mergedData = [...supervisorAttendanceData, ...serviceProviderAttendanceData];
+    
+  
+
+    // Respond with the combined data
+    res.status(200).json({
+      success: true,
+      message: "Attendance records retrieved successfully",
+      data: mergedData,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error retrieving attendance records",
+      error: error.message
+    });
+  }
+};
+
+
+module.exports = { AddSupervisorAttendance, AddServiceProviderAttendance, GetAllSupervisorAttendance, GetAllServiceProviderAttendance, AddLeaveSupervisor, AddLeaveServiceProvider, GetAllSupervisorAttendanceReport,GetAllServiceProvderAttendanceReport, GetAllAttendanceReport }

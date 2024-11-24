@@ -56,7 +56,7 @@ app.use(passport.session());
 const port = process.env.PORT || 5000;
 
 app.get("/", (req, res) => {
-  res.status(200).json({path: __dirname});
+  res.status(200).json({message: "Welcome to the API"});
 });
 app.use("/api",route)
 app.use("/customer", CustomerRouter);
