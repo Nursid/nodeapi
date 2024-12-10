@@ -9,7 +9,6 @@ module.exports = (sequelize) => {
         },
         order_no:{
             type: DataTypes.INTEGER,
-
         },
         membership: {
             type: DataTypes.STRING

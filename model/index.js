@@ -62,7 +62,7 @@ db.SpServices = require("./Misc/sp_services")(sequelize, DataTypes)
 db.locality=require("./Misc/localities")(sequelize, DataTypes)
 db.ComplainModel = require("./ComplainModel")(sequelize, DataTypes)
 db.TimeSlotModel = require("./TimeSlotModel")(sequelize, DataTypes)
-
+db.OrderServiceProviders = require("./OrderModel/OrderServiceProviders")(sequelize, DataTypes)
 db.SupervisorAttendance = require("./AttendanceModels/SupervisorAttendance")(sequelize, DataTypes)
 
 db.ServiceProviderAttendance = require("./AttendanceModels/ServiceProviderAttendance")(sequelize, DataTypes)
@@ -97,6 +97,11 @@ db.Availability.belongsTo(db.ServiceProviderModel, { foreignKey: 'emp_id' });
 // db.SupervisorAvailability.belongsTo(db.EmployeeModel, {foreignKey: 'emp_id'})
 
 db.EmployeeModel.belongsTo(db.SupervisorAvailability, { foreignKey: 'emp_id', targetKey: 'emp_id' });
+
+
+db.OrderModel.belongsTo(db.OrderServiceProviders, { foreignKey: 'order_no', targetKey: 'order_no' });
+
+db.OrderServiceProviders.belongsTo(db.ServiceProviderModel, { foreignKey: 'service_provider_id', targetKey: 'id' });
 
 // db.EmployeeModel.hasMany(db.SupervisorAvailability, {
 //   foreignKey: 'emp_id',

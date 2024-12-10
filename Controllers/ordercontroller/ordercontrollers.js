@@ -3,15 +3,13 @@ const Sequelize = require('sequelize');
 const sequelize = require('../../config/sequalize'); 
 const Op = Sequelize.Op;
 const db = require("../../model/index");
-const { name } = require("ejs");
 const CustomerModel = db.CustomerModel
-const CustomerID = db.CustomerID
 const OrderModel = db.OrderModel
+const OrderServiceProviders = db.OrderServiceProviders
 const NewCustomerModel = db.NewCustomerModel
 const ServiceProviderModel = db.ServiceProviderModel
 const EmployeeModel = db.EmployeeModel
 const MonthlyServiceModel = db.MonthlyServiceModel
-const AddExpenseModel = db.AddExpenseModel
 const AccountModel = db.Account
 const TimeSlotModel = db.TimeSlotModel
 const Availability = db.Availability
@@ -21,7 +19,8 @@ const moment = require('moment');
 const GetOrderNow = async (req, res) => {
 	const transaction = await sequelize.transaction();
 	try {
-	  const formdata = req.body;
+	  const orderData = req.body;
+	  const { servicep_providers, ...formdata } = orderData;
 	  let userId;
   
 	  // Check if the user exists with the provided mobile number and ismember true
@@ -84,130 +83,123 @@ const GetOrderNow = async (req, res) => {
 	  const lastOrderNumber = lastOrder ? parseInt(lastOrder.order_no, 10) : 0;
 	  const nextOrderNumber = lastOrderNumber + 1;
 
-	const formattedOrderNumber = nextOrderNumber.toString().padStart(5, '0');
-	formdata.order_no = formattedOrderNumber
+	  const formattedOrderNumber = nextOrderNumber.toString().padStart(5, '0');
+	  formdata.order_no = formattedOrderNumber
 
 	  formdata.cust_id = userId;
-  
 	  if (formdata?.serviceDateTime) {
 		const [bookdate, booktime] =  formdata.serviceDateTime.split('T');
 		formdata.bookdate = bookdate;
 		formdata.booktime = booktime;
-
-		// const currentDate = new Date();
-		// const currentDateFormatted = currentDate.toISOString().split('T')[0]; 
-
-		// Ensure bookdate is defined and in the correct format
-		// if (bookdate && currentDateFormatted !== bookdate) {
-		// 	formdata.pending = 2;
-		// }
-
 	  }
   
 	  const data = await OrderModel.create(formdata, { transaction });
-  
+
 	  if (!data) {
-		await transaction.rollback();
-		return res.status(202).json({ status: false, message: "Order not placed! Try again" });
+		if (!transaction.finished) {
+		  await transaction.rollback();
+		}
+		 res.status(202).json({ status: false, message: "Order not placed! Try again" });
+		 return;
 	  }
-  
+	  
+	  const { order_no } = data; // Retrieve `order_no` from the newly created order
 	  const allot_time_range = formdata.allot_time_range;
 
-	  if(formdata?.servicep_id){
-		const serProvider = await ServiceProviderModel.findOne({
-			where: { name: formdata.servicep_id },
+	  // Step 2: Add entries to OrderServiceProviders table
+	  if (servicep_providers && Array.isArray(servicep_providers)) {
+		  const orderServiceProvidersPromises = servicep_providers.map(async (providerId) => {
+			  await OrderServiceProviders.create(
+				  {
+					  order_no: order_no, // Associate the same `order_no`
+					  service_provider_id: providerId, // Add each `service_provider_id`
+				  },
+				  { transaction }
+			  );
+
+
+			  const existingAvailability = await Availability.findOne({
+				where: {
+				  date: formdata.bookdate,
+				  emp_id: providerId,
+				},
+				transaction
+			  });
+		  
+			  // Check if the record exists and if the dynamic field already has a value
+			  if (existingAvailability) {
+				if (existingAvailability[allot_time_range] === 'p') {
+					await existingAvailability.update({
+						[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
+						}, { transaction });
+					}
+					else {
+						if (!transaction.finished) {
+							await transaction.rollback();
+						  }
+						
+						res.status(202).json({ status: false,
+						  message: 'Service Provider Not Available',
+						});
+						return;
+				} 
+			  }
+
+		  });
+		  // Wait for all promises to complete
+		  await Promise.all(orderServiceProvidersPromises);
+	  }
+
+
+
+	   if(formdata.suprvisor_id){
+		const serProvider = await EmployeeModel.findOne({
+			where: { name: formdata.suprvisor_id },
 			transaction
 		  });
 	  
 		  if (!serProvider) {
-			await transaction.rollback();
-			return res.status(202).json({ status: false, message: 'Service Provider not found!' });
+			if (!transaction.finished) {
+				await transaction.rollback();
+			  }
+			 res.status(202).json({ status: false, message: 'Supervisor not found!' });
+			 return;
 		  }
 	  
-		  const AllotData = {
-			date: formdata.bookdate,
-			[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
-			emp_id: serProvider.id,
-		  };
 	  
-		  const existingAvailability = await Availability.findOne({
+		  const existingAvailability = await SupervisorAvailability.findOne({
 			where: {
 			  date: formdata.bookdate,
-			  emp_id: serProvider.id,
+			  emp_id: serProvider.emp_id,
 			},
 			transaction
 		  });
-	  
-		  // Check if the record exists and if the dynamic field already has a value
+
 		  if (existingAvailability) {
 			if (existingAvailability[allot_time_range] === 'p') {
 				await existingAvailability.update({
 					[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
 					}, { transaction });
-
-					if(formdata?.suprvisor_id){
-						const serProvider = await EmployeeModel.findOne({
-							where: { name: formdata.suprvisor_id },
-							transaction
-						  });
-					  
-						  if (!serProvider) {
-							await transaction.rollback();
-							return res.status(202).json({ status: false, message: 'Supervisor not found!' });
-						  }
-					  
-						  const AllotData = {
-							date: formdata.bookdate,
-							[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
-							emp_id: serProvider.emp_id,
-						  };
-					  
-						  const existingAvailability = await SupervisorAvailability.findOne({
-							where: {
-							  date: formdata.bookdate,
-							  emp_id: serProvider.emp_id,
-							},
-							transaction
-						  });
-				
-						  // Check if the record exists and if the dynamic field already has a value
-						  if (existingAvailability) {
-							if (existingAvailability[allot_time_range] === 'p') {
-								await existingAvailability.update({
-									[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
-									}, { transaction });
-									await transaction.commit();
-									return res.status(200).json({ status: true, message: 'Availability created successfully.'});
-								}
-								else {
-									await transaction.rollback();
-									return res.status(202).json({ status: false,
-										message: 'Service Provider Not Available',
-								});
-							} 
-						  }
-					  }
-
-					await transaction.commit();
-					return res.status(200).json({ status: true, message: 'Availability created successfully.'});
-				
 				}
 				else {
-					await transaction.rollback();
-					return res.status(202).json({ status: false,
-					  message: 'Service Provider Not Available',
-					});
+					if (!transaction.finished) {
+						await transaction.rollback();
+					  }
+					 res.status(202).json({ status: false,
+						message: 'Service Provider Not Available',
+				});
+				return;
 			} 
 		  }
 	  }
-	  
-	//    else {
-	// 	await Availability.create(AllotData, { transaction });
 		await transaction.commit();
 		return res.status(200).json({ status: true, message: 'Availability created successfully.' });
 	} catch (error) {
-	  await transaction.rollback(); // Rollback transaction in case of error
+		if (!transaction.finished) {
+			await transaction.rollback();
+		  }
 	  res.status(500).json({ error: true, message: error.message });
+	  return;
 	}
 };
 
@@ -235,7 +227,6 @@ const OrderComplain = async (req, res) => {
 		res.status(500).json(error)
 	}
 }
-
 // get  the order update
 const GetOrderUpdate = async (req, res) => {
 	try {
@@ -306,30 +297,72 @@ const GetDeleteByID = async (req, res) => {
 	}
 }
 const GetAllOrders = async (req, res) => {
-	try {
+    try {
+        const orders = await OrderModel.findAll({
+            include: [
+                {
+                    model: NewCustomerModel,
+                    attributes: ['name', 'email', 'mobileno'],
+                    include: {
+                        model: CustomerModel,
+                        attributes: [
+                            'user_id', 'gender', 'age', 'address', 'land_mark',
+                            'location', 'tel_no', 'office_no', 'alternate_no',
+                            'aadhar_no', 'occupation', 'designation', 'own_house',
+                            'dob', 'doa', 'spouse_name', 'spouse_name1',
+                            'spouse_dob1', 'spouse_name2', 'spouse_dob2',
+                            'spouse_dob', 'image', 'service', 'service1',
+                            'service2', 'service3', 'service4', 'service5',
+                            'username', 'reference', 'familyMember', 'membership',
+                            'is_approved', 'member_id', 'is_block', 'todate',
+                            'validtodate', 'createdAt',
+                        ],
+                    },
+                },
+                {
+                    model: OrderServiceProviders,
+					include:{
+						model: ServiceProviderModel,
+						attributes: ['name']
+					}
+                },
+            ],
+            order: [['bookdate', 'DESC']],
+        });
 
-		const orders = await OrderModel.findAll({
-			include: {
-				model: NewCustomerModel,
-				attributes: ['name', 'email', 'mobileno'],
-				include: {
-					model: CustomerModel,
-					attributes: [ 'user_id','gender', 'age', 'address', 'land_mark', 'location', 'tel_no', 'office_no', 'alternate_no', 'aadhar_no', 'occupation', 'designation', 'own_house', 'dob', 'doa', 'spouse_name', 'spouse_name1', 'spouse_dob1', 'spouse_name2', 'spouse_dob2', 'spouse_dob', 'image','service', 'service1', 'service2', 'service3', 'service4', 'service5', 'username', 'reference', 'familyMember', 'membership', 'is_approved', 'member_id', 'is_block', 'todate', 'validtodate', 'createdAt',
-					],
-				}
-			},
-			order: [['bookdate', 'DESC']]
-		});
+        // Check if orders exist
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ status: 404, message: "No orders found." });
+        }
 
+        // Group orders by order_no
+        const groupedOrders = orders.reduce((acc, current) => {
+            const orderNo = current.order_no;
 
-		
+            if (!acc[orderNo]) {
+                acc[orderNo] = {
+                    ...current.dataValues,
+                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
+                };
+            } else {
+                // If the order_no already exists, merge orderserviceprovider
+                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+            }
 
-		res.status(200).json({ status: 200, data: orders });
-	} catch (error) {
-		console.error("Error in GetAllOrders:", error);
-		res.status(500).json({ error: "Internal Server Error" });
-	}
-}
+            return acc;
+        }, {});
+
+        // Convert grouped object to array
+        const response = Object.values(groupedOrders);
+
+        // Respond with grouped orders data
+        res.status(200).json({ status: 200, data: response });
+    } catch (error) {
+        console.error("Error in GetAllOrders:", error.message);
+        res.status(500).json({ status: 500, error: "Internal Server Error" });
+    }
+};
+
 
 const GetByStatus = async (req, res) => {
 	const status = req.params.status

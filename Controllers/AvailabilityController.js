@@ -352,10 +352,10 @@ const AddAttendance = async (req, res) => {
 
         // Extract the hours and minutes
         let timeParts = kolkataTime.split(', ')[1].split(':');
-        let hours = parseInt(timeParts[0]);
-        let minutes = parseInt(timeParts[1]);
-        // let hours = 9
-        // let minutes = 40
+        // let hours = parseInt(timeParts[0]);
+        // let minutes = parseInt(timeParts[1]);
+        let hours = 9
+        let minutes = 40
 
 
         // Check if the time is between 6:00 PM and 6:00 AM
