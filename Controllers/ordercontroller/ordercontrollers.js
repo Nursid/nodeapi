@@ -15,193 +15,172 @@ const TimeSlotModel = db.TimeSlotModel
 const Availability = db.Availability
 const SupervisorAvailability = db.SupervisorAvailability;
 const moment = require('moment');
+const axios = require('axios');
 
 const GetOrderNow = async (req, res) => {
-	const transaction = await sequelize.transaction();
-	try {
-	  const orderData = req.body;
-	  const { servicep_providers, ...formdata } = orderData;
-	  let userId;
-  
-	  // Check if the user exists with the provided mobile number and ismember true
-	  let isUser = await NewCustomerModel.findOne({
-		where: {
-		  mobileno: formdata.mobile,
-		  ismember: true
-		},
-		transaction
-	  });
-  
-	  if (!isUser) {
-		// Check if the user exists with the provided mobile number and ismember false
-		isUser = await NewCustomerModel.findOne({
-		  where: {
-			mobileno: formdata.mobile,
-			ismember: false
-		  },
-		  transaction
-		});
-  
-		if (!isUser) {
-		  // Create new user with ismember set to false
-		  const newUser = await NewCustomerModel.create({
-			name: formdata.name,
-			email: formdata.email,
-			mobileno: formdata.mobile,
-			ismember: false
-		  }, { transaction });
-  
-		  // Create new entry in CustomerModel
-		  await CustomerModel.create({
-			user_id: newUser.id,
-			address: formdata.service_address,
-			land_mark: formdata.land_mark,
-			age: formdata.age,
-			mobile: formdata.mobile
-		  }, { transaction });
-  
-		  userId = newUser.id;
-		} else {
-		  // Use the existing user's ID
-		  userId = isUser.id;
-		}
-	  } else {
-		// Use the existing user's ID
-		userId = isUser.id;
-	  }
-  
-	  formdata.pending = 0;
-  
-	  const lastOrder = await OrderModel.findOne({
-		order: [['id', 'DESC']],
-		transaction
-	  });
-  
-	//   formdata.order_no = lastOrder ? parseInt(lastOrder.order_no) + 1 : 1;
-	//   formdata.order_no = formdata.order_no.toString().padStart(4, '0');
+    const transaction = await sequelize.transaction();
+    try {
+        const orderData = req.body;
+        const { servicep_providers, ...formdata } = orderData;
+        let userId;
 
-	  const lastOrderNumber = lastOrder ? parseInt(lastOrder.order_no, 10) : 0;
-	  const nextOrderNumber = lastOrderNumber + 1;
+        // Step 1: Check if user exists
+        let isUser = await NewCustomerModel.findOne({
+            where: { mobileno: formdata.mobile, ismember: true },
+            transaction
+        });
 
-	  const formattedOrderNumber = nextOrderNumber.toString().padStart(5, '0');
-	  formdata.order_no = formattedOrderNumber
+        if (!isUser) {
+            isUser = await NewCustomerModel.findOne({
+                where: { mobileno: formdata.mobile, ismember: false },
+                transaction
+            });
 
-	  formdata.cust_id = userId;
-	  if (formdata?.serviceDateTime) {
-		const [bookdate, booktime] =  formdata.serviceDateTime.split('T');
-		formdata.bookdate = bookdate;
-		formdata.booktime = booktime;
-	  }
-  
-	  const data = await OrderModel.create(formdata, { transaction });
+            if (!isUser) {
+                const newUser = await NewCustomerModel.create(
+                    {
+                        name: formdata.name,
+                        email: formdata.email,
+                        mobileno: formdata.mobile,
+                        ismember: false
+                    },
+                    { transaction }
+                );
 
-	  if (!data) {
-		if (!transaction.finished) {
-		  await transaction.rollback();
-		}
-		 res.status(202).json({ status: false, message: "Order not placed! Try again" });
-		 return;
-	  }
-	  
-	  const { order_no } = data; // Retrieve `order_no` from the newly created order
-	  const allot_time_range = formdata.allot_time_range;
+                await CustomerModel.create(
+                    {
+                        user_id: newUser.id,
+                        address: formdata.service_address,
+                        land_mark: formdata.land_mark,
+                        age: formdata.age,
+                        mobile: formdata.mobile
+                    },
+                    { transaction }
+                );
 
-	  // Step 2: Add entries to OrderServiceProviders table
-	  if (servicep_providers && Array.isArray(servicep_providers)) {
-		  const orderServiceProvidersPromises = servicep_providers.map(async (providerId) => {
-			  await OrderServiceProviders.create(
-				  {
-					  order_no: order_no, // Associate the same `order_no`
-					  service_provider_id: providerId, // Add each `service_provider_id`
-				  },
-				  { transaction }
-			  );
+                userId = newUser.id;
+            } else {
+                userId = isUser.id;
+            }
+        } else {
+            userId = isUser.id;
+        }
 
+        formdata.pending = 0;
 
-			  const existingAvailability = await Availability.findOne({
-				where: {
-				  date: formdata.bookdate,
-				  emp_id: providerId,
-				},
-				transaction
-			  });
-		  
-			  // Check if the record exists and if the dynamic field already has a value
-			  if (existingAvailability) {
-				if (existingAvailability[allot_time_range] === 'p') {
-					await existingAvailability.update({
-						[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
-						}, { transaction });
-					}
-					else {
-						if (!transaction.finished) {
-							await transaction.rollback();
-						  }
-						
-						res.status(202).json({ status: false,
-						  message: 'Service Provider Not Available',
-						});
-						return;
-				} 
-			  }
+        // Step 2: Generate order number
+        const lastOrder = await OrderModel.findOne({
+            order: [['id', 'DESC']],
+            transaction
+        });
 
-		  });
-		  // Wait for all promises to complete
-		  await Promise.all(orderServiceProvidersPromises);
-	  }
+        const lastOrderNumber = lastOrder ? parseInt(lastOrder.order_no, 10) : 0;
+        const formattedOrderNumber = (lastOrderNumber + 1).toString().padStart(5, '0');
+        formdata.order_no = formattedOrderNumber;
+        formdata.cust_id = userId;
 
+        if (formdata?.serviceDateTime) {
+            const [bookdate, booktime] = formdata.serviceDateTime.split('T');
+            formdata.bookdate = bookdate;
+            formdata.booktime = booktime;
+        }
 
+        // Step 3: Create order
+        const data = await OrderModel.create(formdata, { transaction });
+        if (!data) {
+            await transaction.rollback();
+            return res.status(202).json({ status: false, message: "Order not placed! Try again" });
+        }
 
-	   if(formdata.suprvisor_id){
-		const serProvider = await EmployeeModel.findOne({
-			where: { name: formdata.suprvisor_id },
-			transaction
-		  });
-	  
-		  if (!serProvider) {
-			if (!transaction.finished) {
-				await transaction.rollback();
-			  }
-			 res.status(202).json({ status: false, message: 'Supervisor not found!' });
-			 return;
-		  }
-	  
-	  
-		  const existingAvailability = await SupervisorAvailability.findOne({
-			where: {
-			  date: formdata.bookdate,
-			  emp_id: serProvider.emp_id,
-			},
-			transaction
-		  });
+        const { order_no } = data;
+        const allot_time_range = formdata.allot_time_range;
 
-		  if (existingAvailability) {
-			if (existingAvailability[allot_time_range] === 'p') {
-				await existingAvailability.update({
-					[allot_time_range]: `${formdata.service_name}-${data.order_no}`,
-					}, { transaction });
-				}
-				else {
-					if (!transaction.finished) {
-						await transaction.rollback();
-					  }
-					 res.status(202).json({ status: false,
-						message: 'Service Provider Not Available',
-				});
-				return;
-			} 
-		  }
-	  }
-		await transaction.commit();
-		return res.status(200).json({ status: true, message: 'Availability created successfully.' });
-	} catch (error) {
-		if (!transaction.finished) {
-			await transaction.rollback();
-		  }
-	  res.status(500).json({ error: true, message: error.message });
-	  return;
-	}
+        // Step 4: Handle service providers
+        if (servicep_providers && Array.isArray(servicep_providers)) {
+            const orderServiceProvidersPromises = servicep_providers.map(async (providerId) => {
+                await OrderServiceProviders.create(
+                    { order_no, service_provider_id: providerId },
+                    { transaction }
+                );
+
+                const existingAvailability = await Availability.findOne({
+                    where: { date: formdata.bookdate, emp_id: providerId },
+                    transaction
+                });
+
+                if (existingAvailability) {
+                    if (existingAvailability[allot_time_range] === 'p') {
+                        await existingAvailability.update(
+                            { [allot_time_range]: `${formdata.service_name}-${data.order_no}` },
+                            { transaction }
+                        );
+                    } else {
+                        throw new Error('Service Provider Not Available');
+                    }
+                }
+            });
+
+            await Promise.all(orderServiceProvidersPromises);
+        }
+
+        // Step 5: Handle supervisor
+        if (formdata.suprvisor_id) {
+            const supervisor = await EmployeeModel.findOne({
+                where: { name: formdata.suprvisor_id },
+                transaction
+            });
+
+            if (!supervisor) {
+                throw new Error('Supervisor not found!');
+            }
+
+            const existingAvailability = await SupervisorAvailability.findOne({
+                where: { date: formdata.bookdate, emp_id: supervisor.emp_id },
+                transaction
+            });
+
+            if (existingAvailability) {
+                if (existingAvailability[allot_time_range] === 'p') {
+                    await existingAvailability.update(
+                        { [allot_time_range]: `${formdata.service_name}-${data.order_no}` },
+                        { transaction }
+                    );
+                } else {
+                    throw new Error('Supervisor Not Available');
+                }
+            }
+        }
+
+        // Commit transaction
+        await transaction.commit();
+
+        // Send SMS
+        const message = `Dear ${formdata.name}, your order ${order_no} for ${formdata.service_name} has been placed successfully with us on ${formdata.bookdate}. Thanks for choosing Helper!`;
+
+        const query = {
+            username: "technicalmadhusudan",
+            pass: "a12345678",
+            route: "trans1",
+            senderid: "INFOCS",
+            ispreapproved: "1",
+            numbers: formdata.mobile,
+            message: message
+        };
+
+        const queryString = new URLSearchParams(query).toString();
+		console.log(queryString);
+        const smsApiUrl = "http://173.45.76.227/send.aspx?";
+        await axios.get(smsApiUrl + queryString);
+
+        return res.status(200).json({ status: true, message: 'Availability created successfully.' });
+    } catch (error) {
+        if (!transaction.finished) {
+            await transaction.rollback();
+        }
+        return res.status(500).json({ error: true, message: error.message });
+    }
 };
+
 
 const OrderComplain = async (req, res) => {
 	try {
@@ -639,23 +618,52 @@ const GetOrderAssingServiceProvider = async (req, res) => {
 		}
 		
 		const orders = await OrderModel.findAll({
-			include: [{
-				model: NewCustomerModel,
-				attributes: ['name', 'email', 'mobileno'],
-				include: {
-					model: CustomerModel,
-					attributes: ['age', 'address', 'member_id'],
-				}
-			}],
-			where: {
-				servicep_id: isServiceProvider.name
-			},
-			order: [
-				['id', 'DESC']
-			]
+			include: [
+				{
+					model: NewCustomerModel,
+					attributes: ['name', 'email', 'mobileno'],
+					include: [
+						{
+							model: CustomerModel,
+							attributes: ['age', 'address', 'member_id', 'user_id'],
+						},
+					],
+				},
+				{
+					model: OrderServiceProviders,
+					include:{
+						model: ServiceProviderModel,
+						attributes: ['name']
+					},
+					where: {
+						service_provider_id: serPID,
+					},
+				},
+			],
+			order: [['id', 'DESC']],
 		});
 
-		res.status(200).json({status: 200, data: orders})
+		const groupedOrders = orders.reduce((acc, current) => {
+            const orderNo = current.order_no;
+
+            if (!acc[orderNo]) {
+                acc[orderNo] = {
+                    ...current.dataValues,
+                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
+                };
+            } else {
+                // If the order_no already exists, merge orderserviceprovider
+                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+            }
+
+            return acc;
+        }, {});
+
+        // Convert grouped object to array
+        const response = Object.values(groupedOrders);
+		
+
+		res.status(200).json({status: 200, data: response})
 
 	} catch (error) {
 		res.status(200).json("Internal Server Error");
@@ -692,14 +700,43 @@ const GetOrderAssingwithSupervisor = async (req, res) => {
 					model: CustomerModel,
 					attributes: ['age', 'address', 'member_id'],
 				}
-			}],
+			},
+			{
+				model: OrderServiceProviders,
+				include:{
+					model: ServiceProviderModel,
+					attributes: ['name']
+				}
+			},
+		],
 			where: whereConditions,
 			order: [
 				['id', 'DESC']
 			]
 		});
 
-		res.status(200).json({status: 200, data: orders})
+
+		const groupedOrders = orders.reduce((acc, current) => {
+            const orderNo = current.order_no;
+
+            if (!acc[orderNo]) {
+                acc[orderNo] = {
+                    ...current.dataValues,
+                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
+                };
+            } else {
+                // If the order_no already exists, merge orderserviceprovider
+                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+            }
+
+            return acc;
+        }, {});
+
+        // Convert grouped object to array
+        const response = Object.values(groupedOrders);
+		
+
+		res.status(200).json({status: 200, data: response})
 
 	} catch (error) {
 		res.status(500).json({
