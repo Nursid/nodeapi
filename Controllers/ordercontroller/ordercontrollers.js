@@ -949,18 +949,49 @@ const GetReports = async (req, res) => {
 			model: CustomerModel,
 			attributes: ['age', 'address', 'member_id'],
 		  }
-		}],
+		},
+		{
+			model: OrderServiceProviders,
+			include:{
+				model: ServiceProviderModel,
+				attributes: ['name']
+			}
+		}
+	],
 		order: [['id', 'DESC']],
 		where: where
 	  });
+
+
+	  
+		const groupedOrders = orders.reduce((acc, current) => {
+            const orderNo = current.order_no;
+
+            if (!acc[orderNo]) {
+                acc[orderNo] = {
+                    ...current.dataValues,
+                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
+                };
+            } else {
+                // If the order_no already exists, merge orderserviceprovider
+                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+            }
+
+            return acc;
+        }, {});
+
+        // Convert grouped object to array
+        const response = Object.values(groupedOrders);
+
+
   
 	  // Return an empty array if no orders are found
-	  if (!orders || orders.length === 0) {
+	  if (!response || response.length === 0) {
 		return res.status(200).json({ status: false, data: [] });
 	  }
   
 	  // Return the found orders
-	  res.status(200).json({ status: true, data: orders });
+	  res.status(200).json({ status: true, data: response });
 	} catch (error) {
 	  console.error("Error fetching reports:", error); // Log the error for debugging
 	  res.status(500).json({ error: "Internal Error" }); // Changed to 500 for server errors
