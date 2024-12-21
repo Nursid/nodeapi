@@ -9,9 +9,10 @@ const sequelize = require('../../config/sequalize');
 
 const AddMonthlyService = async (req, res) => {
 
+	const transaction = await sequelize.transaction();
+	
 	const data = req.body;
 	try { 
-		const transaction = await sequelize.transaction();
 
 		if (req.files) {
 			const { before_cleaning, after_cleaning } = req.files;

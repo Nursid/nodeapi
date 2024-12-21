@@ -10,6 +10,10 @@ module.exports = (sequelize) => {
       type: DataTypes.BOOLEAN,
       allowNull: true,
     },
+    MonthlyService: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
     Attendence: {
       type: DataTypes.BOOLEAN,
       allowNull: true,

@@ -21,7 +21,8 @@ const {
 	GetReports,
 	GetOrderByOrderNo,
 	AddDueBeforeOneday,
-	OrderAssingSupervisor
+	OrderAssingSupervisor,
+	GetOrderReports
 } = require("../../Controllers/ordercontroller/ordercontrollers");
 
 const AuthenticateToken = require('../../Middleware/AuthenticateToken')
@@ -53,5 +54,6 @@ router.post("/add-due-order", AddDueBeforeOneday)
 
 // report API 
 router.post("/reports/:type", GetReports)
+router.post("/order-reports", GetOrderReports)
 
 module.exports = router;

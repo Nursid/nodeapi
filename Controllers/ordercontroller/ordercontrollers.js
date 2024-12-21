@@ -893,7 +893,7 @@ const GetReports = async (req, res) => {
 	const type = parseInt(req.params.type); // Ensure `type` is always an integer
 	const today = moment();
 	let startDate = "", endDate = "";
-	const serviceProvider = req.body?.serviceProvider; // Use `const` instead of `let` since it isn't reassigned
+	const serviceProvider = req.body?.serviceProvider; 
 	let where = {};
   
 	// Determine date range based on report type
@@ -961,8 +961,6 @@ const GetReports = async (req, res) => {
 		order: [['id', 'DESC']],
 		where: where
 	  });
-
-
 	  
 		const groupedOrders = orders.reduce((acc, current) => {
             const orderNo = current.order_no;
@@ -982,8 +980,6 @@ const GetReports = async (req, res) => {
 
         // Convert grouped object to array
         const response = Object.values(groupedOrders);
-
-
   
 	  // Return an empty array if no orders are found
 	  if (!response || response.length === 0) {
@@ -1139,6 +1135,78 @@ const OrderAssingSupervisor = async (req, res) => {
 };
 
 
+const GetOrderReports = async (req, res) => {
+	const date = req.body.date;
+	const serviceProvider = req.body?.serviceProvider; 
+	let where = {};
+  
+	// Determine date range based on report typ
+	if(date){
+		where.bookdate = date
+	}
+
+	// Add `serviceProvider` to `where` clause only if it's provided
+	if (serviceProvider) {
+		where.servicep_id = serviceProvider;
+	}
+  
+	try {
+	  // Fetch orders based on the computed `where` clause
+	  const orders = await OrderModel.findAll({
+		include: [{
+		  model: NewCustomerModel,
+		  attributes: ['name', 'email', 'mobileno'],
+		  include: {
+			model: CustomerModel,
+			attributes: ['age', 'address', 'member_id'],
+		  }
+		},
+		{
+			model: OrderServiceProviders,
+			include:{
+				model: ServiceProviderModel,
+				attributes: ['name']
+			}
+		}
+	],
+		order: [['id', 'DESC']],
+		where: where
+	  });
+	  
+		const groupedOrders = orders.reduce((acc, current) => {
+            const orderNo = current.order_no;
+
+            if (!acc[orderNo]) {
+                acc[orderNo] = {
+                    ...current.dataValues,
+                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
+                };
+            } else {
+                // If the order_no already exists, merge orderserviceprovider
+                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+            }
+
+            return acc;
+        }, {});
+
+        // Convert grouped object to array
+        const response = Object.values(groupedOrders);
+  
+	  // Return an empty array if no orders are found
+	  if (!response || response.length === 0) {
+		return res.status(200).json({ status: false, data: [] });
+	  }
+  
+	  // Return the found orders
+	  res.status(200).json({ status: true, data: response });
+	} catch (error) {
+	  console.error("Error fetching reports:", error); // Log the error for debugging
+	  res.status(500).json({ error: "Internal Error" }); // Changed to 500 for server errors
+	}
+};
+
+
+
 module.exports = {
 	GetAllOrders,
 	GetOrderNow,
@@ -1164,5 +1232,6 @@ module.exports = {
 	GetReports,
 	GetOrderByOrderNo,
 	AddDueBeforeOneday,
-	OrderAssingSupervisor
+	OrderAssingSupervisor,
+	GetOrderReports
 }
