@@ -154,24 +154,6 @@ const GetOrderNow = async (req, res) => {
         // Commit transaction
         await transaction.commit();
 
-        // Send SMS
-        const message = `Dear ${formdata.name}, your order ${order_no} for ${formdata.service_name} has been placed successfully with us on ${formdata.bookdate}. Thanks for choosing Helper!`;
-
-        const query = {
-            username: "technicalmadhusudan",
-            pass: "a12345678",
-            route: "trans1",
-            senderid: "INFOCS",
-            ispreapproved: "1",
-            numbers: formdata.mobile,
-            message: message
-        };
-
-        const queryString = new URLSearchParams(query).toString();
-		console.log(queryString);
-        const smsApiUrl = "http://173.45.76.227/send.aspx?";
-        await axios.get(smsApiUrl + queryString);
-
         return res.status(200).json({ status: true, message: 'Availability created successfully.' });
     } catch (error) {
         if (!transaction.finished) {
