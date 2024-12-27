@@ -330,22 +330,58 @@ const GetByStatus = async (req, res) => {
 	try {
 	
 		const orders = await OrderModel.findAll({
-			include: {
+			include: [{
 				model: NewCustomerModel,
 				attributes: ['name', 'email', 'mobileno'],
 				include: {
 					model: CustomerModel,
 					attributes: ['age', 'address', 'member_id', "user_id"],
-				}
+				},
+				
 			},
+			{
+				model: OrderServiceProviders,
+					include:{
+						model: ServiceProviderModel,
+						attributes: ['name']
+					}
+				},
+			],
+			
 			order: [['id', 'DESC']],
 			where: {
 				pending: status
 			}
 		});
 
-		res.status(200).json({status: 200, data: orders})
+		 // Check if orders exist
+		 if (!orders || orders.length === 0) {
+            return res.status(404).json({ status: 404, message: "No orders found." });
+        }
 
+        // Group orders by order_no
+        const groupedOrders = orders.reduce((acc, current) => {
+            const orderNo = current.order_no;
+
+            if (!acc[orderNo]) {
+                acc[orderNo] = {
+                    ...current.dataValues,
+                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
+                };
+            } else {
+                // If the order_no already exists, merge orderserviceprovider
+                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+            }
+
+            return acc;
+        }, {});
+
+        // Convert grouped object to array
+        const response = Object.values(groupedOrders);
+
+        // Respond with grouped orders data
+        res.status(200).json({ status: 200, data: response });
+		
 	} catch (error) {
 		res.status(500).json({error: "Internally Error "});
 	}
