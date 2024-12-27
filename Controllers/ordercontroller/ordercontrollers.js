@@ -1052,7 +1052,7 @@ const AddDueBeforeOneday = async (req, res) => {
         // Format the date to YYYY-MM-DD
         tomorrow = tomorrow.toISOString().split('T')[0];
 		
-        const orders = await OrderModel.findAll({
+        const tomorrowOrders = await OrderModel.findAll({
             attributes: ['pending', 'order_no'],
             where: {
                 bookdate: tomorrow,
@@ -1062,21 +1062,62 @@ const AddDueBeforeOneday = async (req, res) => {
             },
         });
 
-		if (orders.length > 0) {
-            // Update each order with pending status 4
+
+        // Update tomorrow's orders
+        if (tomorrowOrders.length > 0) {
             await Promise.all(
-                orders.map(order => {
+                tomorrowOrders.map(order => {
                     return OrderModel.update(
                         { pending: 2 },
                         { where: { order_no: order.order_no } }
                     );
                 })
             );
-
-          return  res.status(200).json({ status: 200, message: "Orders updated successfully", data: orders });
-        } else {
-			return  res.status(200).json({ status: 200, message: "No orders found for tomorrow." });
         }
+
+		    // Calculate yesterday
+		let yesterday = new Date(formattedDate);
+		yesterday.setDate(yesterday.getDate() - 1); // Subtract one day
+		yesterday = yesterday.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+	
+
+		 // Find orders in due before yesterday
+		 const pastDueOrders = await OrderModel.findAll({
+            attributes: ['pending', 'order_no'],
+            where: {
+                bookdate: {
+                    [Op.lt]: yesterday, // Less than yesterday's date
+                },
+                pending: 2
+            },
+        });
+
+		// Update past due orders
+		if (pastDueOrders.length > 0) {
+			await Promise.all(
+				pastDueOrders.map(order => {
+					return OrderModel.update(
+						{ pending: 0 },
+						{ where: { order_no: order.order_no } }
+					);
+				})
+			);
+		}
+
+	// Construct response message
+	const messages = [];
+	if (tomorrowOrders.length > 0) {
+		messages.push(`${tomorrowOrders.length} orders updated for tomorrow.`);
+	}
+	if (pastDueOrders.length > 0) {
+		messages.push(`${pastDueOrders.length} past due orders updated.`);
+	}
+
+	if (messages.length > 0) {
+		return res.status(200).json({ status: 200, message: messages.join(' '), data: { tomorrowOrders, pastDueOrders } });
+	} else {
+		return res.status(200).json({ status: 200, message: "No orders found to update." });
+	}
     } catch (error) {
         return res.status(202).json({ status: false, message: "Internal Error",error });
     }
