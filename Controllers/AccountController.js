@@ -6,51 +6,24 @@ const moment = require('moment')
 const sequelize = require('../config/sequalize');
 
 const ListingAccount = async (req, res) => {
-	const { from, to } = req.query;
+	const { from} = req.query;
   
 	try {
 	  let dateCondition = {};
   
 	  // Check if both from and to exist
-	  if (from && to) {
+	  if (from) {
 		// Convert and validate provided dates
 		const startDate = new Date(from);
-		const endDate = new Date(to);
 		
-		if (isNaN(startDate) || isNaN(endDate)) {
+		if (isNaN(startDate)) {
 		  return res.status(400).json({ message: "Invalid date format" });
 		}
   
 		dateCondition = {
-		  date: {
-			[Op.between]: [startDate, endDate]
-		  }
+		  date: startDate
 		};
-	  } else if (from) {
-		// If only 'from' exists, filter by date greater than or equal to 'from'
-		const startDate = new Date(from);
-		if (isNaN(startDate)) {
-		  return res.status(400).json({ message: "Invalid 'from' date format" });
-		}
-  
-		dateCondition = {
-		  date: {
-			[Op.gte]: startDate
-		  }
-		};
-	  } else if (to) {
-		// If only 'to' exists, filter by date less than or equal to 'to'
-		const endDate = new Date(to);
-		if (isNaN(endDate)) {
-		  return res.status(400).json({ message: "Invalid 'to' date format" });
-		}
-  
-		dateCondition = {
-		  date: {
-			[Op.lte]: endDate
-		  }
-		};
-	  }
+	  } 
   
 	  // Query the database with the date condition
 	  const data = await AccountModel.findAll({
