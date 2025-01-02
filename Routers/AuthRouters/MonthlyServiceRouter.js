@@ -30,6 +30,7 @@ router.post("/update/:id",upload.fields([
   ]), MonthlyServiceController.UpdateMonthlyService);
 
 router.put("/assign/:id", MonthlyServiceController.MonthlyServiceAssign)
+router.get("/get-daily-schedule", MonthlyServiceController.MonthlyServiceSchedule)
 
 
 
