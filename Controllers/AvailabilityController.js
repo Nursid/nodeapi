@@ -90,6 +90,10 @@ const GetAllAvailability = async (req, res) => {
             const today = new Date();
             const formattedDate = filterDate || today.toISOString().split('T')[0];
             whereConditions.date = formattedDate;
+        } else {
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            whereConditions.date = formattedDate;
         }
 
         const providersWithAvailabilities = await ServiceProvider.findAll({
@@ -427,6 +431,8 @@ const AddAttendance = async (req, res) => {
                 });
                 return res.status(200).json({ status: true, message: "Availability Added Successfully!", });
             }
+
+
             return res.status(200).json({ status: true, message: "No changes made to availability."});
     }
 

@@ -16,7 +16,60 @@ const Availability = db.Availability
 const SupervisorAvailability = db.SupervisorAvailability;
 const moment = require('moment');
 const axios = require('axios');
+const AvailabilityModel = db.Availability
 
+
+const AllTimeSlots = [ 
+    '07:00-07:30', '07:30-08:00', '08:00-08:30', '08:30-09:00', '09:00-09:30',
+    '09:30-10:00', '10:00-10:30', '10:30-11:00', '11:00-11:30', '11:30-12:00',
+    '12:00-12:30', '12:30-01:00', '01:00-01:30', '01:30-02:00', '02:00-02:30',
+    '02:30-03:00', '03:00-03:30', '03:30-04:00', '04:00-04:30', '04:30-05:00',
+    '05:00-05:30', '05:30-06:00'
+];
+function getTimeInMinutes(time) {
+    let [hours, minutes] = time.split(':').map(Number);
+    
+    // Adjust for 12-hour to 24-hour format
+    if (hours === 12) {
+        hours = 0; // 12 PM is noon, treated as 0
+    }
+    if (hours < 7 || time.includes('01') || time.includes('02') || time.includes('03') || time.includes('04') || time.includes('05') || time.includes('06')) {
+        hours += 12; // Adjust PM times from 1:00 to 6:00
+    }
+
+    return hours * 60 + minutes;
+}
+
+function filterTimeSlots(inputTime) {
+    const inputMinutes = getTimeInMinutes(inputTime);
+
+    return AllTimeSlots.filter(slot => {
+        const [start] = slot.split('-');
+        const startMinutes = getTimeInMinutes(start);
+        return startMinutes > inputMinutes;
+    });
+}
+
+
+
+
+const getServiceProviderIds = async (serviceProviderNames) => {
+	const serviceProviderIds = await Promise.all(
+	  serviceProviderNames.map(async (serviceProviderName) => {
+		const serviceProvider = await ServiceProviderModel.findOne({
+		  where: {
+			name: serviceProviderName
+		  },
+		  attributes: ['id']
+		});
+  
+		return serviceProvider ? serviceProvider.id : null;
+	  })
+	);
+  
+	return serviceProviderIds.filter(id => id !== null); // Filter out any null values if no matching provider was found
+};
+  
 const GetOrderNow = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
@@ -1012,7 +1065,6 @@ const GetReports = async (req, res) => {
 	}
 };
 
-
 const GetOrderByOrderNo = async (req, res) => {
 	try {
 		const order_no = req.params.order_no
@@ -1034,7 +1086,6 @@ const GetOrderByOrderNo = async (req, res) => {
 		return res.status(500).json({status: false, message: "Interal Error"})
 	}
 }
-  
 
 const AddDueBeforeOneday = async (req, res) => {
     try {
@@ -1122,8 +1173,6 @@ const AddDueBeforeOneday = async (req, res) => {
         return res.status(202).json({ status: false, message: "Internal Error",error });
     }
 };
-
-
 const OrderAssingSupervisor = async (req, res) => {
     const transaction = await sequelize.transaction();
 
@@ -1266,6 +1315,277 @@ const GetOrderReports = async (req, res) => {
 
 
 
+const OrderCheckIn = async (req, res) => {
+    const transaction = await sequelize.transaction(); // Start a transaction
+
+    try {
+        let data = req.body;
+        if (!data?.order_no) {
+            return res.status(400).json({ error: true, message: 'Order No is required' });
+        }
+
+        let date = new Date();
+        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
+        let timeParts = kolkataTime.split(', ')[1].split(':');
+
+		// let hours = parseInt(timeParts[0]);
+		let minutes = parseInt(timeParts[1]);
+  
+		let hours = 7
+		// let minutes = 40
+	
+		// Check if the time is between 6:00 PM and 6:00 AM
+		let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
+		let isBeforeSixAM = (hours < 7); // 6 AM is less than 6 in 24-hour format
+  
+		if (isAfterSixPM || isBeforeSixAM) {
+			return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
+		}
+  
+        let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
+
+        const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+        const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+
+        let leaveSlots = filterTimeSlots("08:00");
+
+        const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
+
+        const empId = await getServiceProviderIds(serviceProviderNames);
+
+        const isUpdated = await OrderModel.update(data, {
+            where: {
+                order_no: data.order_no
+            },
+            transaction // Pass the transaction to ensure it's part of the same transaction
+        });
+
+        if (!isUpdated) {
+			await transaction.rollback();
+            return res.status(202).json({ error: true, message: 'Updation Failed ! Try again' });
+        }
+
+        for (let serviceProviderId of empId) {
+            let existingRecords = await AvailabilityModel.findOne({
+                where: { date: formattedDate, emp_id: serviceProviderId },
+                raw: true,
+                transaction // Pass the transaction
+            });
+
+            let updatedSlots = {};
+            leaveSlots.forEach(slot => {
+                updatedSlots[slot] = `${data.service_name}-${data.order_no}`;
+            });
+
+            if (existingRecords) {
+                await AvailabilityModel.update(updatedSlots, {
+                    where: { date: formattedDate, emp_id: serviceProviderId },
+                    transaction // Pass the transaction
+                });
+            } else {
+                await AvailabilityModel.create({
+                    date: formattedDate,
+                    emp_id: serviceProviderId,
+                    ...updatedSlots
+                }, { transaction }); // Pass the transaction
+            }
+        }
+
+        // If everything succeeds, commit the transaction
+        await transaction.commit();
+
+        res.status(200).json({ status: true, message: "Availability Updated Successfully!" });
+
+    } catch (error) {
+        // If an error occurs, rollback the transaction
+        await transaction.rollback();
+
+        console.log("--", error);
+        res.status(500).json({ error: true, message: "Internal Server Error", error });
+    }
+};
+
+const OrderCheckOut = async (req, res) => {
+    const transaction = await sequelize.transaction(); // Start a transaction
+
+    try {
+        let data = req.body;
+        if (!data?.order_no) {
+            return res.status(400).json({ error: true, message: 'Order No is required' });
+        }
+
+        let date = new Date();
+        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
+        let timeParts = kolkataTime.split(', ')[1].split(':');
+
+		// let hours = parseInt(timeParts[0]);
+		let minutes = parseInt(timeParts[1]);
+  
+		let hours = 7
+		// let minutes = 40
+	
+		// Check if the time is between 6:00 PM and 6:00 AM
+		let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
+		let isBeforeSixAM = (hours < 7); // 6 AM is less than 6 in 24-hour format
+  
+		if (isAfterSixPM || isBeforeSixAM) {
+			return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
+		}
+  
+        let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
+
+        const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+        const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+
+        let leaveSlots = filterTimeSlots("04:20");
+
+        const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
+
+        const empId = await getServiceProviderIds(serviceProviderNames);
+
+        const isUpdated = await OrderModel.update(data, {
+            where: {
+                order_no: data.order_no
+            },
+            transaction // Pass the transaction to ensure it's part of the same transaction
+        });
+
+        if (!isUpdated) {
+			await transaction.rollback();
+            return res.status(202).json({ error: true, message: 'Updation Failed ! Try again' });
+        }
+
+        for (let serviceProviderId of empId) {
+            let existingRecords = await AvailabilityModel.findOne({
+                where: { date: formattedDate, emp_id: serviceProviderId },
+                raw: true,
+                transaction // Pass the transaction
+            });
+
+            let updatedSlots = {};
+            leaveSlots.forEach(slot => {
+                updatedSlots[slot] = 'p';
+            });
+
+            if (existingRecords) {
+                await AvailabilityModel.update(updatedSlots, {
+                    where: { date: formattedDate, emp_id: serviceProviderId },
+                    transaction // Pass the transaction
+                });
+            } else {
+                await AvailabilityModel.create({
+                    date: formattedDate,
+                    emp_id: serviceProviderId,
+                    ...updatedSlots
+                }, { transaction }); // Pass the transaction
+            }
+        }
+
+        // If everything succeeds, commit the transaction
+        await transaction.commit();
+
+        res.status(200).json({ status: true, message: "Availability Updated Successfully!" });
+
+    } catch (error) {
+        // If an error occurs, rollback the transaction
+        await transaction.rollback();
+
+        console.log("--", error);
+        res.status(500).json({ error: true, message: "Internal Server Error", error });
+    }
+};
+
+
+const AssignServiceProviderAvailability = async (req, res) => {
+    const transaction = await sequelize.transaction(); // Start a transaction
+
+    try {
+        let data = req.body;
+
+        // Check for required fields
+        if (!data?.order_no) {
+            return res.status(400).json({ error: true, message: 'Order No is required' });
+        }
+
+        if (!data?.serviceProvider) {
+            return res.status(400).json({ error: true, message: 'Service Providers are required' });
+        }
+
+        if (!data?.bookdate) {
+            return res.status(400).json({ error: true, message: 'Booking date is required' });
+        }
+
+        if (!data?.allot_time_range) {
+            return res.status(400).json({ error: true, message: 'Allot time range is required' });
+        }
+
+        const servicep_providers = data.serviceProvider;
+
+        // Validate service providers
+        if (servicep_providers.length === 0) {
+            return res.status(400).json({ error: true, message: 'At least one service provider is required' });
+        }
+
+        // Get service provider IDs
+        const empId = await getServiceProviderIds(servicep_providers);
+        if (!empId || !Array.isArray(empId)) {
+            return res.status(400).json({ error: true, message: 'Invalid service provider data' });
+        }
+
+        const orderServiceProvidersPromises = empId.map(async (providerId) => {
+            try {
+                // Insert order-service provider mapping
+                await OrderServiceProviders.create(
+                    { order_no: data.order_no, service_provider_id: providerId },
+                    { transaction }
+                );
+
+                // Check for existing availability
+                const existingAvailability = await Availability.findOne({
+                    where: { date: data.bookdate, emp_id: providerId },
+                    transaction
+                });
+
+                if (existingAvailability) {
+                    // Update availability
+                    await existingAvailability.update(
+                        { [data.allot_time_range]: `${data.service_name}-${data.order_no}` },
+                        { transaction }
+                    );
+                } else {
+                    // Create new availability entry
+                    await AvailabilityModel.create({
+                        date: data.bookdate,
+                        emp_id: providerId,
+                        [data.allot_time_range]: `${data.service_name}-${data.order_no}`
+                    }, { transaction });
+                }
+
+            } catch (err) {
+                console.error(`Error processing providerId ${providerId}:`, err);
+                throw new Error(`Error processing provider ID: ${providerId}`);
+            }
+        });
+
+        await Promise.all(orderServiceProvidersPromises);
+
+        // Commit the transaction
+        await transaction.commit();
+
+        res.status(200).json({ status: true, message: "Service Provider Assigned Successfully!" });
+    } catch (error) {
+        // Rollback the transaction in case of error
+        await transaction.rollback();
+
+        console.error("Error in AssignServiceProviderAvailability:", error);
+
+        res.status(500).json({ error: true, message: "Internal Server Error", error: error.message });
+    }
+};
+
+
+
+
 module.exports = {
 	GetAllOrders,
 	GetOrderNow,
@@ -1284,6 +1604,7 @@ module.exports = {
 	GetOrderAssingwithSupervisor,
 	GetTotalSummary,
 	GetTimeSlot,
+	OrderCheckOut,
 	GetTotalSummary,
 	GetOrderAssingServiceProvider,
 	AddOrderCustomer,
@@ -1292,5 +1613,7 @@ module.exports = {
 	GetOrderByOrderNo,
 	AddDueBeforeOneday,
 	OrderAssingSupervisor,
-	GetOrderReports
+	GetOrderReports,
+	OrderCheckIn,
+	AssignServiceProviderAvailability
 }
