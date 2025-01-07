@@ -1328,10 +1328,10 @@ const OrderCheckIn = async (req, res) => {
         let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
         let timeParts = kolkataTime.split(', ')[1].split(':');
 
-		// let hours = parseInt(timeParts[0]);
+		let hours = parseInt(timeParts[0]);
 		let minutes = parseInt(timeParts[1]);
   
-		let hours = 7
+		// let hours = 7
 		// let minutes = 40
 	
 		// Check if the time is between 6:00 PM and 6:00 AM
@@ -1347,7 +1347,7 @@ const OrderCheckIn = async (req, res) => {
         const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
         const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
 
-        let leaveSlots = filterTimeSlots("08:00");
+        let leaveSlots = filterTimeSlots(formattedTime);
 
         const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
 
@@ -1418,10 +1418,10 @@ const OrderCheckOut = async (req, res) => {
         let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
         let timeParts = kolkataTime.split(', ')[1].split(':');
 
-		// let hours = parseInt(timeParts[0]);
+		let hours = parseInt(timeParts[0]);
 		let minutes = parseInt(timeParts[1]);
   
-		let hours = 7
+		// let hours = 7
 		// let minutes = 40
 	
 		// Check if the time is between 6:00 PM and 6:00 AM
@@ -1437,7 +1437,7 @@ const OrderCheckOut = async (req, res) => {
         const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
         const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
 
-        let leaveSlots = filterTimeSlots("04:20");
+        let leaveSlots = filterTimeSlots(formattedTime);
 
         const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
 
