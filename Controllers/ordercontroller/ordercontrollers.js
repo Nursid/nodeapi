@@ -26,6 +26,7 @@ const AllTimeSlots = [
     '02:30-03:00', '03:00-03:30', '03:30-04:00', '04:00-04:30', '04:30-05:00',
     '05:00-05:30', '05:30-06:00'
 ];
+
 function getTimeInMinutes(time) {
     let [hours, minutes] = time.split(':').map(Number);
     
@@ -1242,7 +1243,6 @@ const OrderAssingSupervisor = async (req, res) => {
     }
 };
 
-
 const GetOrderReports = async (req, res) => {
 	const date = req.body.date;
 	const serviceProvider = req.body?.serviceProvider; 
@@ -1312,9 +1312,6 @@ const GetOrderReports = async (req, res) => {
 	  res.status(500).json({ error: "Internal Error" }); // Changed to 500 for server errors
 	}
 };
-
-
-
 const OrderCheckIn = async (req, res) => {
     const transaction = await sequelize.transaction(); // Start a transaction
 
@@ -1404,7 +1401,6 @@ const OrderCheckIn = async (req, res) => {
         res.status(500).json({ error: true, message: "Internal Server Error", error });
     }
 };
-
 const OrderCheckOut = async (req, res) => {
     const transaction = await sequelize.transaction(); // Start a transaction
 
@@ -1495,7 +1491,6 @@ const OrderCheckOut = async (req, res) => {
     }
 };
 
-
 const AssignServiceProviderAvailability = async (req, res) => {
     const transaction = await sequelize.transaction(); // Start a transaction
 
@@ -1582,8 +1577,6 @@ const AssignServiceProviderAvailability = async (req, res) => {
         res.status(500).json({ error: true, message: "Internal Server Error", error: error.message });
     }
 };
-
-
 
 
 module.exports = {
