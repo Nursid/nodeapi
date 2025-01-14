@@ -283,10 +283,15 @@ const MonthlyServiceAssign = async (req, res) => {
 
 const MonthlyServiceSchedule = async (req, res) => {
 
-
 	try {
 
+		let date = new Date();
+		date.setDate(date.getDate() + 1);  // Increment the date by 1 to get tomorrow's date
 
+		let formattedDate = date.toISOString().split('T')[0];  // Format the date as "YYYY-MM-DD"
+		console.log(formattedDate);  // Output: "2024-11-12" (if today is "2024-11-11")
+
+				
 		const GetAllServiceProvider = await ServiceProviderModel.findAll({
 			attributes: [
 				'name'
@@ -294,7 +299,6 @@ const MonthlyServiceSchedule = async (req, res) => {
 		})
 
 		const data = await MonthlyServiceModel.findAll({
-
 			attributes: [
 				'orderNo',
 				"cust_name",
@@ -307,7 +311,7 @@ const MonthlyServiceSchedule = async (req, res) => {
 				"selectedTimeSlot"
 			],
 			where: {
-				feesPaidDateTime: "2024-11-12"
+				feesPaidDateTime:  "2024-11-12"
 			}
 		})
 
