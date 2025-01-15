@@ -311,7 +311,7 @@ const MonthlyServiceSchedule = async (req, res) => {
 				"selectedTimeSlot"
 			],
 			where: {
-				feesPaidDateTime:  "2024-11-12"
+				feesPaidDateTime:  formattedDate
 			}
 		})
 
