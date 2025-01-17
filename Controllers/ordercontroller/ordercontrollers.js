@@ -244,25 +244,111 @@ const OrderComplain = async (req, res) => {
 }
 // get  the order update
 const GetOrderUpdate = async (req, res) => {
-	try {
-		const orderID = req.params.id
-		const data = req.body
+    const transaction = await sequelize.transaction();
+    try {
+        const orderID = req.params.id;
+        const { servicep_providers, ...updateData } = req.body;
+
+        // Step 1: Find and update the order
+        const order = await OrderModel.findOne({
+            where: { order_no: orderID },
+            transaction
+        });
+
+        if (!order) {
+            await transaction.rollback();
+            return res.status(202).json({ error: true, message: 'Order not found' });
+        }
+
+        await order.update(updateData, { transaction });
+
+        // Step 2: Update service providers if provided
+        if (servicep_providers && Array.isArray(servicep_providers)) {
+            // Remove existing service providers
+            await OrderServiceProviders.destroy({
+                where: { order_no: orderID },
+                transaction
+            });
+
+            // Add new service providers
+            const serviceProviderPromises = servicep_providers.map(async (providerId) => {
+                // Check if the service provider exists
+                const serviceProvider = await ServiceProviderModel.findOne({
+                    where: { id: providerId },
+                    transaction
+                });
+
+                if (!serviceProvider) { 
+                    await transaction.rollback();
+                    return  res.status(202).json({ status: 202, message: `Service Provider with ID ${providerId} not found` });
+                }
+
+                // Add the service provider to the order
+                await OrderServiceProviders.create(
+                    { order_no: orderID, service_provider_id: providerId },
+                    { transaction }
+                );
+
+                // Check and update availability
+                const existingAvailability = await Availability.findOne({
+                    where: { date: updateData.bookdate, emp_id: providerId },
+                    transaction
+                });
+
+                if (existingAvailability && existingAvailability[updateData.allot_time_range] === 'p') {
+                    await existingAvailability.update(
+                        { [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
+                        { transaction }
+                    );
+                } else {
+                  c
+                }
+            });
+
+            await Promise.all(serviceProviderPromises);
+        }
+
+        // Step 3: Handle supervisor if provided
+        if (updateData.suprvisor_id) {
+            const supervisor = await EmployeeModel.findOne({
+                where: { name: updateData.suprvisor_id },
+                transaction
+            });
+
+            if (!supervisor) {
+                await transaction.rollback();
+                return  res.status(202).json({ status: 202, message: "Supervisor not found!" });
+            }
+
+            const existingAvailability = await SupervisorAvailability.findOne({
+                where: { date: updateData.bookdate, emp_id: supervisor.emp_id },
+                transaction
+            });
+
+            if (existingAvailability && existingAvailability[updateData.allot_time_range] === 'p') {
+                await existingAvailability.update(
+                    { [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
+                    { transaction }
+                );
+            } else {
+                await transaction.rollback();
+                return  res.status(202).json({ status: 202, message: "Supervisor Not Available" });
+               
+            }
+        }
+
+        // Commit transaction
+        await transaction.commit();
+        res.status(200).json({ status: 200, message: "Update Successful!" });
+    } catch (error) {
+        if (!transaction.finished) {
+            await transaction.rollback();
+        }
+        res.status(500).json({ error: true, message: error.message });
+    }
+};
 
 
-		const isUpdated = await OrderModel.update(data, {
-			where: {
-				order_no: orderID
-			}
-		})
-
-		if (! isUpdated) {
-			return res.status(400).json({error: true, message: 'Updation Failed ! Try again'})
-		}
-		res.status(200).json({status: 200, message: "Updated Successfull!"})
-	} catch (error) {
-		res.status(200).json({error})
-	}
-}
 
 // Get Single Order
 const GetSingleOrder = async (req, res) => {
@@ -1320,6 +1406,7 @@ const OrderCheckIn = async (req, res) => {
         if (!data?.order_no) {
             return res.status(400).json({ error: true, message: 'Order No is required' });
         }
+        data.pending = 4;
 
         let date = new Date();
         let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
@@ -1338,12 +1425,13 @@ const OrderCheckIn = async (req, res) => {
 		if (isAfterSixPM || isBeforeSixAM) {
 			return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
 		}
-  
+        
         let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
-
+        
         const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
         const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
 
+        
         let leaveSlots = filterTimeSlots(formattedTime);
 
         const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
@@ -1361,17 +1449,15 @@ const OrderCheckIn = async (req, res) => {
 			await transaction.rollback();
             return res.status(202).json({ error: true, message: 'Updation Failed ! Try again' });
         }
+        let updatedSlots = {};
+        leaveSlots.forEach(slot => {
+            updatedSlots[slot] = `${data.service_name}-${data.order_no}`;
+        });
 
         for (let serviceProviderId of empId) {
             let existingRecords = await AvailabilityModel.findOne({
                 where: { date: formattedDate, emp_id: serviceProviderId },
-                raw: true,
                 transaction // Pass the transaction
-            });
-
-            let updatedSlots = {};
-            leaveSlots.forEach(slot => {
-                updatedSlots[slot] = `${data.service_name}-${data.order_no}`;
             });
 
             if (existingRecords) {
@@ -1391,7 +1477,7 @@ const OrderCheckIn = async (req, res) => {
         // If everything succeeds, commit the transaction
         await transaction.commit();
 
-        res.status(200).json({ status: true, message: "Availability Updated Successfully!" });
+        res.status(200).json({ status: true, message: "Availability Updated Successfully!", leaveSlots });
 
     } catch (error) {
         // If an error occurs, rollback the transaction
