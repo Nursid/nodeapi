@@ -263,13 +263,61 @@ const GetOrderUpdate = async (req, res) => {
         await order.update(updateData, { transaction });
 
         // Step 2: Update service providers if provided
+        // if (servicep_providers && Array.isArray(servicep_providers)) {
+        //     // Remove existing service providers
+        //     await OrderServiceProviders.destroy({
+        //         where: { order_no: orderID },
+        //         transaction
+        //     });
+
+        //     // Add new service providers
+        //     const serviceProviderPromises = servicep_providers.map(async (providerId) => {
+        //         // Check if the service provider exists
+        //         const serviceProvider = await ServiceProviderModel.findOne({
+        //             where: { id: providerId },
+        //             transaction
+        //         });
+
+        //         if (!serviceProvider) { 
+        //             await transaction.rollback();
+        //             return  res.status(202).json({ status: 202, message: `Service Provider with ID ${providerId} not found` });
+        //         }
+
+        //         // Add the service provider to the order
+        //         await OrderServiceProviders.create(
+        //             { order_no: orderID, service_provider_id: providerId },
+        //             { transaction }
+        //         );
+
+        //         // Check and update availability
+        //         const existingAvailability = await Availability.findOne({
+        //             where: { date: updateData.bookdate, emp_id: providerId },
+        //             transaction
+        //         });
+
+        //         if (existingAvailability && existingAvailability[updateData.allot_time_range]) {
+        //             await existingAvailability.update(
+        //                 { [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
+        //                 { transaction }
+        //             );
+        //         } else {
+        //           await Availability.create(
+        //                 { date: updateData.bookdate, emp_id: providerId, [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
+        //                 { transaction }
+        //             );
+        //         }
+        //     });
+
+        //     await Promise.all(serviceProviderPromises);
+        // }
+
         if (servicep_providers && Array.isArray(servicep_providers)) {
             // Remove existing service providers
             await OrderServiceProviders.destroy({
                 where: { order_no: orderID },
                 transaction
             });
-
+        
             // Add new service providers
             const serviceProviderPromises = servicep_providers.map(async (providerId) => {
                 // Check if the service provider exists
@@ -277,35 +325,61 @@ const GetOrderUpdate = async (req, res) => {
                     where: { id: providerId },
                     transaction
                 });
-
+        
                 if (!serviceProvider) { 
                     await transaction.rollback();
-                    return  res.status(202).json({ status: 202, message: `Service Provider with ID ${providerId} not found` });
+                    return res.status(202).json({ status: 202, message: `Service Provider with ID ${providerId} not found` });
                 }
-
+        
                 // Add the service provider to the order
                 await OrderServiceProviders.create(
                     { order_no: orderID, service_provider_id: providerId },
                     { transaction }
                 );
-
-                // Check and update availability
+        
+                // Update or reset availability for the specific time slot
                 const existingAvailability = await Availability.findOne({
                     where: { date: updateData.bookdate, emp_id: providerId },
                     transaction
                 });
-
-                if (existingAvailability && existingAvailability[updateData.allot_time_range] === 'p') {
+        
+                if (existingAvailability) {
                     await existingAvailability.update(
                         { [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
                         { transaction }
                     );
                 } else {
-                  c
+                    await Availability.create(
+                        { date: updateData.bookdate, emp_id: providerId, [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
+                        { transaction }
+                    );
                 }
             });
-
-            await Promise.all(serviceProviderPromises);
+        
+            // Handle unassigning previous providers if needed
+            const existingProviders = await OrderServiceProviders.findAll({
+                where: { order_no: orderID },
+                transaction
+            });
+        
+            const existingProviderIds = existingProviders.map(p => p.service_provider_id);
+            const providerIdsToReset = existingProviderIds.filter(id => !servicep_providers.includes(id));
+        
+            const resetPromises = providerIdsToReset.map(async (providerId) => {
+                const existingAvailability = await Availability.findOne({
+                    where: { date: updateData.bookdate, emp_id: providerId },
+                    transaction
+                });
+        
+                if (existingAvailability) {
+                    await existingAvailability.update(
+                        { [updateData.allot_time_range]: 'p' },
+                        { transaction }
+                    );
+                }
+            });
+        
+            await Promise.all([...serviceProviderPromises, ...resetPromises]);
         }
 
         // Step 3: Handle supervisor if provided
@@ -325,15 +399,16 @@ const GetOrderUpdate = async (req, res) => {
                 transaction
             });
 
-            if (existingAvailability && existingAvailability[updateData.allot_time_range] === 'p') {
+            if (existingAvailability && existingAvailability[updateData.allot_time_range]) {
                 await existingAvailability.update(
                     { [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
                     { transaction }
                 );
             } else {
-                await transaction.rollback();
-                return  res.status(202).json({ status: 202, message: "Supervisor Not Available" });
-               
+                await SupervisorAvailability.create(
+                    { date: updateData.bookdate, emp_id: supervisor.emp_id, [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
+                    { transaction }
+                );
             }
         }
 
