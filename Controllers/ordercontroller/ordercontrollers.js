@@ -52,6 +52,49 @@ function filterTimeSlots(inputTime) {
 }
 
 
+function getCurrentTimeSlot() {
+    const now = new Date();
+    // const hours = now.getHours();
+    // const minutes = now.getMinutes();
+    const hours = 9
+    const minutes = 20
+    
+    const currentTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+    
+    for (let slot of AllTimeSlots) {
+        const [start, end] = slot.split('-');
+        if (currentTime >= start && currentTime < end) {
+            return slot;
+        }
+    }
+    return null; // No matching slot found
+}
+
+function getPreviousTimeSlot() {
+
+    const now = new Date();
+    const hours = now.getHours();
+    const minutes = now.getMinutes();
+
+    // const hours = 9
+    // const minutes = 20
+
+    const currentTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+
+    let previousSlots = [];
+    
+    for (let slot of AllTimeSlots) {
+        const [start, end] = slot.split('-');
+        if (currentTime >= end) {
+            previousSlots.push(slot);
+        } else {
+            break; // Stop once we reach the current or future slot
+        }
+    }
+
+    return previousSlots;
+}
+
 
 
 const getServiceProviderIds = async (serviceProviderNames) => {
@@ -1512,6 +1555,24 @@ const OrderCheckIn = async (req, res) => {
         const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
 
         const empId = await getServiceProviderIds(serviceProviderNames);
+
+        const previousSlot = getPreviousTimeSlot();
+  // Check for overlapping time slots
+        for (let serviceProviderId of empId) {
+            let existingRecords = await AvailabilityModel.findOne({
+                where: { date: formattedDate, emp_id: serviceProviderId },
+                transaction
+            });
+
+            if (existingRecords) {
+                for (let slot of previousSlot) {
+                    if (existingRecords[slot]) {
+                        await transaction.rollback();
+                        return res.status(202).json({ error: true, message: `Service Provider already has an appointment for time slot: ${slot}` });
+                    }
+                }
+            }
+        }
 
         const isUpdated = await OrderModel.update(data, {
             where: {
