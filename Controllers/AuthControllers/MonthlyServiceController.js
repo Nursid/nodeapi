@@ -179,8 +179,6 @@ const GetAllMonthlyService = async (req, res) => {
     try {
         let date;
         const dateParam = req.query.date;
-        console.log("dateParam---", dateParam);
-
         // Check if dateParam is defined and not null, and also not the string "undefined"
         if (dateParam !== undefined && dateParam !== null && dateParam !== "undefined") {
             date = new Date(dateParam);  
@@ -375,6 +373,39 @@ const MonthlyServiceSchedule = async (req, res) => {
 };
 
 
+const GetSingleMonthlyService = async (req, res) => {
+    try {
+        const {orderNo, date} = req.body;
+        // Check if dateParam is defined and not null, and also not the string "undefined"
+        if (date !== undefined && date !== null && date !== "undefined") {
+            date = new Date(date);  
+        } else {
+            date = new Date();  // Use the current date if dateParam is invalid
+        }
+
+        // Format the date as 'YYYY-MM-DD'
+        const currentDate = date.toISOString().split('T')[0];
+
+        // Query the database with the formatted date
+        const data = await MonthlyServiceModel.findOne({
+            where: {
+				orderNo: orderNo,
+                feesPaidDateTime: currentDate
+            }
+        });
+
+        if (data.length > 0) {
+            return res.status(200).json({ status: 200, data });
+        } else {
+            return res.status(200).json({ status: 200, data: [] });
+        }
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ error: true, message: "Internal Server Error" });
+    }
+};
+
+
 
 module.exports = {
 	AddMonthlyService,
@@ -382,5 +413,6 @@ module.exports = {
 	DeleteMonthlyService,
 	UpdateMonthlyService,
 	MonthlyServiceAssign,
-	MonthlyServiceSchedule
+	MonthlyServiceSchedule,
+	GetSingleMonthlyService
 }

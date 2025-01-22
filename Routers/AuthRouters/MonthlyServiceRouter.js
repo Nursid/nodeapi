@@ -31,6 +31,7 @@ router.post("/update/:id",upload.fields([
 
 router.put("/assign/:id", MonthlyServiceController.MonthlyServiceAssign)
 router.get("/get-daily-schedule", MonthlyServiceController.MonthlyServiceSchedule)
+router.post("/get-monthlyservice", MonthlyServiceController.GetSingleMonthlyService)
 
 
 
