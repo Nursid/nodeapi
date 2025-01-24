@@ -309,8 +309,6 @@ const GetAllTheServiceProvider = async (req, res) => {
 
 	try {
 		
-		
-		
 		const result = await ServiceProviderModel.findAll({
 			include: [{	
 			  model: SpServicesModel,
