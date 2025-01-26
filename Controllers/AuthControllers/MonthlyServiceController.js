@@ -327,6 +327,7 @@ const MonthlyServiceSchedule = async (req, res) => {
             date.setDate(date.getDate() + 1);  // Increment the date by 1 to get tomorrow's date
         }
 
+        
         // Format the date as "YYYY-MM-DD"
         let formattedDate = date.toISOString().split('T')[0];
 
@@ -344,37 +345,44 @@ const MonthlyServiceSchedule = async (req, res) => {
                 'selectedTimeSlot'
             ],
             where: {
-                feesPaidDateTime: formattedDate
+                feesPaidDateTime: formattedDate,
+                pending: {
+                    [db.Sequelize.Op.in]: [0, 2, 3, 4]
+                }
             }
         });
 
         const groupedData = data.reduce((acc, order) => {
-			const providers = order.service_provider.split(", ").map(p => p.trim());
-			providers.forEach(provider => {
-				let providerEntry = acc.find(entry => entry.name === provider);
-				if (!providerEntry) {
-					providerEntry = { name: provider };
-					acc.push(providerEntry);
-				}
-				const timeSlot = order.selectedTimeSlot;
-				if (!providerEntry[timeSlot]) {
-					providerEntry[timeSlot] = [];
-				}
-				providerEntry[timeSlot].push({
-					orderNo: order.orderNo,
-					cust_name: order.cust_name,
-					bike_no: order.bike_no,
-					feesPaidDateTime: order.feesPaidDateTime,
-					checkintime: order.checkintime,
-					checkouttime: order.checkouttime,
-					serviceType: order.serviceType,
-					pending: order.pending,
-					service_provider: order.service_provider,
-					selectedTimeSlot: order.selectedTimeSlot
-				});
-			});
-			return acc;
-		}, []);
+            const providers = order.service_provider.split(", ").map(p => p.trim());
+            const timeSlots = order.selectedTimeSlot.split(",").map(slot => slot.trim());
+
+            providers.forEach(provider => {
+                let providerEntry = acc.find(entry => entry.name === provider);
+                if (!providerEntry) {
+                    providerEntry = { name: provider };
+                    acc.push(providerEntry);
+                }
+
+                timeSlots.forEach(timeSlot => {
+                    if (!providerEntry[timeSlot]) {
+                        providerEntry[timeSlot] = [];
+                    }
+                    providerEntry[timeSlot].push({
+                        orderNo: order.orderNo,
+                        cust_name: order.cust_name,
+                        bike_no: order.bike_no,
+                        feesPaidDateTime: order.feesPaidDateTime,
+                        checkintime: order.checkintime,
+                        checkouttime: order.checkouttime,
+                        serviceType: order.serviceType,
+                        pending: order.pending,
+                        service_provider: order.service_provider,
+                        selectedTimeSlot: timeSlot // Use the individual time slot here
+                    });
+                });
+            });
+            return acc;
+        }, []);
 		
 
         return res.status(200).json({ status: 200, result: groupedData });
