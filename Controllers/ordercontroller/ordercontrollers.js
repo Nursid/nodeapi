@@ -95,170 +95,370 @@ function getPreviousTimeSlot() {
     return previousSlots;
 }
 
+async function calculateSlots(allot_time_range, approx_duration) {
+    // Find the index of the starting time range
+    const startIndex = AllTimeSlots.indexOf(allot_time_range);
+    
+    // If the starting range is not found, return an empty array
+    if (startIndex === -1) {
+        return [];
+    }
+
+    // Calculate the number of slots needed (each slot is 30 minutes)
+    const slotsNeeded = approx_duration * 2;
+
+    // Slice the array to get the required slots
+    const result = AllTimeSlots.slice(startIndex, startIndex + slotsNeeded);
+
+    return result;
+}
+
 
 
 const getServiceProviderIds = async (serviceProviderNames) => {
-	const serviceProviderIds = await Promise.all(
-	  serviceProviderNames.map(async (serviceProviderName) => {
-		const serviceProvider = await ServiceProviderModel.findOne({
-		  where: {
-			name: serviceProviderName
-		  },
-		  attributes: ['id']
-		});
-  
-		return serviceProvider ? serviceProvider.id : null;
-	  })
-	);
-  
-	return serviceProviderIds.filter(id => id !== null); // Filter out any null values if no matching provider was found
+    // Fetch all service providers in one query
+    const serviceProviders = await ServiceProviderModel.findAll({
+        where: {
+            name: serviceProviderNames
+        },
+        attributes: ['id', 'name']
+    });
+
+    // Map service provider names to their IDs
+    return serviceProviders
 };
+
   
+// const GetOrderNow = async (req, res) => {
+//     const transaction = await sequelize.transaction();
+//     try {
+//         const orderData = req.body;
+//         const { servicep_providers, ...formdata } = orderData;
+//         let userId;
+
+//         // Step 1: Check if user exists
+//         let isUser = await NewCustomerModel.findOne({
+//             where: { mobileno: formdata.mobile, ismember: true },
+//             transaction
+//         });
+
+//         if (!isUser) {
+//             isUser = await NewCustomerModel.findOne({
+//                 where: { mobileno: formdata.mobile, ismember: false },
+//                 transaction
+//             });
+
+//             if (!isUser) {
+//                 const newUser = await NewCustomerModel.create(
+//                     {
+//                         name: formdata.name,
+//                         email: formdata.email,
+//                         mobileno: formdata.mobile,
+//                         ismember: false
+//                     },
+//                     { transaction }
+//                 );
+
+//                 await CustomerModel.create(
+//                     {
+//                         user_id: newUser.id,
+//                         address: formdata.service_address,
+//                         land_mark: formdata.land_mark,
+//                         age: formdata.age,
+//                         mobile: formdata.mobile
+//                     },
+//                     { transaction }
+//                 );
+
+//                 userId = newUser.id;
+//             } else {
+//                 userId = isUser.id;
+//             }
+//         } else {
+//             userId = isUser.id;
+//         }
+
+//         formdata.pending = 0;
+
+//         // Step 2: Generate order number
+//         const lastOrder = await OrderModel.findOne({
+//             order: [['id', 'DESC']],
+//             transaction
+//         });
+
+//         const lastOrderNumber = lastOrder ? parseInt(lastOrder.order_no, 10) : 0;
+//         const formattedOrderNumber = (lastOrderNumber + 1).toString().padStart(5, '0');
+//         formdata.order_no = formattedOrderNumber;
+//         formdata.cust_id = userId;
+
+//         if (formdata?.serviceDateTime) {
+//             const [bookdate, booktime] = formdata.serviceDateTime.split('T');
+//             formdata.bookdate = bookdate;
+//             formdata.booktime = booktime;
+//         }
+
+//         // Step 3: Create order
+//         const data = await OrderModel.create(formdata, { transaction });
+//         if (!data) {
+//             await transaction.rollback();
+//             return res.status(202).json({ status: false, message: "Order not placed! Try again" });
+//         }
+
+//         const { order_no } = data;
+//         const allot_time_range = formdata.allot_time_range;
+//         const slots = await calculateSlots(allot_time_range, formdata.approx_duration);
+
+//         let updatedSlots = {};
+//         slots.forEach(slot => {
+//             updatedSlots[slot] = `${formdata.service_name}-${data.order_no}`;
+//         });
+
+
+//         // Step 4: Handle service providers
+//         if (servicep_providers && Array.isArray(servicep_providers)) {
+//             const orderServiceProvidersPromises = servicep_providers.map(async (providerId) => {
+//                 await OrderServiceProviders.create(
+//                     { order_no, service_provider_id: providerId },
+//                     { transaction }
+//                 );
+
+//                 const existingAvailability = await Availability.findOne({
+//                     where: { date: formdata.bookdate, emp_id: providerId },
+//                     transaction
+//                 });
+
+//                 if (existingAvailability) {
+//                     if (existingAvailability[allot_time_range] === 'p') {
+//                         await existingAvailability.update(updatedSlots,
+//                             { transaction }
+//                         );
+//                     } else {
+//                         throw new Error('Service Provider Not Available');
+//                     }
+//                 }
+//             });
+
+//             await Promise.all(orderServiceProvidersPromises);
+//         }
+
+//         // Step 5: Handle supervisor
+//         if (formdata.suprvisor_id) {
+//             const supervisor = await EmployeeModel.findOne({
+//                 where: { name: formdata.suprvisor_id },
+//                 transaction
+//             });
+
+//             if (!supervisor) {
+//                 throw new Error('Supervisor not found!');
+//             }
+
+//             const existingAvailability = await SupervisorAvailability.findOne({
+//                 where: { date: formdata.bookdate, emp_id: supervisor.emp_id },
+//                 transaction
+//             });
+
+//             if (existingAvailability) {
+//                 if (existingAvailability[allot_time_range] === 'p') {
+//                     await existingAvailability.update(
+//                         { [allot_time_range]: `${formdata.service_name}-${data.order_no}` },
+//                         { transaction }
+//                     );
+//                 } else {
+//                     throw new Error('Supervisor Not Available');
+//                 }
+//             }
+//         }
+
+//         // Commit transaction
+//         await transaction.commit();
+
+//         return res.status(200).json({ status: true, message: 'Availability created successfully.' });
+//     } catch (error) {
+//         if (!transaction.finished) {
+//             await transaction.rollback();
+//         }
+//         return res.status(500).json({ error: true, message: error.message });
+//     }
+// };
+
+
 const GetOrderNow = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
-        const orderData = req.body;
-        const { servicep_providers, ...formdata } = orderData;
-        let userId;
-
-        // Step 1: Check if user exists
-        let isUser = await NewCustomerModel.findOne({
-            where: { mobileno: formdata.mobile, ismember: true },
-            transaction
-        });
-
-        if (!isUser) {
-            isUser = await NewCustomerModel.findOne({
-                where: { mobileno: formdata.mobile, ismember: false },
-                transaction
-            });
-
-            if (!isUser) {
-                const newUser = await NewCustomerModel.create(
-                    {
-                        name: formdata.name,
-                        email: formdata.email,
-                        mobileno: formdata.mobile,
-                        ismember: false
-                    },
-                    { transaction }
-                );
-
-                await CustomerModel.create(
-                    {
-                        user_id: newUser.id,
-                        address: formdata.service_address,
-                        land_mark: formdata.land_mark,
-                        age: formdata.age,
-                        mobile: formdata.mobile
-                    },
-                    { transaction }
-                );
-
-                userId = newUser.id;
-            } else {
-                userId = isUser.id;
-            }
-        } else {
-            userId = isUser.id;
-        }
-
-        formdata.pending = 0;
-
+        const { servicep_providers, ...formdata } = req.body;
+        
+        // Step 1: Check if user exists and create if necessary
+        const userId = await getOrCreateUser(formdata, transaction);
+        
         // Step 2: Generate order number
-        const lastOrder = await OrderModel.findOne({
-            order: [['id', 'DESC']],
-            transaction
-        });
-
-        const lastOrderNumber = lastOrder ? parseInt(lastOrder.order_no, 10) : 0;
-        const formattedOrderNumber = (lastOrderNumber + 1).toString().padStart(5, '0');
-        formdata.order_no = formattedOrderNumber;
-        formdata.cust_id = userId;
-
-        if (formdata?.serviceDateTime) {
-            const [bookdate, booktime] = formdata.serviceDateTime.split('T');
-            formdata.bookdate = bookdate;
-            formdata.booktime = booktime;
-        }
-
+        const orderNumber = await generateOrderNumber(transaction);
+        
         // Step 3: Create order
-        const data = await OrderModel.create(formdata, { transaction });
-        if (!data) {
-            await transaction.rollback();
-            return res.status(202).json({ status: false, message: "Order not placed! Try again" });
-        }
-
-        const { order_no } = data;
-        const allot_time_range = formdata.allot_time_range;
-
+        const order = await createOrder(formdata, userId, orderNumber, transaction);
+        
         // Step 4: Handle service providers
-        if (servicep_providers && Array.isArray(servicep_providers)) {
-            const orderServiceProvidersPromises = servicep_providers.map(async (providerId) => {
-                await OrderServiceProviders.create(
-                    { order_no, service_provider_id: providerId },
-                    { transaction }
-                );
-
-                const existingAvailability = await Availability.findOne({
-                    where: { date: formdata.bookdate, emp_id: providerId },
-                    transaction
-                });
-
-                if (existingAvailability) {
-                    if (existingAvailability[allot_time_range] === 'p') {
-                        await existingAvailability.update(
-                            { [allot_time_range]: `${formdata.service_name}-${data.order_no}` },
-                            { transaction }
-                        );
-                    } else {
-                        throw new Error('Service Provider Not Available');
-                    }
-                }
-            });
-
-            await Promise.all(orderServiceProvidersPromises);
-        }
-
+        await handleServiceProviders(servicep_providers, order, formdata, transaction);
+        
         // Step 5: Handle supervisor
-        if (formdata.suprvisor_id) {
-            const supervisor = await EmployeeModel.findOne({
-                where: { name: formdata.suprvisor_id },
-                transaction
-            });
+        await handleSupervisor(formdata, order, transaction);
 
-            if (!supervisor) {
-                throw new Error('Supervisor not found!');
-            }
-
-            const existingAvailability = await SupervisorAvailability.findOne({
-                where: { date: formdata.bookdate, emp_id: supervisor.emp_id },
-                transaction
-            });
-
-            if (existingAvailability) {
-                if (existingAvailability[allot_time_range] === 'p') {
-                    await existingAvailability.update(
-                        { [allot_time_range]: `${formdata.service_name}-${data.order_no}` },
-                        { transaction }
-                    );
-                } else {
-                    throw new Error('Supervisor Not Available');
-                }
-            }
-        }
-
-        // Commit transaction
         await transaction.commit();
-
-        return res.status(200).json({ status: true, message: 'Availability created successfully.' });
+        return res.status(200).json({ status: true, message: 'Order created successfully.' });
     } catch (error) {
-        if (!transaction.finished) {
-            await transaction.rollback();
-        }
+        await transaction.rollback();
         return res.status(500).json({ error: true, message: error.message });
     }
 };
+
+async function getOrCreateUser(formdata, transaction) {
+    let user = await NewCustomerModel.findOne({
+        where: { mobileno: formdata.mobile },
+        transaction
+    });
+
+    if (!user) {
+        user = await NewCustomerModel.create(
+            {
+                name: formdata.name,
+                email: formdata.email,
+                mobileno: formdata.mobile,
+                ismember: false
+            },
+            { transaction }
+        );
+
+        await CustomerModel.create(
+            {
+                user_id: user.id,
+                address: formdata.service_address,
+                land_mark: formdata.land_mark,
+                age: formdata.age,
+                mobile: formdata.mobile
+            },
+            { transaction }
+        );
+    }
+
+    return user.id;
+}
+
+async function generateOrderNumber(transaction) {
+    const lastOrder = await OrderModel.findOne({
+        order: [['id', 'DESC']],
+        transaction
+    });
+
+    const lastOrderNumber = lastOrder ? parseInt(lastOrder.order_no, 10) : 0;
+    return (lastOrderNumber + 1).toString().padStart(5, '0');
+}
+
+async function createOrder(formdata, userId, orderNumber, transaction) {
+    formdata.pending = 0;
+    formdata.order_no = orderNumber;
+    formdata.cust_id = userId;
+
+    if (formdata.serviceDateTime) {
+        const [bookdate, booktime] = formdata.serviceDateTime.split('T');
+        formdata.bookdate = bookdate;
+        formdata.booktime = booktime;
+    }
+
+    const order = await OrderModel.create(formdata, { transaction });
+    if (!order) {
+        throw new Error("Order not placed! Try again");
+    }
+    return order;
+}
+
+async function handleServiceProviders(servicep_providers, order, formdata, transaction) {
+    if (!servicep_providers || !Array.isArray(servicep_providers)) return;
+
+    const slots = await calculateSlots(formdata.allot_time_range, formdata.approx_duration);
+    const updatedSlots = slots.reduce((acc, slot) => {
+        acc[slot] = `${formdata.service_name}-${order.order_no}`;
+        return acc;
+    }, {});
+
+    await Promise.all(servicep_providers.map(async (providerId) => {
+        await OrderServiceProviders.create(
+            { order_no: order.order_no, service_provider_id: providerId },
+            { transaction }
+        );
+
+        const existingAvailability = await Availability.findOne({
+            where: { date: formdata.bookdate, emp_id: providerId },
+            transaction
+        });
+
+        if (existingAvailability) {
+            if (existingAvailability[formdata.allot_time_range] === 'p') {
+                await existingAvailability.update(updatedSlots, { transaction });
+            } else {
+                throw new Error('Service Provider Not Available');
+            }
+        }
+    }));
+}
+
+async function handleSupervisor(formdata, order, transaction) {
+    if (!formdata.suprvisor_id) return;
+
+    const supervisor = await EmployeeModel.findOne({
+        where: { name: formdata.suprvisor_id },
+        transaction
+    });
+
+    if (!supervisor) {
+        throw new Error('Supervisor not found!');
+    }
+
+    const existingAvailability = await SupervisorAvailability.findOne({
+        where: { date: formdata.bookdate, emp_id: supervisor.emp_id },
+        transaction
+    });
+
+    if (existingAvailability) {
+        if (existingAvailability[formdata.allot_time_range] === 'p') {
+            await existingAvailability.update(
+                { [formdata.allot_time_range]: `${formdata.service_name}-${order.order_no}` },
+                { transaction }
+            );
+        } else {
+            throw new Error('Supervisor Not Available');
+        }
+    }
+}
+
+const getServiceProviderStatus = async (orders, empIds) => {
+    const result = empIds.map((emp) => {
+        for (const order of orders) {
+            const serviceProvider = order.orderserviceprovider.find(
+                (sp) => sp.service_provider_id === emp.id
+            );
+
+            if (serviceProvider) {
+                if (order.checkouttime === null) {
+                    return {
+                        name: emp.name.trim(),
+                        checkintime: order.checkintime,
+                        order_no: order.order_no,
+                    };
+                } 
+            }
+        }
+    });
+
+    // Filter out null and undefined values from result array
+    const nonNullResults = result.filter((entry) => entry !== null && entry !== undefined);
+
+    // Check if all values in the result array are null or undefined
+    if (nonNullResults.length === 0) {
+        return false;
+    }
+    // Return non-null and non-undefined results
+    return nonNullResults;
+};
+
 
 
 const OrderComplain = async (req, res) => {
@@ -381,22 +581,22 @@ const GetOrderUpdate = async (req, res) => {
                 );
         
                 // Update or reset availability for the specific time slot
-                const existingAvailability = await Availability.findOne({
-                    where: { date: updateData.bookdate, emp_id: providerId },
-                    transaction
-                });
+                // const existingAvailability = await Availability.findOne({
+                //     where: { date: updateData.bookdate, emp_id: providerId },
+                //     transaction
+                // });
         
-                if (existingAvailability) {
-                    await existingAvailability.update(
-                        { [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
-                        { transaction }
-                    );
-                } else {
-                    await Availability.create(
-                        { date: updateData.bookdate, emp_id: providerId, [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
-                        { transaction }
-                    );
-                }
+                // if (existingAvailability) {
+                //     await existingAvailability.update(
+                //         { [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
+                //         { transaction }
+                //     );
+                // } else {
+                //     await Availability.create(
+                //         { date: updateData.bookdate, emp_id: providerId, [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
+                //         { transaction }
+                //     );
+                // }
             });
         
             // Handle unassigning previous providers if needed
@@ -408,21 +608,21 @@ const GetOrderUpdate = async (req, res) => {
             const existingProviderIds = existingProviders.map(p => p.service_provider_id);
             const providerIdsToReset = existingProviderIds.filter(id => !servicep_providers.includes(id));
         
-            const resetPromises = providerIdsToReset.map(async (providerId) => {
-                const existingAvailability = await Availability.findOne({
-                    where: { date: updateData.bookdate, emp_id: providerId },
-                    transaction
-                });
+            // const resetPromises = providerIdsToReset.map(async (providerId) => {
+            //     const existingAvailability = await Availability.findOne({
+            //         where: { date: updateData.bookdate, emp_id: providerId },
+            //         transaction
+            //     });
         
-                if (existingAvailability) {
-                    await existingAvailability.update(
-                        { [updateData.allot_time_range]: 'p' },
-                        { transaction }
-                    );
-                }
-            });
+            //     if (existingAvailability) {
+            //         await existingAvailability.update(
+            //             { [updateData.allot_time_range]: 'p' },
+            //             { transaction }
+            //         );
+            //     }
+            // });
         
-            await Promise.all([...serviceProviderPromises, ...resetPromises]);
+            await Promise.all([...serviceProviderPromises]);
         }
 
         // Step 3: Handle supervisor if provided
@@ -614,7 +814,7 @@ const GetByStatus = async (req, res) => {
 
 		 // Check if orders exist
 		 if (!orders || orders.length === 0) {
-            return res.status(404).json({ status: 404, message: "No orders found." });
+            return res.status(200).json({ status: 200, data: [] });
         }
 
         // Group orders by order_no
@@ -1528,7 +1728,7 @@ const OrderCheckIn = async (req, res) => {
 
         let date = new Date();
         let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
-        let timeParts = kolkataTime.split(', ')[1].split(':');
+        // let timeParts = kolkataTime.split(', ')[1].split(':');
 
 		let hours = parseInt(timeParts[0]);
 		let minutes = parseInt(timeParts[1]);
@@ -1544,76 +1744,147 @@ const OrderCheckIn = async (req, res) => {
 			return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
 		}
         
-        let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
+        // let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
         
         const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
         const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
 
         
-        let leaveSlots = filterTimeSlots(formattedTime);
+        // let leaveSlots = filterTimeSlots(formattedTime);
 
         const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
 
         const empId = await getServiceProviderIds(serviceProviderNames);
 
-        const previousSlot = getPreviousTimeSlot();
-  // Check for overlapping time slots
-        for (let serviceProviderId of empId) {
-            let existingRecords = await AvailabilityModel.findOne({
-                where: { date: formattedDate, emp_id: serviceProviderId },
-                transaction
-            });
+        // console.log("empId--",empId)
 
-            if (existingRecords) {
-                for (let slot of previousSlot) {
-                    if (existingRecords[slot]) {
-                        await transaction.rollback();
-                        return res.status(202).json({ error: true, message: `Service Provider already has an appointment for time slot: ${slot}` });
-                    }
+        const data2 = []; // Initialize the array to store results
+       
+        const orders = await OrderModel.findAll({
+            include:{
+                    model: OrderServiceProviders,
+					include:{
+						model: ServiceProviderModel,
+						attributes: ['name']
+					}
+                },
+                attributes: ['order_no', 'bookdate', 'checkintime', 'checkouttime'],
+                where: {
+                    pending: 4,
+                    bookdate: formattedDate,
                 }
-            }
-        }
+        });
 
-        const isUpdated = await OrderModel.update(data, {
+        // Group orders by order_no
+        const groupedOrders = orders.reduce((acc, current) => {
+            const orderNo = current.order_no;
+
+            if (!acc[orderNo]) {
+                acc[orderNo] = {
+                    ...current.dataValues,
+                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
+                };
+            } else {
+                // If the order_no already exists, merge orderserviceprovider
+                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+            }
+
+            return acc;
+        }, {});
+
+        // Convert grouped object to array
+        const response = Object.values(groupedOrders);
+
+        const result = await getServiceProviderStatus(response, empId);
+
+        // If no orders are found
+        if (!result || result.length === 0 || result === false)  {
+            const isUpdated = await OrderModel.update({
+                pending: 4,
+                checkintime: data.checkintime
+            }, {
             where: {
                 order_no: data.order_no
             },
             transaction // Pass the transaction to ensure it's part of the same transaction
-        });
+            });
 
         if (!isUpdated) {
 			await transaction.rollback();
             return res.status(202).json({ error: true, message: 'Updation Failed ! Try again' });
         }
-        let updatedSlots = {};
-        leaveSlots.forEach(slot => {
-            updatedSlots[slot] = `${data.service_name}-${data.order_no}`;
-        });
-
-        for (let serviceProviderId of empId) {
-            let existingRecords = await AvailabilityModel.findOne({
-                where: { date: formattedDate, emp_id: serviceProviderId },
-                transaction // Pass the transaction
-            });
-
-            if (existingRecords) {
-                await AvailabilityModel.update(updatedSlots, {
-                    where: { date: formattedDate, emp_id: serviceProviderId },
-                    transaction // Pass the transaction
-                });
-            } else {
-                await AvailabilityModel.create({
-                    date: formattedDate,
-                    emp_id: serviceProviderId,
-                    ...updatedSlots
-                }, { transaction }); // Pass the transaction
-            }
-        }
-
-        // If everything succeeds, commit the transaction
         await transaction.commit();
 
-        res.status(200).json({ status: true, message: "Availability Updated Successfully!", leaveSlots });
+        res.status(200).json({ status: true, message: "Availability CheckIn Successfully!" });
+        } else{
+            const serviceProviders = result.map(provider => provider.name).join(', ');
+    
+            // Get the order_no from the first service provider
+            const orderNo = result[0].order_no;
+
+            // Rollback once and return the joined list of service providers with the order_no
+            await transaction.rollback();
+            return res.status(202).json({
+                status: true,
+                message: `Service Providers: ${serviceProviders} are Not Checked Out on order_no: ${orderNo}`
+            });
+        }
+//         const previousSlot = getPreviousTimeSlot();
+//   // Check for overlapping time slots
+//         for (let serviceProviderId of empId) {
+//             let existingRecords = await AvailabilityModel.findOne({
+//                 where: { date: formattedDate, emp_id: serviceProviderId },
+//                 transaction
+//             });
+
+//             if (existingRecords) {
+//                 for (let slot of previousSlot) {
+//                     if (existingRecords[slot]) {
+//                         await transaction.rollback();
+//                         return res.status(202).json({ error: true, message: `Service Provider already has an appointment for time slot: ${slot}` });
+//                     }
+//                 }
+//             }
+//         }
+
+        // const isUpdated = await OrderModel.update(data, {
+        //     where: {
+        //         order_no: data.order_no
+        //     },
+        //     transaction // Pass the transaction to ensure it's part of the same transaction
+        // });
+
+        // if (!isUpdated) {
+		// 	await transaction.rollback();
+        //     return res.status(202).json({ error: true, message: 'Updation Failed ! Try again' });
+        // }
+        // let updatedSlots = {};
+        // leaveSlots.forEach(slot => {
+        //     updatedSlots[slot] = `${data.service_name}-${data.order_no}`;
+        // });
+
+        // for (let serviceProviderId of empId) {
+        //     let existingRecords = await AvailabilityModel.findOne({
+        //         where: { date: formattedDate, emp_id: serviceProviderId },
+        //         transaction // Pass the transaction
+        //     });
+
+        //     if (existingRecords) {
+        //         await AvailabilityModel.update(updatedSlots, {
+        //             where: { date: formattedDate, emp_id: serviceProviderId },
+        //             transaction // Pass the transaction
+        //         });
+        //     } else {
+        //         await AvailabilityModel.create({
+        //             date: formattedDate,
+        //             emp_id: serviceProviderId,
+        //             ...updatedSlots
+        //         }, { transaction }); // Pass the transaction
+        //     }
+        // }
+
+        // If everything succeeds, commit the transaction
+      
 
     } catch (error) {
         // If an error occurs, rollback the transaction
@@ -1650,16 +1921,16 @@ const OrderCheckOut = async (req, res) => {
 			return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
 		}
   
-        let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
+        // let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
 
-        const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
-        const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+        // const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+        // const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
 
-        let leaveSlots = filterTimeSlots(formattedTime);
+        // let leaveSlots = filterTimeSlots(formattedTime);
 
-        const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
+        // const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
 
-        const empId = await getServiceProviderIds(serviceProviderNames);
+        // const empId = await getServiceProviderIds(serviceProviderNames);
 
         const isUpdated = await OrderModel.update(data, {
             where: {
@@ -1673,36 +1944,36 @@ const OrderCheckOut = async (req, res) => {
             return res.status(202).json({ error: true, message: 'Updation Failed ! Try again' });
         }
 
-        for (let serviceProviderId of empId) {
-            let existingRecords = await AvailabilityModel.findOne({
-                where: { date: formattedDate, emp_id: serviceProviderId },
-                raw: true,
-                transaction // Pass the transaction
-            });
+        // for (let serviceProviderId of empId) {
+        //     let existingRecords = await AvailabilityModel.findOne({
+        //         where: { date: formattedDate, emp_id: serviceProviderId },
+        //         raw: true,
+        //         transaction // Pass the transaction
+        //     });
 
-            let updatedSlots = {};
-            leaveSlots.forEach(slot => {
-                updatedSlots[slot] = 'p';
-            });
+        //     let updatedSlots = {};
+        //     leaveSlots.forEach(slot => {
+        //         updatedSlots[slot] = 'p';
+        //     });
 
-            if (existingRecords) {
-                await AvailabilityModel.update(updatedSlots, {
-                    where: { date: formattedDate, emp_id: serviceProviderId },
-                    transaction // Pass the transaction
-                });
-            } else {
-                await AvailabilityModel.create({
-                    date: formattedDate,
-                    emp_id: serviceProviderId,
-                    ...updatedSlots
-                }, { transaction }); // Pass the transaction
-            }
-        }
+        //     if (existingRecords) {
+        //         await AvailabilityModel.update(updatedSlots, {
+        //             where: { date: formattedDate, emp_id: serviceProviderId },
+        //             transaction // Pass the transaction
+        //         });
+        //     } else {
+        //         await AvailabilityModel.create({
+        //             date: formattedDate,
+        //             emp_id: serviceProviderId,
+        //             ...updatedSlots
+        //         }, { transaction }); // Pass the transaction
+        //     }
+        // }
 
         // If everything succeeds, commit the transaction
         await transaction.commit();
 
-        res.status(200).json({ status: true, message: "Availability Updated Successfully!" });
+        res.status(200).json({ status: true, message: "Availability CheckOut Successfully!" });
 
     } catch (error) {
         // If an error occurs, rollback the transaction
