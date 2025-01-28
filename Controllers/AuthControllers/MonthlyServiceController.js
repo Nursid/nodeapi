@@ -73,16 +73,28 @@ const AddMonthlyService = async (req, res) => {
             }[serviceServeType] || 0;
 
             const orderNumber = await getNextOrderNumber();
-
+            let cycleCount = 0;
             for (let i = 0; i < 30; i += incrementDays) {
                 const formattedDate = currentDate.toISOString().split('T')[0];
+
+
+                  // Determine the specific service for the day
+        let serviceForTheDay = serviceType;
+        if (serviceType === "Car Washing/Dusting" && serviceServeType === "Alternative") {                    
+            if (cycleCount % 3 === 2) { // Every 3rd cycle (e.g., 6th day, 12th day, etc.)
+                serviceForTheDay = "Car Washing";
+            } else { // For the other two cycles
+                serviceForTheDay = "Car Dusting";
+            }
+            cycleCount++; // Increment the cycle counter
+        }
 
                 validProviderIds.forEach(servicepId => {
                     selectedTimeSlots.forEach(slot => {
                         availabilityEntries.push({
                             emp_id: servicepId,
                             date: formattedDate,
-                            [slot]: `${serviceType}-MonthlyService-${data.cust_name}-${orderNumber}`
+                            [slot]: `${serviceForTheDay}-MonthlyService-${data.cust_name}-${orderNumber}`
                         });
                     });
                 });
@@ -91,12 +103,13 @@ const AddMonthlyService = async (req, res) => {
                     supervisorEntries.push({
                         emp_id: supervisorData.emp_id,
                         date: formattedDate,
-                        [slot]: `${serviceType}-MonthlyService-${data.cust_name}-${orderNumber}`
+                        [slot]: `${serviceForTheDay}-MonthlyService-${data.cust_name}-${orderNumber}`
                     });
                 });
 
                 monthlyEntries.push({
                     ...data,
+                    serviceType: serviceForTheDay,
                     feesPaidDateTime: formattedDate,
                     orderNo: orderNumber,
                     pending: 0
@@ -180,7 +193,7 @@ const AddMonthlyService = async (req, res) => {
             await MonthlyServiceModel.bulkCreate(monthlyEntries, { transaction });
             await transaction.commit();
 
-            return res.status(200).json({ status: true, message: 'Monthly Service Added!', orderNo: orderNumber });
+            return res.status(200).json({ status: true, message: 'Monthly Service Added!', orderNo: orderNumber , availabilityEntries});
         }
     } catch (error) {
         console.error(error);
@@ -193,33 +206,44 @@ const GetAllMonthlyService = async (req, res) => {
     try {
         let date;
         const dateParam = req.query.date;
-        // Check if dateParam is defined and not null, and also not the string "undefined"
-        if (dateParam !== undefined && dateParam !== null && dateParam !== "undefined") {
-            date = new Date(dateParam);  
-        } else {
-            date = new Date();  // Use the current date if dateParam is invalid
+        const customer = req.query.customer;
+
+        // Handle date parameter
+        if (dateParam && dateParam !== "undefined" && dateParam !== "null") {
+            date = new Date(dateParam);
+        } else if (!customer || customer === "undefined" || customer === "null") {
+            // If customer is null or undefined, set the date to the current date
+            date = new Date();
         }
 
-        // Format the date as 'YYYY-MM-DD'
-        const currentDate = date.toISOString().split('T')[0];
+        // Build query object
+        const query = {};
+        if (date) {
+            query.feesPaidDateTime = date.toISOString().split('T')[0];
+        }
+
+        if (customer && customer !== "undefined" && customer !== "null") {
+            query.cust_name = customer;
+        }
+
+        console.log("query-----------", query);
 
         // Query the database with the formatted date
         const data = await MonthlyServiceModel.findAll({
-            where: {
-                feesPaidDateTime: currentDate
-            }
+            where: query
         });
 
         if (data.length > 0) {
-            return res.status(200).json({ status: 200, data });
+            return res.status(200).json({ status: 200, data, query });
         } else {
-            return res.status(200).json({ status: 200, data: [] });
+            return res.status(200).json({ status: 200, data: [], query });
         }
     } catch (error) {
         console.log(error);
         return res.status(500).json({ error: true, message: "Internal Server Error" });
     }
 };
+
 
 
 const DeleteMonthlyService = async (req, res) => {
