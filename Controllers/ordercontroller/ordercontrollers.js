@@ -1752,53 +1752,53 @@ const OrderCheckIn = async (req, res) => {
         
         // let leaveSlots = filterTimeSlots(formattedTime);
 
-        const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
+     //    const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
 
-        const empId = await getServiceProviderIds(serviceProviderNames);
+     //    const empId = await getServiceProviderIds(serviceProviderNames);
 
-        // console.log("empId--",empId)
+     //    // console.log("empId--",empId)
 
-        const data2 = []; // Initialize the array to store results
+     //    const data2 = []; // Initialize the array to store results
        
-        const orders = await OrderModel.findAll({
-            include:{
-                    model: OrderServiceProviders,
-					include:{
-						model: ServiceProviderModel,
-						attributes: ['name']
-					}
-                },
-                attributes: ['order_no', 'bookdate', 'checkintime', 'checkouttime'],
-                where: {
-                    pending: 4,
-                    bookdate: formattedDate,
-                }
-        });
+     //    const orders = await OrderModel.findAll({
+     //        include:{
+     //                model: OrderServiceProviders,
+					// include:{
+					// 	model: ServiceProviderModel,
+					// 	attributes: ['name']
+					// }
+     //            },
+     //            attributes: ['order_no', 'bookdate', 'checkintime', 'checkouttime'],
+     //            where: {
+     //                pending: 4,
+     //                bookdate: formattedDate,
+     //            }
+     //    });
 
-        // Group orders by order_no
-        const groupedOrders = orders.reduce((acc, current) => {
-            const orderNo = current.order_no;
+     //    // Group orders by order_no
+     //    const groupedOrders = orders.reduce((acc, current) => {
+     //        const orderNo = current.order_no;
 
-            if (!acc[orderNo]) {
-                acc[orderNo] = {
-                    ...current.dataValues,
-                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
-                };
-            } else {
-                // If the order_no already exists, merge orderserviceprovider
-                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
-            }
+     //        if (!acc[orderNo]) {
+     //            acc[orderNo] = {
+     //                ...current.dataValues,
+     //                orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
+     //            };
+     //        } else {
+     //            // If the order_no already exists, merge orderserviceprovider
+     //            acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+     //        }
 
-            return acc;
-        }, {});
+     //        return acc;
+     //    }, {});
 
-        // Convert grouped object to array
-        const response = Object.values(groupedOrders);
+     //    // Convert grouped object to array
+     //    const response = Object.values(groupedOrders);
 
-        const result = await getServiceProviderStatus(response, empId);
+     //    const result = await getServiceProviderStatus(response, empId);
 
-        // If no orders are found
-        if (!result || result.length === 0 || result === false)  {
+     //    // If no orders are found
+     //    if (!result || result.length === 0 || result === false)  {
             const isUpdated = await OrderModel.update({
                 pending: 4,
                 checkintime: data.checkintime
@@ -1816,19 +1816,19 @@ const OrderCheckIn = async (req, res) => {
         await transaction.commit();
 
         res.status(200).json({ status: true, message: "Availability CheckIn Successfully!" });
-        } else{
-            const serviceProviders = result.map(provider => provider.name).join(', ');
+        // } else{
+        //     const serviceProviders = result.map(provider => provider.name).join(', ');
     
-            // Get the order_no from the first service provider
-            const orderNo = result[0].order_no;
+        //     // Get the order_no from the first service provider
+        //     const orderNo = result[0].order_no;
 
-            // Rollback once and return the joined list of service providers with the order_no
-            await transaction.rollback();
-            return res.status(202).json({
-                status: true,
-                message: `Service Providers: ${serviceProviders} are Not Checked Out on order_no: ${orderNo}`
-            });
-        }
+        //     // Rollback once and return the joined list of service providers with the order_no
+        //     await transaction.rollback();
+        //     return res.status(202).json({
+        //         status: true,
+        //         message: `Service Providers: ${serviceProviders} are Not Checked Out on order_no: ${orderNo}`
+        //     });
+        // }
 //         const previousSlot = getPreviousTimeSlot();
 //   // Check for overlapping time slots
 //         for (let serviceProviderId of empId) {
