@@ -1726,28 +1726,28 @@ const OrderCheckIn = async (req, res) => {
         }
         data.pending = 4;
 
-        let date = new Date();
-        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
-        // let timeParts = kolkataTime.split(', ')[1].split(':');
+  //       let date = new Date();
+  //       let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
+  //       // let timeParts = kolkataTime.split(', ')[1].split(':');
 
-		let hours = parseInt(timeParts[0]);
-		let minutes = parseInt(timeParts[1]);
+		// let hours = parseInt(timeParts[0]);
+		// let minutes = parseInt(timeParts[1]);
   
-		// let hours = 7
-		// let minutes = 40
+		// // let hours = 7
+		// // let minutes = 40
 	
-		// Check if the time is between 6:00 PM and 6:00 AM
-		let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
-		let isBeforeSixAM = (hours < 7); // 6 AM is less than 6 in 24-hour format
+		// // Check if the time is between 6:00 PM and 6:00 AM
+		// let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
+		// let isBeforeSixAM = (hours < 7); // 6 AM is less than 6 in 24-hour format
   
-		if (isAfterSixPM || isBeforeSixAM) {
-			return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
-		}
+		// if (isAfterSixPM || isBeforeSixAM) {
+		// 	return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
+		// }
         
-        // let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
+  //       // let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
         
-        const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
-        const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+  //       const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+  //       const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
 
         
         // let leaveSlots = filterTimeSlots(formattedTime);
@@ -1799,23 +1799,25 @@ const OrderCheckIn = async (req, res) => {
 
      //    // If no orders are found
      //    if (!result || result.length === 0 || result === false)  {
-            const isUpdated = await OrderModel.update({
-                pending: 4,
-                checkintime: data.checkintime
-            }, {
-            where: {
-                order_no: data.order_no
-            },
-            transaction // Pass the transaction to ensure it's part of the same transaction
-            });
-
-        if (!isUpdated) {
-			await transaction.rollback();
-            return res.status(202).json({ error: true, message: 'Updation Failed ! Try again' });
+            const isUpdated = await OrderModel.update(
+        {
+            pending: 4,
+            checkintime: data.checkintime
+        },
+        {
+            where: { order_no: data.order_no },
+            transaction // Ensure it's part of the same transaction
         }
-        await transaction.commit();
+    );
 
-        res.status(200).json({ status: true, message: "Availability CheckIn Successfully!" });
+    // `update` returns an array with the number of affected rows, so check if any row was updated
+    if (!isUpdated || isUpdated[0] === 0) {
+        await transaction.rollback();
+        return res.status(400).json({ error: true, message: 'Updation Failed! Try again' });
+    }
+
+    await transaction.commit();
+    res.status(200).json({ status: true, message: "Availability Check-In Successfully!" });
         // } else{
         //     const serviceProviders = result.map(provider => provider.name).join(', ');
     
