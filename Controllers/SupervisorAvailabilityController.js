@@ -231,9 +231,9 @@ const AddAttendance = async (req, res) => {
 
         // Extract the hours and minutes
         let timeParts = kolkataTime.split(', ')[1].split(':');
-        // let hours = parseInt(timeParts[0]);
+        let hours = parseInt(timeParts[0]);
         let minutes = parseInt(timeParts[1]);
-        let hours = 7
+        // let hours = 7
         // let minutes = 40
 
 

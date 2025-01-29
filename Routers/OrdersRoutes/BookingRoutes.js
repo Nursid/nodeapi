@@ -25,8 +25,7 @@ const {
 	AddDueBeforeOneday,
 	OrderAssingSupervisor,
 	GetOrderReports,
-	AssignServiceProviderAvailability,
-	GetSingleOrderBYId
+	AssignServiceProviderAvailability
 } = require("../../Controllers/ordercontroller/ordercontrollers");
 
 const AuthenticateToken = require('../../Middleware/AuthenticateToken')
@@ -36,7 +35,6 @@ const router = require("express").Router();
 router.post('/add',GetOrderNow);
 router.patch("/update/:id", GetOrderUpdate)
 router.get("/get/:id/:cust_id", GetSingleOrder);
-router.get("/get/:order_no", GetSingleOrderBYId);
 router.get("/delete/:order_no", AuthenticateToken, GetDeleteByID)
 router.post("/cancel/:order_no", GetCancel)
 router.get("/hold/:order_no/:cust_id", GetHold)
