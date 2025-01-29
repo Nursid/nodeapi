@@ -5,39 +5,6 @@ const ServiceProvider = db.ServiceProviderModel
 const moment = require('moment');
 const { Op } = require('sequelize');
 
-// const GetAllAvailability = async (req, res) => {
-//     const filterDate = req.body.date;
-
-//     try {
-//         if (!filterDate) {
-//             const today = new Date();
-//             // Format the date to match the format used in your database (e.g., 'YYYY-MM-DD')
-//             filterDate = today.toISOString().split('T')[0];
-//         }
-
-//         const providersWithAvailabilities = await ServiceProvider.findAll({
-//             attributes: ['id', 'name', 'provider_type'],
-//             where: { block_id: false }, // Filter on ServiceProvider
-//             include: [{
-//                 model: AvailabilityModel,
-//                 where: { date: filterDate }, // Optional: Filter on AvailabilityModel
-//                 required: false, // This ensures a LEFT JOIN
-//             }]
-//         });
-        
-//         // Check if combinedData is empty
-//         if (providersWithAvailabilities.length === 0) {
-//             return res.status(200).json({ status: false, message: "User Not Found!" });
-//         }
-
-//         // Respond with combined data
-//         res.status(200).json({ status: true, data: providersWithAvailabilities });
-
-//     } catch (error) {
-//         res.status(500).json({ error });
-//     }
-// };
-
 
 var AllLeaveSlots = {
     '07:00-07:30': 'p',
@@ -356,10 +323,10 @@ const AddAttendance = async (req, res) => {
 
         // Extract the hours and minutes
         let timeParts = kolkataTime.split(', ')[1].split(':');
-        let hours = parseInt(timeParts[0]);
-        let minutes = parseInt(timeParts[1]);
-        // let hours = 7
-        // let minutes = 40
+        // let hours = parseInt(timeParts[0]);
+        // let minutes = parseInt(timeParts[1]);
+        let hours = 7
+        let minutes = 40
 
 
         // Check if the time is between 6:00 PM and 6:00 AM
@@ -420,7 +387,7 @@ const AddAttendance = async (req, res) => {
                         } 
                     });
 
-                    return res.status(200).json({ status: true, message: "Availability Updated Successfully!", });
+                    return res.status(200).json({ status: true, message: "Availability Updated Successfully!", slotsToInsert});
                 }
     
             }else{
@@ -429,7 +396,7 @@ const AddAttendance = async (req, res) => {
                     emp_id: empId,
                     ...leaveSlots
                 });
-                return res.status(200).json({ status: true, message: "Availability Added Successfully!", });
+                return res.status(200).json({ status: true, message: "Availability Added Successfully!"});
             }
 
 
