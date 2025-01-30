@@ -434,14 +434,12 @@ const GetAllSupervisor = async (req, res) => {
 				['id', 'DESC']
 			],
 			where: {
-				designation_id: 2,
 				is_block: false
 			}
 		});
 		if (! result) 
 			return res.status(400).json({error: true, message: "No Data Found"});
-		
-
+	
 
 		res.status(200).json({status: 200, data: result});
 	} catch (error) {

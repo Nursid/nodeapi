@@ -354,6 +354,12 @@ const GetOrderUpdate = async (req, res) => {
 
         // Step 2: Update service providers if provided
         if (servicep_providers && Array.isArray(servicep_providers)) {
+
+            const slots = await calculateSlots(updateData.allot_time_range, updateData.approx_duration);
+            const updatedSlots = slots.reduce((acc, slot) => {
+                acc[slot] = `${updateData.service_name}-${order.order_no}`;
+                return acc;
+            }, {});
             // Remove existing service providers
             await OrderServiceProviders.destroy({
                 where: { order_no: orderID },
@@ -379,23 +385,29 @@ const GetOrderUpdate = async (req, res) => {
                     { transaction }
                 );
 
-                // // Check and update availability
-                // const existingAvailability = await Availability.findOne({
-                //     where: { date: updateData.bookdate, emp_id: providerId },
-                //     transaction
-                // });
-
-                // if (existingAvailability && existingAvailability[updateData.allot_time_range]) {
-                //     await existingAvailability.update(
-                //         { [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
-                //         { transaction }
-                //     );
-                // } else {
-                //   await Availability.create(
-                //         { date: updateData.bookdate, emp_id: providerId, [updateData.allot_time_range]: `${updateData.service_name}-${orderID}` },
-                //         { transaction }
-                //     );
-                // }
+                const existingAvailability = await Availability.findOne({
+                    where: { date: updateData.bookdate, emp_id: providerId },
+                    transaction
+                });
+        
+                if (existingAvailability) {
+                    if (existingAvailability[updateData.allot_time_range] === 'p') {
+                        // Update the existing availability record with new slots
+                        await existingAvailability.update(updatedSlots, { transaction });
+                    } else {
+                        throw new Error('Service Provider Not Available');
+                    }
+                } else {
+                    // If availability record doesn't exist, create a new one
+                    await Availability.create(
+                        {
+                            date: updateData.bookdate,
+                            emp_id: providerId,
+                            ...updatedSlots
+                        },
+                        { transaction }
+                    );
+                }
             });
 
             await Promise.all(serviceProviderPromises);
@@ -442,7 +454,6 @@ const GetOrderUpdate = async (req, res) => {
         res.status(500).json({ error: true, message: error.message });
     }
 };
-
 
 
 // Get Single Order

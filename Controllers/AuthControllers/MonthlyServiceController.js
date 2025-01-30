@@ -265,12 +265,16 @@ const DeleteMonthlyService = async (req, res) => {
 }
 
 const UpdateMonthlyService = async (req, res) => {
+    const transaction = await sequelize.transaction();
 	const orderNo = req.params.id;
 	let data = req.body;
 
 	try { // Destructure feesPaidDateTime and ignore it
 		const {
 			feesPaidDateTime,
+            selectedTimeSlot,
+            service_provider,
+            supervisor,
 			...updateData
 		} = data;
 
@@ -280,19 +284,134 @@ const UpdateMonthlyService = async (req, res) => {
 			updateData.before_cleaning = before_cleaning ? before_cleaning[0].filename : null;
 		}
 
+        const availabilityEntries = [];
+        const supervisorEntries = [];
+        
+        const selectedTimeSlots = selectedTimeSlot.split(',').map(item => item.trim());
+        const providerNames = service_provider.split(',').map(item => item.trim());
+        updateData.selectedTimeSlot = selectedTimeSlots.join(',');
+        updateData.service_provider = providerNames.join(',');
+        updateData.feesPaidDateTime = feesPaidDateTime
+
+
+        const serviceProviderIds = await Promise.all(
+            providerNames.map(async name => {
+                const provider = await ServiceProviderModel.findOne({ where: { name } });
+                return provider?.id || null;
+            })
+        );
+
+        const validProviderIds = serviceProviderIds.filter(Boolean);
+        const supervisorData = await EmployeeModel.findOne({ where: { name: supervisor } });
+
+
+        validProviderIds.forEach(servicepId => {
+            selectedTimeSlots.forEach(slot => {
+                availabilityEntries.push({
+                    emp_id: servicepId,
+                    date: feesPaidDateTime,
+                    [slot]: `${data.serviceType}-MonthlyService-${data.cust_name}-${orderNo}`
+                });
+            });
+        });
+
+        selectedTimeSlots.forEach(slot => {
+            supervisorEntries.push({
+                emp_id: supervisorData.emp_id,
+                date: feesPaidDateTime,
+                [slot]: `${data.serviceType}-MonthlyService-${data.cust_name}-${orderNo}`
+            });
+        });
+
+        const mergedServiceProviderEntries = availabilityEntries.reduce((acc, curr) => {
+            const { emp_id, date, ...slots } = curr;
+          
+            // Check if an entry for the same emp_id and date already exists
+            const existingEntry = acc.find(
+              (entry) => entry.emp_id === emp_id && entry.date === date
+            );
+          
+            if (existingEntry) {
+              // Merge the slot data into the existing entry
+              Object.assign(existingEntry, slots);
+            } else {
+              // Add a new entry to the result array
+              acc.push({ emp_id, date, ...slots });
+            }
+          
+            return acc;
+          }, []);
+
+
+          const mergedSupervisorEntries = supervisorEntries.reduce((acc, curr) => {
+			const { emp_id, date, ...slots } = curr;
+			
+			// Check if an entry for the same emp_id and date already exists
+			const existingEntry = acc.find(
+				(entry) => entry.emp_id === emp_id && entry.date === date
+			);
+			
+			if (existingEntry) {
+				// Merge the slot data into the existing entry
+				Object.assign(existingEntry, slots);
+			} else {
+				// Add a new entry to the result array
+				acc.push({ emp_id, date, ...slots });
+			}
+			
+			return acc;
+			}, []);
+
+          await Promise.all(
+            mergedServiceProviderEntries.map(async entry => {
+                const existing = await AvailabilityModel.findOne({
+                    where: { emp_id: entry.emp_id, date: entry.date },
+                    transaction
+                });
+
+                if (existing) {
+                    await existing.update(entry, { transaction });
+                } else {
+                    await AvailabilityModel.create(entry, { transaction });
+                }
+            })
+        );
+
+
+        await Promise.all(
+            mergedSupervisorEntries.map(async entry => {
+                const existing = await SupervisorAvailability.findOne({
+                    where: { emp_id: entry.emp_id, date: entry.date },
+                    transaction
+                });
+
+                if (existing) {
+                    await existing.update(entry, { transaction });
+                } else {
+                    await SupervisorAvailability.create(entry, { transaction });
+                }
+            })
+        );
+
+        console.log("Data inserted successfully--",updateData);
+
 		const isDataUpdated = await MonthlyServiceModel.update(updateData, {
 			where: {
-				orderNo: orderNo
-			}
+				orderNo: orderNo,
+                feesPaidDateTime: feesPaidDateTime
+			},
+            transaction
 		});
-
 		if (isDataUpdated[0] > 0) {
-			return res.status(200).json({status: 200, message: "Your Monthly Service Updated"});
+            await transaction.rollback();
+			return res.status(200).json({status: 200, message: "Your Monthly Service Updated", updateData,mergedServiceProviderEntries });
 		} else {
+            await transaction.commit();
 			return res.status(404).json({status: 404, message: "Order Not Found"});
 		}
 	} catch (error) {
 		console.error(error); // Log the error for debugging
+        await transaction.rollback();
 		return res.status(500).json({error: true, message: "Internal Server Error"});
 	}
 };
