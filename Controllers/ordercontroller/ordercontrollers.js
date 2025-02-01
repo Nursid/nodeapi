@@ -337,6 +337,7 @@ const GetOrderUpdate = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
         const orderID = req.params.id;
+        
         const { servicep_providers, ...updateData } = req.body;
 
         // Step 1: Find and update the order

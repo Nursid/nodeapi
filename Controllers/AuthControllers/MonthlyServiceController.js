@@ -267,6 +267,7 @@ const DeleteMonthlyService = async (req, res) => {
 const UpdateMonthlyService = async (req, res) => {
     const transaction = await sequelize.transaction();
 	const orderNo = req.params.id;
+    const updateDate = req.query.date
 	let data = req.body;
 
 	try { // Destructure feesPaidDateTime and ignore it
@@ -398,16 +399,16 @@ const UpdateMonthlyService = async (req, res) => {
 		const isDataUpdated = await MonthlyServiceModel.update(updateData, {
 			where: {
 				orderNo: orderNo,
-                feesPaidDateTime: feesPaidDateTime
+                feesPaidDateTime: updateDate
 			},
             transaction
 		});
 		if (isDataUpdated[0] > 0) {
             await transaction.rollback();
-			return res.status(200).json({status: 200, message: "Your Monthly Service Updated", updateData,mergedServiceProviderEntries });
+			return res.status(200).json({status: 200, message: "Your Monthly Service Updated", updateData,mergedServiceProviderEntries, updateDate });
 		} else {
             await transaction.commit();
-			return res.status(404).json({status: 404, message: "Order Not Found"});
+			return res.status(202).json({status: 202, message: "Order Not Found",updateDate});
 		}
 	} catch (error) {
 		console.error(error); // Log the error for debugging
