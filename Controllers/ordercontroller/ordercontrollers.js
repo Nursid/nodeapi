@@ -392,7 +392,7 @@ const GetOrderUpdate = async (req, res) => {
                 });
         
                 if (existingAvailability) {
-                    if (existingAvailability[updateData.allot_time_range] === 'p') {
+                    if (existingAvailability[updateData.allot_time_range]) {
                         // Update the existing availability record with new slots
                         await existingAvailability.update(updatedSlots, { transaction });
                     } else {
