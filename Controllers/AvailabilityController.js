@@ -71,53 +71,83 @@ const GetAllAvailability = async (req, res) => {
         let whereConditions = {}; 
         let where = {}; 
         
-        // If emp_id exists, add it to the conditions
         if (emp_id) {
             where.id = emp_id;
             whereConditions.emp_id = emp_id;
         }
 
-        // If both from and to exist, we'll filter on date range
+        let targetDate;
         if (from && to) {
-            // Ensure the dates are in the correct format
-            const startDate = new Date(from).toISOString().split('T')[0];
-            const endDate = new Date(to).toISOString().split('T')[0];
-            whereConditions.date = {
-                [Op.between]: [startDate, endDate]
-            };
+            const startDate = new Date(from);
+            const endDate = new Date(to);
+            whereConditions.date = { [Op.between]: [startDate, endDate] };
         } else if (filterDate) {
-            // If only a date is present, filter by that date
-            const today = new Date();
-            const formattedDate = filterDate || today.toISOString().split('T')[0];
-            whereConditions.date = formattedDate;
+            targetDate = new Date(filterDate);
+            whereConditions.date = filterDate;
         } else {
-            const today = new Date();
-            const formattedDate = today.toISOString().split('T')[0];
-            whereConditions.date = formattedDate;
+            targetDate = new Date();
+            whereConditions.date = targetDate.toISOString().split('T')[0];
         }
 
         const providersWithAvailabilities = await ServiceProvider.findAll({
             attributes: ['id', 'name', 'provider_type', 'image'],
-                include: [{
+            include: [{
                 model: AvailabilityModel,
-                required: false, // This ensures a LEFT JOIN
+                required: false,
                 where: whereConditions,
             }],
             where: where
         });
 
-        // Check if combinedData is empty
         if (providersWithAvailabilities.length === 0) {
             return res.status(200).json({ status: false, message: "No availability found!" });
         }
 
-        // Respond with combined data
-        res.status(200).json({ status: true, data: providersWithAvailabilities });
+        const timeSlots = [
+            '07:00-07:30', '07:30-08:00', '08:00-08:30', '08:30-09:00',
+            '09:00-09:30', '09:30-10:00', '10:00-10:30', '10:30-11:00',
+            '11:00-11:30', '11:30-12:00', '12:00-12:30', '12:30-01:00',
+            '01:00-01:30', '01:30-02:00', '02:00-02:30', '02:30-03:00',
+            '03:00-03:30', '03:30-04:00', '04:00-04:30', '04:30-05:00',
+            '05:00-05:30', '05:30-06:00'
+        ];
+
+        const providers = providersWithAvailabilities.map(provider => {
+            const plainProvider = provider.get({ plain: true });
+        
+            if (plainProvider.availabilities.length === 0) {
+                plainProvider.status = 'free';
+            } else {
+                const availability = plainProvider.availabilities[0];
+        
+                if (timeSlots.every(slot => availability[slot] === 'Full day Leave')) {
+                    plainProvider.status = 'leave';
+                } else if (timeSlots.every(slot => availability[slot] === 'Half Day Leave')) {
+                    plainProvider.status = 'leave';
+                } else if (timeSlots.every(slot => availability[slot] === 'Week Off')) {
+                    plainProvider.status = 'week_off';
+                } else if (timeSlots.every(slot => availability[slot] === 'Absent')) {
+                    plainProvider.status = 'absent';
+                } else {
+                    plainProvider.status = 'assigned';
+                }
+            }
+            return plainProvider;
+        });
+        
+        // Sorting based on priority order
+        providers.sort((a, b) => {
+            const priority = { 'assigned': 1, 'free': 2, 'leave': 3, 'week_off': 4, 'absent': 5 };
+            return priority[a.status] - priority[b.status];
+        });
+        
+        res.status(200).json({ status: true, data: providers });
 
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
+
 
 
 const AddLeave = async (req, res) => {
