@@ -65,7 +65,7 @@ var AllLeaveSlots = {
 }
 
 const GetAllAvailability = async (req, res) => {
-    const { date: filterDate, from, to, emp_id } = req.body;
+    const { date: filterDate, from, to, emp_id, type} = req.body;
 
     try {
         let whereConditions = {}; 
@@ -74,6 +74,9 @@ const GetAllAvailability = async (req, res) => {
         if (emp_id) {
             where.id = emp_id;
             whereConditions.emp_id = emp_id;
+        }
+        if (type) {
+            where.provider_type = type;
         }
 
         let targetDate;
