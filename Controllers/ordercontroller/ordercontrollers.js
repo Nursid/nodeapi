@@ -1642,22 +1642,22 @@ const OrderCheckOut = async (req, res) => {
         }
 
         let date = new Date();
-        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
-        let timeParts = kolkataTime.split(', ')[1].split(':');
+  //       let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
+  //       let timeParts = kolkataTime.split(', ')[1].split(':');
 
-		let hours = parseInt(timeParts[0]);
-		let minutes = parseInt(timeParts[1]);
+		// let hours = parseInt(timeParts[0]);
+		// let minutes = parseInt(timeParts[1]);
   
 		// let hours = 7
 		// let minutes = 40
 	
 		// Check if the time is between 6:00 PM and 6:00 AM
-		let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
-		let isBeforeSixAM = (hours < 7); // 6 AM is less than 6 in 24-hour format
+		// let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
+		// let isBeforeSixAM = (hours < 7); // 6 AM is less than 6 in 24-hour format
   
-		if (isAfterSixPM || isBeforeSixAM) {
-			return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
-		}
+		// if (isAfterSixPM || isBeforeSixAM) {
+		// 	return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
+		// }
   
         // let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
 
