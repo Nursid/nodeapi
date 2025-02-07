@@ -93,7 +93,7 @@ const GetAllAvailability = async (req, res) => {
         }
 
         const providersWithAvailabilities = await ServiceProvider.findAll({
-            attributes: ['id', 'name', 'provider_type', 'image'],
+            attributes: ['id', 'name', 'provider_type', 'image', 'duty_hours'],
             include: [{
                 model: AvailabilityModel,
                 required: false,

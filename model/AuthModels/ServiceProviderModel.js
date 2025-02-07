@@ -159,7 +159,10 @@ module.exports = (sequelize) => {
           role:{
             type: DataTypes.STRING,
             default:"Service Provider"
-          }
+          },
+          duty_hours: {
+            type: DataTypes.STRING
+          },
 
         }, {
         timestamps: true, // If you don't want createdAt and updatedAt columns
