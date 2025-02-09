@@ -32,8 +32,6 @@ module.exports = async (req, res) => {
     const otp = generateOTP();
     const generatedString = msgFormat(number, otp);
 
-    console.log("----generatedString0--",generatedString)
-
     const smsApiUrl = "http://173.45.76.227/send.aspx?";
     const response = await axios.get(smsApiUrl + generatedString);
 

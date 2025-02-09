@@ -394,7 +394,6 @@ const UpdateMonthlyService = async (req, res) => {
             })
         );
 
-        console.log("Data inserted successfully--",updateData);
 
 		const isDataUpdated = await MonthlyServiceModel.update(updateData, {
 			where: {
@@ -403,6 +402,18 @@ const UpdateMonthlyService = async (req, res) => {
 			},
             transaction
 		});
+
+
+        if (updateData.piadamt) {
+            const isDataUpdatedAmt = await MonthlyServiceModel.update(
+                { piadamt: updateData.piadamt }, // Corrected syntax
+                {
+                    where: { orderNo: orderNo },
+                    transaction: transaction // Proper placement of transaction
+                }
+            );
+        }
+
 		if (isDataUpdated[0] > 0) {
             await transaction.rollback();
 			return res.status(200).json({status: 200, message: "Your Monthly Service Updated", updateData,mergedServiceProviderEntries, updateDate });
