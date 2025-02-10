@@ -8,7 +8,7 @@ module.exports = (sequelize) => {
     },
     in_date: {
       type: DataTypes.DATEONLY,
-      allowNull: false
+      allowNull: true
     },
     check_in: {
       type: DataTypes.TIME,

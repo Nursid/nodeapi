@@ -5,6 +5,9 @@ const ServiceProviderModel = db.ServiceProviderModel
 const EmployeeModel = db.EmployeeModel
 const { Op } = require('sequelize');
 const DesignationModel = db.DesignationModel
+const sequelize = require('../../config/sequalize');
+const SupervisorAvailability = db.SupervisorAvailability
+const AvailabilityModel= db.Availability
 
 const AddServiceProviderAttendance = async (req, res) => {
   try {
@@ -561,4 +564,193 @@ const GetAllAttendanceReport = async (req, res) => {
 };
 
 
-module.exports = { AddSupervisorAttendance, AddServiceProviderAttendance, GetAllSupervisorAttendance, GetAllServiceProviderAttendance, AddLeaveSupervisor, AddLeaveServiceProvider, GetAllSupervisorAttendanceReport,GetAllServiceProvderAttendanceReport, GetAllAttendanceReport }
+const SupervisorAttendanceReset = async (req, res) => {
+  const data = req.body;
+
+  try {
+    const { emp_id, in_date } = data;
+
+    // Validate required fields
+    if (!emp_id || !in_date) {
+      return res.status(400).json({ 
+        status: 400, 
+        message: 'emp_id and in_date are required fields.' 
+      });
+    }
+
+    // Start transaction
+    const transaction = await sequelize.transaction();
+
+      // 1. Reset Supervisor Attendance
+      await SupervisorAttendance.update(
+        {
+          message: null,
+          status: null,
+          createdby: null,
+          out_date: null,
+          check_in: null,
+          check_out: null,
+          in_date: null
+        },
+        {
+          where: { emp_id: emp_id, in_date: in_date },
+          transaction
+        }
+      );
+      
+
+      // 2. Reset Supervisor Availability
+      const leaveSlots = {
+        '07:00-07:30': null,
+        '07:30-08:00': null,
+        '08:00-08:30': null,
+        '08:30-09:00': null,
+        '09:00-09:30': null,
+        '09:30-10:00': null,
+        '10:00-10:30': null,
+        '10:30-11:00': null,
+        '11:00-11:30': null,
+        '11:30-12:00': null,
+        '12:00-12:30': null,
+        '12:30-01:00': null,
+        '01:00-01:30': null,
+        '01:30-02:00': null,
+        '02:00-02:30': null,
+        '02:30-03:00': null,
+        '03:00-03:30': null,
+        '03:30-04:00': null,
+        '04:00-04:30': null,
+        '04:30-05:00': null,
+        '05:00-05:30': null,
+        '05:30-06:00': null,
+      };
+
+      // Use upsert to handle both update and create scenarios
+
+      await SupervisorAvailability.update(
+        leaveSlots,
+        {
+            where: {
+                date: in_date,
+                emp_id: emp_id
+            },
+        }
+      )
+
+      // Commit transaction
+      await transaction.commit();
+
+      return res.status(200).json({ 
+        status: 200, 
+        message: 'Attendance and availability records reset successfully.' ,
+        data
+      });
+  } catch (error) {
+    console.error('Reset Error:', error);
+    return res.status(500).json({ 
+      status: 500, 
+      message: 'Internal server error during reset operation.',
+      // Only expose error details in development
+    });
+  }
+};
+
+const ServiceProviderAttendanceReset = async (req, res) => {
+  const data = req.body;
+
+  try {
+    const { emp_id, in_date } = data;
+    const empId = emp_id;
+
+    // Validate required fields
+    if (!empId || !in_date) {
+      return res.status(400).json({ 
+        status: 400, 
+        message: 'emp_id and in_date are required fields.' 
+      });
+    } 
+
+    // Start transaction
+    const transaction = await sequelize.transaction();
+
+    try {
+      // 1. Reset Supervisor Attendance
+      await ServiceProviderAttendance.update(
+        {
+          message: null,
+          status: null,
+          createdby: null,
+          out_date: null,
+          check_in: null,
+          check_out: null,
+          in_date: null
+        },
+        {
+          where: { servp_id: empId, in_date: in_date },
+          transaction
+        }
+      );
+
+      // 2. Reset Supervisor Availability
+      const leaveSlots = {
+        '07:00-07:30': null,
+        '07:30-08:00': null,
+        '08:00-08:30': null,
+        '08:30-09:00': null,
+        '09:00-09:30': null,
+        '09:30-10:00': null,
+        '10:00-10:30': null,
+        '10:30-11:00': null,
+        '11:00-11:30': null,
+        '11:30-12:00': null,
+        '12:00-12:30': null,
+        '12:30-01:00': null,
+        '01:00-01:30': null,
+        '01:30-02:00': null,
+        '02:00-02:30': null,
+        '02:30-03:00': null,
+        '03:00-03:30': null,
+        '03:30-04:00': null,
+        '04:00-04:30': null,
+        '04:30-05:00': null,
+        '05:00-05:30': null,
+        '05:30-06:00': null,
+      };
+
+      // Use upsert to handle both update and create scenarios
+      await AvailabilityModel.update(
+        leaveSlots,
+        {
+            where: {
+                date: in_date,
+                emp_id: empId
+            },
+        }
+      )
+
+      // Commit transaction
+      await transaction.commit();
+
+      return res.status(200).json({ 
+        status: 200, 
+        message: 'Attendance and availability records reset successfully.' 
+      });
+    } catch (error) {
+      // Rollback transaction on error
+      await transaction.rollback();
+      throw error; // Throw to outer catch
+    }
+  } catch (error) {
+    console.error('Reset Error:', error);
+    return res.status(500).json({ 
+      status: 500, 
+      message: 'Internal server error during reset operation.',
+      // Only expose error details in development
+    });
+  }
+};
+
+
+module.exports = { AddSupervisorAttendance, AddServiceProviderAttendance, GetAllSupervisorAttendance, GetAllServiceProviderAttendance, AddLeaveSupervisor, AddLeaveServiceProvider, GetAllSupervisorAttendanceReport,GetAllServiceProvderAttendanceReport, GetAllAttendanceReport,
+  ServiceProviderAttendanceReset, SupervisorAttendanceReset
+ }

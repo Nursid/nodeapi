@@ -266,166 +266,158 @@ const DeleteMonthlyService = async (req, res) => {
 
 const UpdateMonthlyService = async (req, res) => {
     const transaction = await sequelize.transaction();
-	const orderNo = req.params.id;
-    const updateDate = req.query.date
-	let data = req.body;
+    const orderNo = req.params.id;
+    const updateDate = req.query.date; // Original date from query
+    let data = req.body;
 
-	try { // Destructure feesPaidDateTime and ignore it
-		const {
-			feesPaidDateTime,
+    try {
+        const {
+            feesPaidDateTime, // New date from body
             selectedTimeSlot,
             service_provider,
             supervisor,
-			...updateData
-		} = data;
+            ...updateData
+        } = data;
 
-		if (req.files) {
-			const {before_cleaning, after_cleaning} = req.files;
-			updateData.after_cleaning = after_cleaning ? after_cleaning[0].filename : null;
-			updateData.before_cleaning = before_cleaning ? before_cleaning[0].filename : null;
-		}
+        // Handle file uploads
+        if (req.files) {
+            const { before_cleaning, after_cleaning } = req.files;
+            updateData.before_cleaning = before_cleaning ? before_cleaning[0].filename : null;
+            updateData.after_cleaning = after_cleaning ? after_cleaning[0].filename : null;
+        }
 
-        const availabilityEntries = [];
-        const supervisorEntries = [];
+        // Initialize arrays with default values
+        const selectedTimeSlots = selectedTimeSlot ? selectedTimeSlot.split(',').map(item => item.trim()) : [];
+        const providerNames = service_provider ? service_provider.split(',').map(item => item.trim()) : [];
         
-        const selectedTimeSlots = selectedTimeSlot.split(',').map(item => item.trim());
-        const providerNames = service_provider.split(',').map(item => item.trim());
+        // Update data with processed values
         updateData.selectedTimeSlot = selectedTimeSlots.join(',');
         updateData.service_provider = providerNames.join(',');
-        updateData.feesPaidDateTime = feesPaidDateTime
+        updateData.feesPaidDateTime = feesPaidDateTime; // Set the new date
 
-
+        // Get service provider IDs
         const serviceProviderIds = await Promise.all(
             providerNames.map(async name => {
                 const provider = await ServiceProviderModel.findOne({ where: { name } });
                 return provider?.id || null;
             })
         );
-
         const validProviderIds = serviceProviderIds.filter(Boolean);
+
+        // Validate supervisor exists
         const supervisorData = await EmployeeModel.findOne({ where: { name: supervisor } });
+        if (!supervisorData) {
+            await transaction.rollback();
+            return res.status(400).json({ error: true, message: "Supervisor not found" });
+        }
 
-
+        // Prepare availability entries
+        const availabilityEntries = [];
         validProviderIds.forEach(servicepId => {
             selectedTimeSlots.forEach(slot => {
                 availabilityEntries.push({
                     emp_id: servicepId,
-                    date: feesPaidDateTime,
+                    date: feesPaidDateTime, // Using new date
                     [slot]: `${data.serviceType}-MonthlyService-${data.cust_name}-${orderNo}`
                 });
             });
         });
 
+        // Prepare supervisor entries
+        const supervisorEntries = [];
         selectedTimeSlots.forEach(slot => {
             supervisorEntries.push({
                 emp_id: supervisorData.emp_id,
-                date: feesPaidDateTime,
+                date: feesPaidDateTime, // Using new date
                 [slot]: `${data.serviceType}-MonthlyService-${data.cust_name}-${orderNo}`
             });
         });
 
+        // Merge duplicate entries (same emp_id + date)
         const mergedServiceProviderEntries = availabilityEntries.reduce((acc, curr) => {
-            const { emp_id, date, ...slots } = curr;
-          
-            // Check if an entry for the same emp_id and date already exists
-            const existingEntry = acc.find(
-              (entry) => entry.emp_id === emp_id && entry.date === date
-            );
-          
-            if (existingEntry) {
-              // Merge the slot data into the existing entry
-              Object.assign(existingEntry, slots);
-            } else {
-              // Add a new entry to the result array
-              acc.push({ emp_id, date, ...slots });
-            }
-          
+            const existing = acc.find(e => e.emp_id === curr.emp_id && e.date === curr.date);
+            if (existing) Object.assign(existing, curr);
+            else acc.push(curr);
             return acc;
-          }, []);
+        }, []);
 
+        const mergedSupervisorEntries = supervisorEntries.reduce((acc, curr) => {
+            const existing = acc.find(e => e.emp_id === curr.emp_id && e.date === curr.date);
+            if (existing) Object.assign(existing, curr);
+            else acc.push(curr);
+            return acc;
+        }, []);
 
-          const mergedSupervisorEntries = supervisorEntries.reduce((acc, curr) => {
-			const { emp_id, date, ...slots } = curr;
-			
-			// Check if an entry for the same emp_id and date already exists
-			const existingEntry = acc.find(
-				(entry) => entry.emp_id === emp_id && entry.date === date
-			);
-			
-			if (existingEntry) {
-				// Merge the slot data into the existing entry
-				Object.assign(existingEntry, slots);
-			} else {
-				// Add a new entry to the result array
-				acc.push({ emp_id, date, ...slots });
-			}
-			
-			return acc;
-			}, []);
+        // Update/Create availability records
+        await Promise.all(mergedServiceProviderEntries.map(async entry => {
+            const existing = await AvailabilityModel.findOne({
+                where: { emp_id: entry.emp_id, date: entry.date },
+                transaction
+            });
+            existing ? await existing.update(entry, { transaction }) 
+                     : await AvailabilityModel.create(entry, { transaction });
+        }));
 
-          await Promise.all(
-            mergedServiceProviderEntries.map(async entry => {
-                const existing = await AvailabilityModel.findOne({
-                    where: { emp_id: entry.emp_id, date: entry.date },
-                    transaction
-                });
+        // Update/Create supervisor records
+        await Promise.all(mergedSupervisorEntries.map(async entry => {
+            const existing = await SupervisorAvailability.findOne({
+                where: { emp_id: entry.emp_id, date: entry.date },
+                transaction
+            });
+            existing ? await existing.update(entry, { transaction }) 
+                     : await SupervisorAvailability.create(entry, { transaction });
+        }));
 
-                if (existing) {
-                    await existing.update(entry, { transaction });
-                } else {
-                    await AvailabilityModel.create(entry, { transaction });
-                }
-            })
-        );
-
-
-        await Promise.all(
-            mergedSupervisorEntries.map(async entry => {
-                const existing = await SupervisorAvailability.findOne({
-                    where: { emp_id: entry.emp_id, date: entry.date },
-                    transaction
-                });
-
-                if (existing) {
-                    await existing.update(entry, { transaction });
-                } else {
-                    await SupervisorAvailability.create(entry, { transaction });
-                }
-            })
-        );
-
-
-		const isDataUpdated = await MonthlyServiceModel.update(updateData, {
-			where: {
-				orderNo: orderNo,
-                feesPaidDateTime: updateDate
-			},
+        // Update main service record using ORIGINAL date in WHERE clause
+        const isDataUpdated = await MonthlyServiceModel.update(updateData, {
+            where: {
+                orderNo: orderNo,
+                feesPaidDateTime: updateDate // Query by original date
+            },
             transaction
-		});
+        });
 
+         // 2. Conditionally update payment amount across all dates
+         let paymentUpdate = [0];
+         if (updateData.piadamt !== undefined) {
+             paymentUpdate = await MonthlyServiceModel.update(
+                 { piadamt: updateData.piadamt,
+                    // serviceType: updateData.serviceType,
+                  },
+                 { 
+                     where: { orderNo },
+                     transaction
+                 }
+             );
+         }
 
-        if (updateData.piadamt) {
-            const isDataUpdatedAmt = await MonthlyServiceModel.update(
-                { piadamt: updateData.piadamt }, // Corrected syntax
-                {
-                    where: { orderNo: orderNo },
-                    transaction: transaction // Proper placement of transaction
-                }
-            );
-        }
-
-		if (isDataUpdated[0] > 0) {
-            await transaction.rollback();
-			return res.status(200).json({status: 200, message: "Your Monthly Service Updated", updateData,mergedServiceProviderEntries, updateDate });
-		} else {
+        // Transaction handling corrected
+        if (isDataUpdated[0] > 0) {
             await transaction.commit();
-			return res.status(202).json({status: 202, message: "Order Not Found",updateDate});
-		}
-	} catch (error) {
-		console.error(error); // Log the error for debugging
+            return res.status(200).json({
+                status: 200,
+                message: "Monthly Service Updated",
+                updateData,
+                mergedServiceProviderEntries,
+                updateDate
+            });
+        } else {
+            await transaction.rollback();
+            return res.status(404).json({
+                status: 404,
+                message: "Order not found with specified date",
+                updateDate
+            });
+        }
+    } catch (error) {
         await transaction.rollback();
-		return res.status(500).json({error: true, message: "Internal Server Error"});
-	}
+        console.error("Update Error:", error);
+        return res.status(500).json({
+            error: true,
+            message: "Internal Server Error",
+            details: error.message
+        });
+    }
 };
 
 
