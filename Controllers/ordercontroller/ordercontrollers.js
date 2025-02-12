@@ -1071,8 +1071,10 @@ const GetTotalSummary = async (req, res) => {
             OrderModel.findAll({ where: dateFilter }),
 			 MonthlyServiceModel.findAll({
 				where: dateFilter,
-				attributes: [
-				  [Sequelize.fn('DISTINCT', Sequelize.col('orderNo')), 'orderNo']],
+                  attributes: [
+                    [Sequelize.fn('DISTINCT', Sequelize.col('orderNo')) ,'orderNo'],
+                    'piadamt'
+                  ]
 			  }),
 			AccountModel.findAll({
 				attributes: [
@@ -1111,7 +1113,7 @@ const GetTotalSummary = async (req, res) => {
         const totalDue = orders.filter(order => order.pending === 2).length;
 
         const totalMonthlyService = monthlyServices.length;
-        const TotalserviceFees = monthlyServices.reduce((total, service) => total + parseFloat(service.serviceFees), 0);
+        const TotalserviceFees = monthlyServices.reduce((total, service) => total + parseFloat(service.piadamt), 0);
 
 		const Netbalance = TotalAcount[0]?.dataValues?.total_cash + TotalAcount[0]?.dataValues?.total_online  - TotalExpenses[0]?.dataValues?.total_expense
         
@@ -1130,7 +1132,8 @@ const GetTotalSummary = async (req, res) => {
 			TotalBank: TotalAcount[0]?.dataValues?.total_online || 0,
 			totalRunning,
 			totalDue,
-			Netbalance
+			Netbalance,
+            monthlyServices
         };
 
         // Sending the summary as JSON response
