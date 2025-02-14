@@ -114,6 +114,36 @@ async function calculateSlots(allot_time_range, approx_duration) {
 }
 
 
+function checkTimeRange(timeSlot) {
+    console.log("Time Slot:", timeSlot);
+    const now = new Date();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+    // const currentHours = 10;
+    // const currentMinutes = 56;
+
+    console.log("Current Time:", currentHours, currentMinutes);
+
+    // Extract start and end time from the provided range
+    const [startTime, endTime] = timeSlot.split("-");
+    const [startHour, startMinute] = startTime.split(":").map(Number);
+    const [endHour, endMinute] = endTime.split(":").map(Number);
+
+    // Convert all times to minutes for easy comparison
+    const currentTotalMinutes = currentHours * 60 + currentMinutes;
+    const startTotalMinutes = startHour * 60 + startMinute;
+    const endTotalMinutes = endHour * 60 + endMinute;
+
+    console.log("Current Time:",currentTotalMinutes,"Start Time:",startTotalMinutes,"End Time:",endTotalMinutes);
+
+    // Check if the current time falls within the given range
+    if (currentTotalMinutes >= startTotalMinutes && currentTotalMinutes <= endTotalMinutes) {
+        return false;
+    } else {
+        return "You can't check in, you are trying to check in out of the time range.";
+    }
+}
+
 
 const getServiceProviderIds = async (serviceProviderNames) => {
     // Fetch all service providers in one query
@@ -1286,90 +1316,53 @@ const GetOrderByOrderNo = async (req, res) => {
 
 const AddDueBeforeOneday = async (req, res) => {
     try {
-        // Get the current date in UTC
         const today = new Date();
+        const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+        const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(today);
 
-        // Convert to Asia/Kolkata time (UTC+5:30)
-        
-		const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
-    	const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(today);
+        const getFormattedDate = (date, daysOffset) => {
+            const newDate = new Date(date);
+            newDate.setDate(newDate.getDate() + daysOffset);
+            return newDate.toISOString().split('T')[0];
+        };
 
-        let tomorrow = new Date(formattedDate);
-        tomorrow.setDate(tomorrow.getDate() + 1); // Add one day
+        const tomorrow = getFormattedDate(formattedDate, 1);
+        const yesterday = getFormattedDate(formattedDate, -1);
 
-        // Format the date to YYYY-MM-DD
-        tomorrow = tomorrow.toISOString().split('T')[0];
-		
-        const tomorrowOrders = await OrderModel.findAll({
-            attributes: ['pending', 'order_no'],
-            where: {
-                bookdate: tomorrow,
-				pending: {
-                    [Op.or]: [0], 
-                },
-            },
+        const updateOrders = async (condition, newPendingValue) => {
+            const orders = await OrderModel.findAll({
+                attributes: ['order_no'],
+                where: condition
+            });
+            if (orders.length > 0) {
+                await OrderModel.update(
+                    { pending: newPendingValue },
+                    { where: { order_no: orders.map(order => order.order_no) } }
+                );
+            }
+            return orders.length;
+        };
+
+        const updates = await Promise.all([
+            updateOrders({ bookdate: tomorrow, pending: { [Op.or]: [0] } }, 2),
+            updateOrders({ bookdate: { [Op.lt]: yesterday }, pending: 2 }, 0),
+            updateOrders({ bookdate: { [Op.gt]: tomorrow }, pending: 2 }, 0)
+        ]);
+
+        const messages = [];
+        if (updates[0] > 0) messages.push(`${updates[0]} orders updated for tomorrow.`);
+        if (updates[1] > 0) messages.push(`${updates[1]} past due orders updated.`);
+        if (updates[2] > 0) messages.push(`${updates[2]} future due orders updated.`);
+
+        return res.status(200).json({
+            status: 200,
+            message: messages.length > 0 ? messages.join(' ') : "No orders found to update."
         });
-
-
-        // Update tomorrow's orders
-        if (tomorrowOrders.length > 0) {
-            await Promise.all(
-                tomorrowOrders.map(order => {
-                    return OrderModel.update(
-                        { pending: 2 },
-                        { where: { order_no: order.order_no } }
-                    );
-                })
-            );
-        }
-
-		    // Calculate yesterday
-		let yesterday = new Date(formattedDate);
-		yesterday.setDate(yesterday.getDate() - 1); // Subtract one day
-		yesterday = yesterday.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-	
-
-		 // Find orders in due before yesterday
-		 const pastDueOrders = await OrderModel.findAll({
-            attributes: ['pending', 'order_no'],
-            where: {
-                bookdate: {
-                    [Op.lt]: yesterday, // Less than yesterday's date
-                },
-                pending: 2
-            },
-        });
-
-		// Update past due orders
-		if (pastDueOrders.length > 0) {
-			await Promise.all(
-				pastDueOrders.map(order => {
-					return OrderModel.update(
-						{ pending: 0 },
-						{ where: { order_no: order.order_no } }
-					);
-				})
-			);
-		}
-
-	// Construct response message
-	const messages = [];
-	if (tomorrowOrders.length > 0) {
-		messages.push(`${tomorrowOrders.length} orders updated for tomorrow.`);
-	}
-	if (pastDueOrders.length > 0) {
-		messages.push(`${pastDueOrders.length} past due orders updated.`);
-	}
-
-	if (messages.length > 0) {
-		return res.status(200).json({ status: 200, message: messages.join(' '), data: { tomorrowOrders, pastDueOrders } });
-	} else {
-		return res.status(200).json({ status: 200, message: "No orders found to update." });
-	}
     } catch (error) {
-        return res.status(202).json({ status: false, message: "Internal Error",error });
+        return res.status(500).json({ status: false, message: "Internal Error", error });
     }
 };
+
 const OrderAssingSupervisor = async (req, res) => {
     const transaction = await sequelize.transaction();
 
@@ -1522,7 +1515,9 @@ const OrderCheckIn = async (req, res) => {
         let currentDate = date.toISOString().split('T')[0]; 
         
         const orders = await OrderModel.findAll({
-            attributes: ['order_no', 'pending', 'bookdate', 'suprvisor_id' ],
+            attributes: ['order_no', 'pending', 'bookdate', 'suprvisor_id' ,
+                'allot_time_range'
+            ],
             include: [{ model: OrderServiceProviders }],
             where: { order_no: data.order_no }
         });
@@ -1550,6 +1545,12 @@ const OrderCheckIn = async (req, res) => {
 
         const orderDetails = response[0]; // Access first object
 
+        const checkInTime = checkTimeRange(orderDetails.allot_time_range);
+        if(checkInTime){
+            await transaction.rollback();
+            return res.status(202).json({ error: true, message: checkInTime });
+        }
+
         if (orderDetails.bookdate !== currentDate) {
             await transaction.rollback();
             return res.status(202).json({ status: false, message: "Invalid Date To Check-In" });
@@ -1560,11 +1561,14 @@ const OrderCheckIn = async (req, res) => {
             return res.status(202).json({ error: true, message: 'Supervisor not Assigned' });
         }
 
-        if (!orderDetails.orderserviceprovider || orderDetails.orderserviceprovider.length === 0) {
+        if (
+            !Array.isArray(orderDetails.orderserviceprovider) || 
+            orderDetails.orderserviceprovider.filter(item => item !== null).length === 0
+          ) {
             await transaction.rollback();
             return res.status(202).json({ error: true, message: 'Service Provider not Assigned' });
-        }
-
+          }
+          
         const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
         const empIds = await getServiceProviderIds(serviceProviderNames);
 
@@ -1605,7 +1609,6 @@ const OrderCheckIn = async (req, res) => {
             await transaction.rollback();
             return res.status(202).json({
                 error: true,
-                // message: `The following service providers have not checked out: ${names}. Please check out first.`,
                 message: pendingMessages
             });
         }
@@ -1644,34 +1647,16 @@ const OrderCheckOut = async (req, res) => {
             return res.status(400).json({ error: true, message: 'Order No is required' });
         }
 
-        let date = new Date();
-  //       let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
-  //       let timeParts = kolkataTime.split(', ')[1].split(':');
-
-		// let hours = parseInt(timeParts[0]);
-		// let minutes = parseInt(timeParts[1]);
-  
-		// let hours = 7
-		// let minutes = 40
-	
-		// Check if the time is between 6:00 PM and 6:00 AM
-		// let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
-		// let isBeforeSixAM = (hours < 7); // 6 AM is less than 6 in 24-hour format
-  
-		// if (isAfterSixPM || isBeforeSixAM) {
-		// 	return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
-		// }
-  
-        // let formattedTime = `${timeParts[0]}:${timeParts[1]}`;
-
-        // const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
-        // const formattedDate = new Intl.DateTimeFormat('en-CA', options).format(date);
-
-        // let leaveSlots = filterTimeSlots(formattedTime);
-
-        // const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
-
-        // const empId = await getServiceProviderIds(serviceProviderNames);
+        const isOrder = await OrderModel.findOne({
+            where: {
+              order_no: data.order_no
+            }
+          });
+          
+          if (!isOrder || !isOrder.piadamt) {
+            await transaction.rollback();
+            return res.status(202).json({ error: true, message: 'Failed to Check Out, please add amount' });
+          }
 
         const isUpdated = await OrderModel.update(data, {
             where: {
@@ -1684,32 +1669,6 @@ const OrderCheckOut = async (req, res) => {
 			await transaction.rollback();
             return res.status(202).json({ error: true, message: 'Updation Failed ! Try again' });
         }
-
-        // for (let serviceProviderId of empId) {
-        //     let existingRecords = await AvailabilityModel.findOne({
-        //         where: { date: formattedDate, emp_id: serviceProviderId },
-        //         raw: true,
-        //         transaction // Pass the transaction
-        //     });
-
-        //     let updatedSlots = {};
-        //     leaveSlots.forEach(slot => {
-        //         updatedSlots[slot] = 'p';
-        //     });
-
-        //     if (existingRecords) {
-        //         await AvailabilityModel.update(updatedSlots, {
-        //             where: { date: formattedDate, emp_id: serviceProviderId },
-        //             transaction // Pass the transaction
-        //         });
-        //     } else {
-        //         await AvailabilityModel.create({
-        //             date: formattedDate,
-        //             emp_id: serviceProviderId,
-        //             ...updatedSlots
-        //         }, { transaction }); // Pass the transaction
-        //     }
-        // }
 
         // If everything succeeds, commit the transaction
         await transaction.commit();
@@ -1811,6 +1770,8 @@ const AssignServiceProviderAvailability = async (req, res) => {
         res.status(500).json({ error: true, message: "Internal Server Error", error: error.message });
     }
 };
+
+
 
 
 module.exports = {
