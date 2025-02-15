@@ -29,8 +29,6 @@ router.post("/supervisor-add-leave",supervisorAvailabilityController.AddLeave);
 router.post("/supervisor-assign-availability/:mobile_no/:date",supervisorAvailabilityController.AssignAvailability);
 router.post("/supervisor-transfer-availability",supervisorAvailabilityController.TransferAvailability);
 router.post("/supervisor-availability/attendance/:empId", supervisorAvailabilityController.AddAttendance);
-
-
 //  Location API
 
 router.get("/location-listing",LocationModel.ListingLocation )
