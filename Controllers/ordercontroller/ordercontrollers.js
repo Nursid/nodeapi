@@ -1545,11 +1545,11 @@ const OrderCheckIn = async (req, res) => {
 
         const orderDetails = response[0]; // Access first object
 
-        const checkInTime = checkTimeRange(orderDetails.allot_time_range);
-        if(checkInTime){
-            await transaction.rollback();
-            return res.status(202).json({ error: true, message: checkInTime });
-        }
+        // const checkInTime = checkTimeRange(orderDetails.allot_time_range);
+        // if(checkInTime){
+        //     await transaction.rollback();
+        //     return res.status(202).json({ error: true, message: checkInTime });
+        // }
 
         if (orderDetails.bookdate !== currentDate) {
             await transaction.rollback();
