@@ -544,29 +544,29 @@ const MonthlyServiceSchedule = async (req, res) => {
 const GetSingleMonthlyService = async (req, res) => {
     try {
         const {orderNo, date} = req.body;
+        console.log(orderNo, date);
+        let dateParam;
         // Check if dateParam is defined and not null, and also not the string "undefined"
         if (date !== undefined && date !== null && date !== "undefined") {
-            date = new Date(date);  
+            dateParam = date;  
         } else {
-            date = new Date();  // Use the current date if dateParam is invalid
+            const date = new Date();  // Use the current date if dateParam is invalid
+           dateParam = date.toISOString().split('T')[0];
         }
-
-        // Format the date as 'YYYY-MM-DD'
-        const currentDate = date.toISOString().split('T')[0];
-
+    
         // Query the database with the formatted date
         const data = await MonthlyServiceModel.findOne({
             where: {
 				orderNo: orderNo,
-                feesPaidDateTime: currentDate
+                feesPaidDateTime: dateParam
             }
         });
+            return res.status(200).json({ status: 200, data: data });
 
-        if (data.length > 0) {
-            return res.status(200).json({ status: 200, data });
-        } else {
-            return res.status(200).json({ status: 200, data: [] });
-        }
+        // if (data.length > 0) {
+        //     return res.status(200).json({ status: 200, data });
+        // } else {
+        // }
     } catch (error) {
         console.log(error);
         return res.status(500).json({ error: true, message: "Internal Server Error" });
