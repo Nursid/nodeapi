@@ -1,4 +1,3 @@
-const generateOrderNo = require("../misc/orderNoGenerator");
 const Sequelize = require('sequelize');
 const sequelize = require('../../config/sequalize'); 
 const Op = Sequelize.Op;
@@ -15,7 +14,6 @@ const TimeSlotModel = db.TimeSlotModel
 const Availability = db.Availability
 const SupervisorAvailability = db.SupervisorAvailability;
 const moment = require('moment');
-const axios = require('axios');
 const AvailabilityModel = db.Availability
 
 
