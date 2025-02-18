@@ -25,29 +25,81 @@ const AllTimeSlots = [
     '05:00-05:30', '05:30-06:00'
 ];
 
-function getTimeInMinutes(time) {
-    let [hours, minutes] = time.split(':').map(Number);
-    
-    // Adjust for 12-hour to 24-hour format
-    if (hours === 12) {
-        hours = 0; // 12 PM is noon, treated as 0
+
+const clearAvailability = async (orderNo) => {
+    try {
+        // Fetch the order details
+        const order = await OrderModel.findAll({
+            include: [ 
+                {
+                    model: OrderServiceProviders,
+                    include: {
+                        model: ServiceProviderModel,
+                        attributes: ['name']
+                    }
+                }
+            ],
+            where: {
+                order_no: orderNo
+            }
+        });
+
+        if (!order || order.length === 0) {
+            console.log("Order not found");
+            return false; // Return false if order is not found
+        }
+
+        // Group orders by order_no and merge service providers
+        const groupedOrders = order.reduce((acc, current) => {
+            const orderNo = current.order_no;
+            if (!acc[orderNo]) {
+                acc[orderNo] = {
+                    ...current.dataValues,
+                    orderserviceprovider: [current.orderserviceprovider],
+                };
+            } else {
+                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+            }
+            return acc;
+        }, {});
+
+        const response = Object.values(groupedOrders);
+        const { service_name, bookdate } = response[0];
+        const serviceProviderIds = response[0].orderserviceprovider.map(item => item.service_provider_id);
+
+        if (serviceProviderIds.length === 0) {
+            console.log("Service providers not found");
+            return false; // Return false if no service providers are found
+        }
+
+        let isAvailabilityCleared = false;
+
+        // Clear availability for each service provider
+        for (const providerId of serviceProviderIds) {
+            const availability = await Availability.findOne({
+                where: {
+                    emp_id: providerId,
+                    date: bookdate
+                }
+            });
+
+            if (availability) {
+                for (const slot of AllTimeSlots) {
+                    if (availability[slot] === `${service_name}-${orderNo}`) {
+                        availability[slot] = 'p'; // Clear the slot
+                        await availability.save();
+                    }
+                }
+               
+            }
+        }
+
+        return isAvailabilityCleared; // Return true if availability was cleared, otherwise false
+    } catch (error) {
+        console.error("Error clearing availability:", error);
+        return false; // Return false in case of an error
     }
-    if (hours < 7 || time.includes('01') || time.includes('02') || time.includes('03') || time.includes('04') || time.includes('05') || time.includes('06')) {
-        hours += 12; // Adjust PM times from 1:00 to 6:00
-    }
-
-    return hours * 60 + minutes;
-}
-
-function filterTimeSlots(inputTime) {
-    const inputMinutes = getTimeInMinutes(inputTime);
-
-    return AllTimeSlots.filter(slot => {
-        const [start] = slot.split('-');
-        const startMinutes = getTimeInMinutes(start);
-        return startMinutes > inputMinutes;
-    });
-}
+};
 
 
 function getCurrentTimeSlot() {
@@ -378,7 +430,12 @@ const GetOrderUpdate = async (req, res) => {
             await transaction.rollback();
             return res.status(202).json({ error: true, message: 'Order not found' });
         }
+        const updatedOrder = await clearAvailability(orderID);
 
+        if (!updatedOrder) {
+            await transaction.rollback();
+            return res.status(202).json({ error: true, message: 'Order not updated' });
+        }
         await order.update(updateData, { transaction });
 
         // Step 2: Update service providers if provided
@@ -516,6 +573,24 @@ const GetSingleOrder = async (req, res) => {
 const GetDeleteByID = async (req, res) => {
 	const orderId = req.params.order_no;
 	try {
+
+        const order = await OrderModel.findOne({
+            where: {
+                order_no: orderId
+            }
+        });
+
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        }
+
+        const updatedOrder = await clearAvailability(orderId);
+
+        if (!updatedOrder) {
+            return res.status(202).json({ error: true, message: 'Order not Delete' });
+        }
+
+       
 		const deletedOrder = await OrderModel.destroy({
 			where: {
 				order_no: orderId
@@ -524,7 +599,7 @@ const GetDeleteByID = async (req, res) => {
 
 		if (deletedOrder === 0) {
 			return res.status(404).json({ status: 404, message: 'Order not found' });
-		}
+        }
 
 		res.status(200).json({ status: 200, message: 'Order deleted successfully' });
 	} catch (error) {
@@ -663,24 +738,31 @@ const GetByStatus = async (req, res) => {
 }
 
 const GetCancel = async (req, res) => {
-	try {
-		const order_no = req.params.order_no
-		const data = req.body;
-		console.log(data)
-		const isUpdated = await OrderModel.update(data, {
-			where: {
-				order_no: order_no
-			}
-		});
+    try {
+        const order_no = req.params.order_no;
+        const data = req.body;
+        const updatedOrder = await clearAvailability(order_no);
 
-		if (! isUpdated) {
-			res.status(202).json({massage: "please Try again"});
-		}
-		res.status(200).json({massage: "Your Order has Cancelled"});
-	} catch (error) {
-		res.status(500).json({error: "Internally Error "});
-	}
-}
+        if (!updatedOrder) {
+            return res.status(202).json({ error: true, message: 'Order not Cancelled' });
+        }
+       
+        // // Update the order status to cancelled
+        const [isUpdated] = await OrderModel.update(data, {
+            where: {
+                order_no: order_no
+            }
+        });
+
+        if (!isUpdated) {
+            return res.status(202).json({ message: "Please try again" });
+        }
+        res.status(200).json({ message: "Your order has been cancelled", data2 });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
 
 const GetHold = async (req, res) => {
 	try {
