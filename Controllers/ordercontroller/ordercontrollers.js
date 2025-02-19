@@ -759,37 +759,37 @@ const GetCancel = async (req, res) => {
     try {
         const order_no = req.params.order_no;
         const data = req.body;
-        data.suprvisor_id = null
+        data.suprvisor_id = null;
+
         const updatedOrder = await clearAvailability(order_no, transaction);
 
         if (!updatedOrder) {
             await transaction.rollback();
-            return res.status(202).json({ error: true, message: 'Order not Cancelled' });
+            return res.status(400).json({ error: true, message: "Order could not be cancelled" });
         }
 
         await OrderServiceProviders.destroy({
             where: { order_no: order_no },
             transaction
         });
-       
-        // // Update the order status to cancelled
+
+        // Update the order status to cancelled
         const [isUpdated] = await OrderModel.update(data, {
-            where: {
-                order_no: order_no
-            },
+            where: { order_no: order_no },
             transaction
         });
 
         if (!isUpdated) {
             await transaction.rollback();
-            return res.status(202).json({ message: "Please try again" });
+            return res.status(400).json({ error: true, message: "Failed to update order status" });
         }
+
         await transaction.commit();
-        res.status(200).json({ message: "Your order has been cancelled", data2 });
+        return res.status(200).json({ success: true, message: "Your order has been cancelled" });
     } catch (error) {
         await transaction.rollback();
-        console.error(error);
-        res.status(500).json({ error: "Internal Server Error" });
+        console.error("Error in GetCancel:", error);
+        return res.status(500).json({ error: true, message: "Internal Server Error", details: error.message });
     }
 };
 
