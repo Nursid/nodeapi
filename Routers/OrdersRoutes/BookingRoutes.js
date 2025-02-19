@@ -37,7 +37,7 @@ router.patch("/update/:id", GetOrderUpdate)
 router.get("/get/:id/:cust_id", GetSingleOrder);
 router.get("/delete/:order_no", AuthenticateToken, GetDeleteByID)
 router.post("/cancel/:order_no", GetCancel)
-router.get("/hold/:order_no/:cust_id", GetHold)
+router.get("/hold/:order_no", GetHold)
 router.get("/complete/:order_no", GetCompleted)
 router.get("/getall", GetAllOrders)
 router.get("/getall/:status", GetByStatus)

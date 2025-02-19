@@ -102,6 +102,10 @@ module.exports = (sequelize) => {
           duty_hours: {
             type: DataTypes.STRING
           },
+          start_time: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+          },
           week_off: {
             type: DataTypes.STRING
           },

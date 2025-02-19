@@ -224,7 +224,8 @@ const GetAllEmployeeData = async (req, res) => {
 				"m_name",
 				"m_mobile",
 				"gender",
-				"email"
+				"email",
+				"start_time"
 			],
 			include: [
 				{

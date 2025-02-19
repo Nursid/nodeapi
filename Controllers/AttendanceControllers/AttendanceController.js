@@ -504,7 +504,7 @@ const GetAllAttendanceReport = async (req, res) => {
     const [supervisorAttendance, serviceProviderAttendance] = await Promise.all([
       SupervisorAttendance.findAll({
         include: [{ model: EmployeeModel,
-          attributes:  ["name","mobile_no", "designation_id" ],
+          attributes:  ["name","mobile_no", "designation_id", "start_time"],
          include: [{
             model: DesignationModel,
             attributes: ['name', "id"]
@@ -516,7 +516,7 @@ const GetAllAttendanceReport = async (req, res) => {
       }),
       ServiceProviderAttendance.findAll({
         include: [{ model: ServiceProviderModel ,
-          attributes:  ["name","mobile_no",  ],
+          attributes:  ["name","mobile_no", "start_time"  ],
         }],
         order: [["id", "DESC"]],
         attributes:  ["check_in", "check_out", "status" , "in_date"] ,
@@ -531,7 +531,8 @@ const GetAllAttendanceReport = async (req, res) => {
       in_date: record.in_date,
       name: record?.employee?.name,
       mobile_no: record?.employee?.mobile_no,
-      role: record?.employee?.designation?.name
+      role: record?.employee?.designation?.name,
+      start_time: record?.employee?.start_time 
     }));
   
     // Map service providers data to the same structure
@@ -542,7 +543,8 @@ const GetAllAttendanceReport = async (req, res) => {
       in_date: record.in_date,
       name: record?.service_provider?.name,
       mobile_no: record?.service_provider?.mobile_no,
-      role: "Service Provider" // Add a role for service providers
+      role: "Service Provider", // Add a role for service providers,
+      start_time: record?.service_provider?.start_time 
     }));
     const mergedData = [...supervisorAttendanceData, ...serviceProviderAttendanceData];
     

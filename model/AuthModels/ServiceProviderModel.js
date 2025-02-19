@@ -163,7 +163,10 @@ module.exports = (sequelize) => {
           duty_hours: {
             type: DataTypes.STRING
           },
-
+          start_time: {
+            type: DataTypes.NUMBER,
+            allowNull: true
+          }
         }, {
         timestamps: true, // If you don't want createdAt and updatedAt columns
         tableName: 'service_providers'

@@ -315,6 +315,9 @@ const GetAllTheServiceProvider = async (req, res) => {
 			  attributes: ['service_name'] 
 			}],
 			order: [['id', 'DESC']],
+			where: {
+				provider_type: "staff"
+			}
 		  });
 
 		  if (!data || !data.date || !data.time_range) {

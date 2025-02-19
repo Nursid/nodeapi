@@ -26,80 +26,92 @@ const AllTimeSlots = [
 ];
 
 
-const clearAvailability = async (orderNo) => {
+const clearAvailability = async (orderNo, transaction) => {
     try {
-        // Fetch the order details
-        const order = await OrderModel.findAll({
-            include: [ 
+        // Fetch the order details with service providers
+        const orders = await OrderModel.findAll({
+            include: [
                 {
                     model: OrderServiceProviders,
-                    include: {
-                        model: ServiceProviderModel,
-                        attributes: ['name']
-                    }
-                }
+					include:{
+						model: ServiceProviderModel,
+						attributes: ['name']
+					}
+                },
             ],
+            order: [['bookdate', 'DESC']],
             where: {
                 order_no: orderNo
-            }
+            } 
         });
 
-        if (!order || order.length === 0) {
-            console.log("Order not found");
-            return false; // Return false if order is not found
-        }
+        // Check if orders exist
+        if (!orders || orders[0].length === 0) {
+            return true;
+        }   
 
-        // Group orders by order_no and merge service providers
-        const groupedOrders = order.reduce((acc, current) => {
+        // Group orders by order_no
+        const groupedOrders = orders?.reduce((acc, current) => {
             const orderNo = current.order_no;
+
             if (!acc[orderNo]) {
                 acc[orderNo] = {
                     ...current.dataValues,
-                    orderserviceprovider: [current.orderserviceprovider],
+                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
                 };
             } else {
+                // If the order_no already exists, merge orderserviceprovider
                 acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
             }
+
             return acc;
         }, {});
 
+        // Convert grouped object to array
         const response = Object.values(groupedOrders);
-        const { service_name, bookdate } = response[0];
-        const serviceProviderIds = response[0].orderserviceprovider.map(item => item.service_provider_id);
-
-        if (serviceProviderIds.length === 0) {
-            console.log("Service providers not found");
-            return false; // Return false if no service providers are found
+    
+        // Extracting order data
+        const { service_name, bookdate, orderserviceprovider } = response[0];
+        if (!Array.isArray(orderserviceprovider) || orderserviceprovider.every(sp => !sp)) {
+            console.log("Valid Order Data:", orderserviceprovider);
+            return true;
         }
+        
+        console.log("Order Data:", orderserviceprovider[0]);
+        
+        
+        // return response[0].orderserviceprovider;
+        const serviceProviderIds = orderserviceprovider?.map(sp => sp.service_provider_id);
 
-        let isAvailabilityCleared = false;
+        // console.log("Service Providers:", serviceProviderIds);
+        if (!serviceProviderIds.length) {
+            console.log("Service providers not found");
+            return true;
+        }
 
         // Clear availability for each service provider
         for (const providerId of serviceProviderIds) {
             const availability = await Availability.findOne({
-                where: {
-                    emp_id: providerId,
-                    date: bookdate
-                }
+                where: { emp_id: providerId, date: bookdate }
             });
 
             if (availability) {
                 for (const slot of AllTimeSlots) {
                     if (availability[slot] === `${service_name}-${orderNo}`) {
                         availability[slot] = 'p'; // Clear the slot
-                        await availability.save();
+                        await availability.save({ transaction }); // Save inside the transaction
+
                     }
                 }
-               
             }
         }
-
-        return isAvailabilityCleared; // Return true if availability was cleared, otherwise false
+        return true;
     } catch (error) {
         console.error("Error clearing availability:", error);
-        return false; // Return false in case of an error
+        return false;
     }
 };
+
 
 
 function getCurrentTimeSlot() {
@@ -430,8 +442,9 @@ const GetOrderUpdate = async (req, res) => {
             await transaction.rollback();
             return res.status(202).json({ error: true, message: 'Order not found' });
         }
-        const updatedOrder = await clearAvailability(orderID);
-
+        const updatedOrder = await clearAvailability(orderID, transaction);
+        // console.log(updatedOrder)
+        // return res.status(202).json({ error: true, message: updatedOrder });
         if (!updatedOrder) {
             await transaction.rollback();
             return res.status(202).json({ error: true, message: 'Order not updated' });
@@ -572,6 +585,7 @@ const GetSingleOrder = async (req, res) => {
 // Delete Order
 const GetDeleteByID = async (req, res) => {
 	const orderId = req.params.order_no;
+    const transaction = await sequelize.transaction();
 	try {
 
         const order = await OrderModel.findOne({
@@ -584,9 +598,10 @@ const GetDeleteByID = async (req, res) => {
             return res.status(404).json({ message: "Order not found" });
         }
 
-        const updatedOrder = await clearAvailability(orderId);
+        const updatedOrder = await clearAvailability(orderId, transaction);
 
         if (!updatedOrder) {
+            await transaction.rollback();
             return res.status(202).json({ error: true, message: 'Order not Delete' });
         }
 
@@ -600,13 +615,15 @@ const GetDeleteByID = async (req, res) => {
 		if (deletedOrder === 0) {
 			return res.status(404).json({ status: 404, message: 'Order not found' });
         }
-
+        await transaction.commit();
 		res.status(200).json({ status: 200, message: 'Order deleted successfully' });
 	} catch (error) {
+        await transaction.rollback();
 		console.error("Error in GetDeleteByID:", error);
 		res.status(500).json({ status: 500, error: "Internal Server Error" });
 	}
 }
+
 const GetAllOrders = async (req, res) => {
     try {
         const orders = await OrderModel.findAll({
@@ -738,52 +755,86 @@ const GetByStatus = async (req, res) => {
 }
 
 const GetCancel = async (req, res) => {
+    const transaction = await sequelize.transaction();
     try {
         const order_no = req.params.order_no;
         const data = req.body;
-        const updatedOrder = await clearAvailability(order_no);
+        data.suprvisor_id = null
+        const updatedOrder = await clearAvailability(order_no, transaction);
 
         if (!updatedOrder) {
+            await transaction.rollback();
             return res.status(202).json({ error: true, message: 'Order not Cancelled' });
         }
+
+        await OrderServiceProviders.destroy({
+            where: { order_no: order_no },
+            transaction
+        });
        
         // // Update the order status to cancelled
         const [isUpdated] = await OrderModel.update(data, {
             where: {
                 order_no: order_no
-            }
+            },
+            transaction
         });
 
         if (!isUpdated) {
+            await transaction.rollback();
             return res.status(202).json({ message: "Please try again" });
         }
+        await transaction.commit();
         res.status(200).json({ message: "Your order has been cancelled", data2 });
     } catch (error) {
+        await transaction.rollback();
         console.error(error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
 
 const GetHold = async (req, res) => {
-	try {
-		const cust_id = req.params.cust_id
-		const order_no = req.params.order_no
-		const isUpdated = await OrderModel.update({
-			pending: 1
-		}, {
-			where: {
-				cust_id: cust_id,
-				order_no: order_no
-			}
-		});
-		if (! isUpdated) {
-			res.status(404).json({error: "please Try again"});
-		}
-		res.status(200).json({massage: "Your Order has been Hold"});
-	} catch (error) {
-		res.status(500).json({error: "Internally Error "});
-	}
-}
+    const transaction = await sequelize.transaction();
+    try {
+        const order_no = req.params.order_no;
+        console.log("----------", order_no);
+
+        const updatedOrder = await clearAvailability(order_no, transaction);
+        if (!updatedOrder) {
+            await transaction.rollback();
+            return res.status(400).json({ error: true, message: 'Failed to clear availability' });
+        }
+
+        // Delete related service providers
+        await OrderServiceProviders.destroy({
+            where: { order_no: order_no },
+            transaction
+        });
+
+        // Update order status
+        const [updatedRows] = await OrderModel.update(
+            { pending: 1,
+            suprvisor_id: null
+             },
+            { where: { order_no: order_no }, transaction }
+        );
+
+        if (updatedRows === 0) {
+            await transaction.rollback();
+            return res.status(404).json({ error: true, message: "Order not found or not updated" });
+        }
+
+        // Commit transaction if everything is successful
+        await transaction.commit();
+        return res.status(200).json({ message: "Your order has been put on hold" });
+
+    } catch (error) {
+        await transaction.rollback(); // Ensure rollback on error
+        console.error("Error in GetHold:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
 
 const GetCompleted = async (req, res) => {
 	try {
