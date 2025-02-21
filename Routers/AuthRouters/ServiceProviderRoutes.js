@@ -38,6 +38,7 @@ router.post("/block/:id", serviceProviderRouter.BlockServiceProvider);
 router.get("/getall", serviceProviderRouter.GetAllTheServiceProvider);
 // get the single service provider 
 router.get("/get/:id", serviceProviderRouter.GetDataById);
+router.get("/getall-provider", serviceProviderRouter.GetallServiceProviders);
 
 
 

@@ -309,6 +309,7 @@ const GetAllTheServiceProvider = async (req, res) => {
 
 	try {
 		
+		if (!data || !data.date || !data.time_range) {
 		const result = await ServiceProviderModel.findAll({
 			include: [{	
 			  model: SpServicesModel,
@@ -319,30 +320,64 @@ const GetAllTheServiceProvider = async (req, res) => {
 				provider_type: "staff"
 			}
 		  });
-
-		  if (!data || !data.date || !data.time_range) {
 			return res.status(200).json({error: false, data: result});
 		}
-		  
-		  const Available = await Availability.findAll({
-			attributes: ['emp_id'],
-			where: {
-			  date: data.date,
-			  [data.time_range]: "p"
-			}
+
+		const result = await ServiceProviderModel.findAll({
+			include: [{	
+			  model: SpServicesModel,
+			  attributes: ['service_name'] 
+			}],
+			order: [['id', 'DESC']],
 		  });
 		  
-		  const availableEmpIds = Available.map(entry => entry.dataValues.emp_id);
-		  const serviceProvider = result
-				.filter(entry => entry.dataValues.block_id !== 1)
-				.map(entry => entry.dataValues);
-	
-		const filterData = serviceProvider.filter(item => availableEmpIds.includes(item.id.toString()));
+		  // Separate staff and outsource providers
+		  const staffProviders = result
+		  .filter(entry => entry.dataValues.provider_type === "staff" && entry.dataValues.block_id !== 1)
+		  .map(entry => entry.dataValues);
 
-		if (filterData.length === 0){
-			return res.status(202).json({error: true, message: "No Data Found"});
-		}
-		res.status(200).json({error: false, data: filterData});
+	  const outsourceProviders = result
+		  .filter(entry => entry.dataValues.provider_type === "outsource" && entry.dataValues.block_id !== 1)
+		  .map(entry => entry.dataValues);
+
+	  // For "staff" providers, apply the availability filter
+	  const Available = await Availability.findAll({
+		  attributes: ['emp_id'],
+		  where: {
+			  date: data.date,
+			  [data.time_range]: "p"
+		  }
+	  });
+
+	  const availableEmpIds = Available.map(entry => entry.dataValues.emp_id);
+	  const filteredStaffProviders = staffProviders.filter(item => availableEmpIds.includes(item.id.toString()));
+
+	  // Combine filtered staff providers and outsource providers
+	  const mergedData = [...filteredStaffProviders, ...outsourceProviders];
+
+	  if (mergedData.length === 0) {
+		  return res.status(202).json({ error: true, message: "No Data Found" });
+	  }
+
+	  res.status(200).json({ error: false, data: mergedData });
+	} catch (error) {
+		res.status(500).json({error});
+	}
+};
+
+const GetallServiceProviders = async (req, res) => {
+	
+	try {
+	
+		const result = await ServiceProviderModel.findAll({
+			include: [{	
+			  model: SpServicesModel,
+			  attributes: ['service_name'] 
+			}],
+			order: [['id', 'DESC']],
+		  });
+		
+	  res.status(200).json({ error: false, data: result });
 	} catch (error) {
 		res.status(500).json({error});
 	}
@@ -371,5 +406,6 @@ module.exports = {
 	DeleteTheServiceProvider,
 	BlockServiceProvider,
 	GetAllTheServiceProvider,
-	GetDataById
+	GetDataById,
+	GetallServiceProviders
 };
