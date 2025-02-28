@@ -77,8 +77,6 @@ const clearAvailability = async (orderNo, transaction) => {
             return true;
         }
         
-        console.log("Order Data:", orderserviceprovider[0]);
-        
         
         // return response[0].orderserviceprovider;
         const serviceProviderIds = orderserviceprovider?.map(sp => sp.service_provider_id);
@@ -174,6 +172,47 @@ async function calculateSlots(allot_time_range, approx_duration) {
 
     return result;
 }
+
+
+function convertTo12HourFormat(hours, minutes) {
+    let formattedHours = hours % 12 || 12; // Convert 13-23 to 1-11 and keep 12 as is
+    let formattedMinutes = String(minutes).padStart(2, '0');
+    return `${String(formattedHours).padStart(2, '0')}:${formattedMinutes}`;
+}
+
+function getCurrentTimeSlotIndex() {
+    const now = new Date();
+    const currentHours = now.getHours();
+    const currentMinutes = now.getMinutes();
+    
+    // Convert to 12-hour format
+    const currentTimeString = convertTo12HourFormat(currentHours, currentMinutes);
+
+    // Find the nearest time slot index based on the current time
+    return AllTimeSlots.findIndex(slot => {
+        const [start, end] = slot.split('-');
+        return currentTimeString >= start && currentTimeString < end;
+    });
+}
+
+async function calculateSlots2(allot_time_range, approx_duration) {
+    const startIndex = AllTimeSlots.indexOf(allot_time_range);
+    if (startIndex === -1) return [];
+
+    const slotsNeeded = approx_duration * 2;
+    const currentSlotIndex = getCurrentTimeSlotIndex();
+
+    // If the current time slot is earlier than allot_time_range, ignore current time
+    if (currentSlotIndex < startIndex) {
+        return AllTimeSlots.slice(startIndex, startIndex + slotsNeeded);
+    }
+
+    // Otherwise, include current time slot in calculations
+    const maxIndex = Math.max(startIndex + slotsNeeded, currentSlotIndex);
+    
+    return AllTimeSlots.slice(startIndex, maxIndex + 1);
+}
+
 
 
 function checkTimeRange(timeSlot) {
@@ -432,7 +471,7 @@ const GetOrderUpdate = async (req, res) => {
         
         const { servicep_providers, ...updateData } = req.body;
 
-        // Step 1: Find and update the order
+        // Step 1: Find the order
         const order = await OrderModel.findOne({
             where: { order_no: orderID },
             transaction
@@ -442,76 +481,86 @@ const GetOrderUpdate = async (req, res) => {
             await transaction.rollback();
             return res.status(202).json({ error: true, message: 'Order not found' });
         }
-        const updatedOrder = await clearAvailability(orderID, transaction);
-        // console.log(updatedOrder)
-        // return res.status(202).json({ error: true, message: updatedOrder });
-        if (!updatedOrder) {
-            await transaction.rollback();
-            return res.status(202).json({ error: true, message: 'Order not updated' });
+
+        // Skip clearAvailability if pending status is 4
+        let updatedOrder;
+        if (order.pending !== 4) {
+            updatedOrder = await clearAvailability(orderID, transaction);
+
+            if (!updatedOrder) {
+                await transaction.rollback();
+                return res.status(202).json({ error: true, message: 'Order not updated' });
+            }
         }
+
+        // Update the order with the new data
         await order.update(updateData, { transaction });
 
-        // Step 2: Update service providers if provided
-        if (servicep_providers && Array.isArray(servicep_providers)) {
+        // Skip service provider updates if pending status is 4
+        if (order.pending !== 4) {
+            // Step 2: Update service providers if provided
+            if (servicep_providers && Array.isArray(servicep_providers)) {
 
-            const slots = await calculateSlots(updateData.allot_time_range, updateData.approx_duration);
-            const updatedSlots = slots.reduce((acc, slot) => {
-                acc[slot] = `${updateData.service_name}-${order.order_no}`;
-                return acc;
-            }, {});
-            // Remove existing service providers
-            await OrderServiceProviders.destroy({
-                where: { order_no: orderID },
-                transaction
-            });
+                const slots = await calculateSlots(updateData.allot_time_range, updateData.approx_duration);
+                console.log(slots);
 
-            // Add new service providers
-            const serviceProviderPromises = servicep_providers.map(async (providerId) => {
-                // Check if the service provider exists
-                const serviceProvider = await ServiceProviderModel.findOne({
-                    where: { id: providerId },
+                const updatedSlots = slots.reduce((acc, slot) => {
+                    acc[slot] = `${updateData.service_name}-${order.order_no}`;
+                    return acc;
+                }, {});
+
+                // Remove existing service providers
+                await OrderServiceProviders.destroy({
+                    where: { order_no: orderID },
                     transaction
                 });
 
-                if (!serviceProvider) { 
-                    await transaction.rollback();
-                    return  res.status(202).json({ status: 202, message: `Service Provider with ID ${providerId} not found` });
-                }
+                // Add new service providers
+                const serviceProviderPromises = servicep_providers.map(async (providerId) => {
+                    // Check if the service provider exists
+                    const serviceProvider = await ServiceProviderModel.findOne({
+                        where: { id: providerId },
+                        transaction
+                    });
 
-                // Add the service provider to the order
-                await OrderServiceProviders.create(
-                    { order_no: orderID, service_provider_id: providerId },
-                    { transaction }
-                );
-
-                const existingAvailability = await Availability.findOne({
-                    where: { date: updateData.bookdate, emp_id: providerId },
-                    transaction
-                });
-        
-                if (existingAvailability) {
-                    if (existingAvailability[updateData.allot_time_range]) {
-                        // Update the existing availability record with new slots
-                        await existingAvailability.update(updatedSlots, { transaction });
-                    } else {
-                        throw new Error('Service Provider Not Available');
+                    if (!serviceProvider) { 
+                        await transaction.rollback();
+                        return res.status(202).json({ status: 202, message: `Service Provider with ID ${providerId} not found` });
                     }
-                } else {
-                    // If availability record doesn't exist, create a new one
-                    await Availability.create(
-                        {
-                            date: updateData.bookdate,
-                            emp_id: providerId,
-                            ...updatedSlots
-                        },
+
+                    // Add the service provider to the order
+                    await OrderServiceProviders.create(
+                        { order_no: orderID, service_provider_id: providerId },
                         { transaction }
                     );
-                }
-            });
 
-            await Promise.all(serviceProviderPromises);
-        }
+                    const existingAvailability = await Availability.findOne({
+                        where: { date: updateData.bookdate, emp_id: providerId },
+                        transaction
+                    });
+            
+                    if (existingAvailability) {
+                        if (existingAvailability[updateData.allot_time_range]) {
+                            // Update the existing availability record with new slots
+                            await existingAvailability.update(updatedSlots, { transaction });
+                        } else {
+                            throw new Error('Service Provider Not Available');
+                        }
+                    } else {
+                        // If availability record doesn't exist, create a new one
+                        await Availability.create(
+                            {
+                                date: updateData.bookdate,
+                                emp_id: providerId,
+                                ...updatedSlots
+                            },
+                            { transaction }
+                        );
+                    }
+                });
 
+                await Promise.all(serviceProviderPromises);
+            }
 
         // Step 3: Handle supervisor if provided
         if (updateData.suprvisor_id) {
@@ -522,7 +571,7 @@ const GetOrderUpdate = async (req, res) => {
 
             if (!supervisor) {
                 await transaction.rollback();
-                return  res.status(202).json({ status: 202, message: "Supervisor not found!" });
+                return res.status(202).json({ status: 202, message: "Supervisor not found!" });
             }
 
             const existingAvailability = await SupervisorAvailability.findOne({
@@ -542,7 +591,7 @@ const GetOrderUpdate = async (req, res) => {
                 );
             }
         }
-
+    }
         // Commit transaction
         await transaction.commit();
         res.status(200).json({ status: 200, message: "Update Successful!" });
@@ -797,8 +846,7 @@ const GetHold = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
         const order_no = req.params.order_no;
-        console.log("----------", order_no);
-
+        
         const updatedOrder = await clearAvailability(order_no, transaction);
         if (!updatedOrder) {
             await transaction.rollback();
@@ -1642,8 +1690,13 @@ const OrderCheckIn = async (req, res) => {
         }
         data.pending = 4;
 
-        let date = new Date();
-        let currentDate = date.toISOString().split('T')[0]; 
+        // let date = new Date();
+        // let currentDate = date.toISOString().split('T')[0]; 
+
+        const today = new Date();
+        const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+        const currentDate = new Intl.DateTimeFormat('en-CA', options).format(today);
+
         
         const orders = await OrderModel.findAll({
             attributes: ['order_no', 'pending', 'bookdate', 'suprvisor_id' ,
@@ -1766,8 +1819,6 @@ const OrderCheckIn = async (req, res) => {
         res.status(500).json({ error: true, message: "Internal Server Error", details: error.message || error });
     }
 };
-
-
 
 const OrderCheckOut = async (req, res) => {
     const transaction = await sequelize.transaction(); // Start a transaction
@@ -1903,6 +1954,117 @@ const AssignServiceProviderAvailability = async (req, res) => {
 };
 
 
+const AddCheckInCheckOutLateTime = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const today = new Date();
+        const options = { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" };
+        const formattedDate = new Intl.DateTimeFormat("en-CA", options).format(today);
+
+        const orders = await OrderModel.findAll({
+            include: [
+                {
+                    model: OrderServiceProviders,
+                    include: {
+                        model: ServiceProviderModel,
+                        attributes: ["name"]
+                    }
+                }
+            ],
+            attributes: ["allot_time_range", "approx_duration", "service_name", "checkintime", "order_no", "bookdate"],
+            where: {
+                bookdate: formattedDate,
+                pending: 4
+            }
+        });
+
+        if (!orders || orders.length === 0) {
+            await transaction.rollback();
+            return res.status(202).json({ status: 404, message: "No orders found." });
+        }
+
+        // Group orders by order_no
+        const groupedOrders = orders.reduce((acc, current) => {
+            const orderNo = current.order_no;
+            if (!acc[orderNo]) {
+                acc[orderNo] = {
+                    ...current.dataValues,
+                    orderserviceprovider: [current.orderserviceprovider] // Initialize as an array
+                };
+            } else {
+                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+            }
+            return acc;
+        }, {});
+
+        const response = Object.values(groupedOrders);
+        const orderUpdate = []
+
+        // Handle all orders asynchronously using Promise.all()
+        await Promise.all(
+            response.map(async (item) => {
+                const serviceProviderIds = item.orderserviceprovider.map(provider => provider.service_provider_id);
+
+                if (serviceProviderIds && Array.isArray(serviceProviderIds)) {
+                    const slots = await calculateSlots2(item.allot_time_range, item.approx_duration);
+
+                    orderUpdate.push({
+                        slots,
+                        order_no: item.order_no,
+                        bookdate: item.bookdate,
+                        service_name: item.service_name,
+                        orderserviceprovider: item.orderserviceprovider,
+                        allot_time_range: item.allot_time_range,
+                        approx_duration: item.approx_duration,
+                    })
+
+                    const updatedSlots = slots.reduce((acc, slot) => {
+                        acc[slot] = `${item.service_name}-${item.order_no}`;
+                        return acc;
+                    }, {});
+
+
+                    // Process each service provider
+                    await Promise.all(
+                        serviceProviderIds.map(async (providerId) => {
+                            const serviceProvider = await ServiceProviderModel.findOne({
+                                where: { id: providerId },
+                                transaction
+                            });
+
+                            if (!serviceProvider) {
+                                throw new Error(`Service Provider with ID ${providerId} not found`);
+                            }
+
+                            const existingAvailability = await Availability.findOne({
+                                where: { date: item.bookdate, emp_id: providerId },
+                                transaction
+                            });
+
+                            // Update existing record or create a new one
+                            if (existingAvailability) {
+                                if (existingAvailability[item.allot_time_range]) {
+                                    await existingAvailability.update(updatedSlots, { transaction });
+                                } else {
+                                    throw new Error("Service Provider Not Available");
+                                }
+                            } 
+                        })
+                    );
+                }
+            })
+        );
+
+        await transaction.commit();
+        return res.status(200).json({ orders: orderUpdate });
+
+    } catch (error) {
+        await transaction.rollback();
+        return res.status(202).json({ status: false, message: "Internal Error", error: error.message });
+    }
+};
+
+
 
 
 module.exports = {
@@ -1934,5 +2096,6 @@ module.exports = {
 	OrderAssingSupervisor,
 	GetOrderReports,
 	OrderCheckIn,
-	AssignServiceProviderAvailability
+	AssignServiceProviderAvailability,
+    AddCheckInCheckOutLateTime
 }
