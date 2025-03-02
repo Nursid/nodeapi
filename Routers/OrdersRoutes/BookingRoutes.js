@@ -26,7 +26,7 @@ const {
 	OrderAssingSupervisor,
 	GetOrderReports,
 	AssignServiceProviderAvailability,
-	AddCheckInCheckOutLateTime
+	AddCheckInCheckOutLateTime,
 } = require("../../Controllers/ordercontroller/ordercontrollers");
 
 const AuthenticateToken = require('../../Middleware/AuthenticateToken')
