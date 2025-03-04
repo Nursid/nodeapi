@@ -16,6 +16,91 @@ const AllTimeSlots = [
     '05:00-05:30', '05:30-06:00'
 ];
 
+
+
+const clearAvailability = async (orderID, feesPaidDateTime, transaction) => {
+    try {
+        // Fetch the order details with service providers
+        const isService = await MonthlyServiceModel.findOne({
+            where: {
+                orderNo: orderID,
+                feesPaidDateTime: feesPaidDateTime
+            }
+        });
+
+        // Check if the order exists
+        if (!isService) {
+            console.log("Order not found");
+            return true; // Return true if no order is found (no action needed)
+        }
+
+        // Extract order data
+        const { service_provider, selectedTimeSlot, serviceType, cust_name } = isService;
+
+        // Convert service_provider to an array if it's a comma-separated string
+        const serviceProviderNames = Array.isArray(service_provider) ? service_provider : service_provider.split(',');
+
+        // Iterate over each service provider
+        for (const serviceProviderName of serviceProviderNames) {
+            // Fetch the service provider ID
+            const serviceProviderRecord = await ServiceProviderModel.findOne({
+                attributes: ['id'],
+                where: {
+                    name: serviceProviderName.trim()
+                }
+            });
+
+            if (!serviceProviderRecord) {
+                console.log(`Service provider not found: ${serviceProviderName}`);
+                continue; // Skip to the next service provider
+            }
+
+            const servicepId = serviceProviderRecord.id;
+
+            // Fetch the existing availability record
+            const existing = await AvailabilityModel.findOne({
+                where: { emp_id: servicepId, date: feesPaidDateTime }
+            });
+
+            if (!existing) {
+                console.log(`Availability record not found for service provider: ${serviceProviderName}`);
+                continue; // Skip to the next service provider
+            }
+
+            // Convert selectedTimeSlot to an array if it's a comma-separated string
+            const timeSlotsArray = Array.isArray(selectedTimeSlot) ? selectedTimeSlot : selectedTimeSlot.split(',');
+
+            // Clear each selected time slot in the availability record
+            const updatePayload = {};
+            for (const slot of timeSlotsArray) {
+                if (existing[slot.trim()] === `${serviceType}-MonthlyService-${cust_name}-${orderID}`) {
+                    updatePayload[slot.trim()] = 'p'; // Clear the slot
+                }
+                if (existing[slot.trim()] === `${serviceType}-MonthlyService-${cust_name}-pending`) {
+                    updatePayload[slot.trim()] = 'p'; // Clear the slot
+                }
+            }
+
+            // Update the availability record
+            if (Object.keys(updatePayload).length > 0) {
+                await AvailabilityModel.update(updatePayload, {
+                    where: {
+                        emp_id: servicepId,
+                        date: feesPaidDateTime
+                    },
+                    transaction // Use the provided transaction
+                });
+            }
+        }
+
+        return true; // Successfully cleared availability
+    } catch (error) {
+        console.error("Error clearing availability:", error);
+        return false; // Return false if an error occurs
+    }
+};
+
+
 const AddMonthlyService = async (req, res) => {
     const transaction = await sequelize.transaction();
     const data = req.body;
@@ -287,6 +372,19 @@ const UpdateMonthlyService = async (req, res) => {
             ...updateData
         } = data;
 
+        const isService = await MonthlyServiceModel.findOne({
+            where: {
+                orderNo: orderNo,
+                feesPaidDateTime: feesPaidDateTime
+            }
+        });
+
+
+        // Check if the order exists
+        if (!isService) {
+            console.log("Order not found");
+            return true; // Return true if no order is found (no action needed)
+        }
         // Handle file uploads
         if (req.files) {
             const { before_cleaning, after_cleaning } = req.files;
@@ -366,6 +464,17 @@ const UpdateMonthlyService = async (req, res) => {
                      : await AvailabilityModel.create(entry, { transaction });
         }));
 
+
+     
+        let updatedOrder;
+        if (isService.pending !== 4) {
+            updatedOrder =  await clearAvailability(orderNo, feesPaidDateTime, transaction)
+
+            if (!updatedOrder) {
+                await transaction.rollback();
+                return res.status(202).json({ error: true, message: 'Order not updated' });
+            }
+        }
         // Update/Create supervisor records
         await Promise.all(mergedSupervisorEntries.map(async entry => {
             const existing = await SupervisorAvailability.findOne({
@@ -687,6 +796,326 @@ const MonthlyServiceCheckOut = async (req, res) => {
     }
 };
 
+
+const MonthlyServiceCheckIn = async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const data = req.body;
+
+        // Fetch the monthly service
+        const isService = await MonthlyServiceModel.findOne({
+            where: {
+                orderNo: orderID,
+                feesPaidDateTime: data.feesPaidDateTime
+            }
+        });
+
+        if (!isService) {
+            return res.status(400).json({ error: true, message: 'Service not found!' });
+        }
+
+        // Fetch the service provider
+        const serviceProvider = isService.service_provider;
+
+
+        if (!serviceProvider) {
+            return res.status(400).json({ error: true, message: 'Service provider not found!' });
+        }
+
+        // Fetch the service provider ID
+        const serviceProviderRecord = await ServiceProviderModel.findOne({
+            attributes: ['id'],
+            where: {
+                name: serviceProvider
+            }
+        });
+
+        if (!serviceProviderRecord) {
+            return res.status(400).json({ error: true, message: 'Service provider not found!' });
+        }
+
+
+        const servicepId = serviceProviderRecord.id;
+
+       
+        // Update the monthly service
+        const isUpdated = await MonthlyServiceModel.update(data, {
+            where: {
+                orderNo: orderID,
+                feesPaidDateTime: data.feesPaidDateTime
+            }
+        });
+
+        if (!isUpdated) {
+            return res.status(400).json({ error: true, message: 'Updation Failed! Try again' });
+        }
+
+        // Fetch the existing availability record
+        const existing = await AvailabilityModel.findOne({
+            where: { emp_id: servicepId, date: data.feesPaidDateTime }
+        });
+
+      
+        if (!existing) {
+            return res.status(400).json({ error: true, message: 'Availability record not found!' });
+        }
+
+        // Get the selected time slots from the request body
+        const selectedTimeSlots = isService.selectedTimeSlot; // Assuming `selectedTimeSlots` is an array or comma-separated string'
+
+        // Convert selectedTimeSlots to an array if it's a comma-separated string
+        const timeSlotsArray = Array.isArray(selectedTimeSlots) ? selectedTimeSlots : selectedTimeSlots.split(',');
+
+
+        // Validate each selected time slot
+        for (const slot of timeSlotsArray) {
+            if (!AllTimeSlots.includes(slot.trim())) {
+                return res.status(400).json({ error: true, message: `Invalid time slot selected: ${slot}` });
+            }
+
+            // Check if the selected time slot exists in the availability record
+            if (!existing[slot.trim()]) {
+                return res.status(400).json({ error: true, message: `Selected time slot does not exist in availability: ${slot}` });
+            }
+        }
+
+        // Update each selected time slot in the availability record
+        const updatePayload = {};
+        for (const slot of timeSlotsArray) {
+            updatePayload[slot.trim()] = `${isService.serviceType}-MonthlyService-${isService.cust_name}-pending`;
+        }
+
+        const updatedAvailability = await AvailabilityModel.update(updatePayload, {
+            where: {
+                emp_id: servicepId,
+                date: data.feesPaidDateTime
+            }
+        });
+
+        if (!updatedAvailability) {
+            return res.status(400).json({ error: true, message: 'Failed to update availability!' });
+        }
+
+        res.status(200).json({ status: 200, message: "Assign Successful!" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: true, message: "Internal Server Error" });
+    }
+};
+
+const MonthlyServiceHold = async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const data = req.body;
+
+        // Fetch the monthly service
+        const isService = await MonthlyServiceModel.findOne({
+            where: {
+                orderNo: orderID,
+                feesPaidDateTime: data.feesPaidDateTime,
+
+            }
+        });
+
+        if (!isService) {
+            return res.status(400).json({ error: true, message: 'Service not found!' });
+        }
+
+        // Fetch the service providers
+        const serviceProviders = isService.service_provider;
+        const serviceProviderNames = Array.isArray(serviceProviders) ? serviceProviders : serviceProviders.split(',');
+
+        // Iterate over each service provider
+        for (const serviceProviderName of serviceProviderNames) {
+            // Fetch the service provider ID
+            const serviceProviderRecord = await ServiceProviderModel.findOne({
+                attributes: ['id'],
+                where: {
+                    name: serviceProviderName.trim()
+                }
+            });
+
+            if (!serviceProviderRecord) {
+                return res.status(400).json({ error: true, message: `Service provider not found: ${serviceProviderName}` });
+            }
+
+            const servicepId = serviceProviderRecord.id;
+
+            // Update the monthly service
+            const isUpdated = await MonthlyServiceModel.update(data, {
+                where: {
+                    orderNo: orderID,
+                    feesPaidDateTime: data.feesPaidDateTime
+                }
+            });
+
+            if (!isUpdated) {
+                return res.status(400).json({ error: true, message: 'Updation Failed! Try again' });
+            }
+
+            // Fetch the existing availability record
+            const existing = await AvailabilityModel.findOne({
+                where: { emp_id: servicepId, date: data.feesPaidDateTime }
+            });
+
+            if (!existing) {
+                return res.status(400).json({ error: true, message: 'Availability record not found!' });
+            }
+
+            // Get the selected time slots from the request body
+            const selectedTimeSlots = isService.selectedTimeSlot; // Assuming `selectedTimeSlots` is an array or comma-separated string
+
+            // Convert selectedTimeSlots to an array if it's a comma-separated string
+            const timeSlotsArray = Array.isArray(selectedTimeSlots) ? selectedTimeSlots : selectedTimeSlots.split(',');
+
+            // Validate each selected time slot
+            for (const slot of timeSlotsArray) {
+                if (!AllTimeSlots.includes(slot.trim())) {
+                    return res.status(400).json({ error: true, message: `Invalid time slot selected: ${slot}` });
+                }
+
+                // Check if the selected time slot exists in the availability record
+                if (!existing[slot.trim()]) {
+                    return res.status(400).json({ error: true, message: `Selected time slot does not exist in availability: ${slot}` });
+                }
+            }
+
+            // Update each selected time slot in the availability record
+            const updatePayload = {};
+            for (const slot of timeSlotsArray) {
+                updatePayload[slot.trim()] = `p`;
+            }
+
+            const updatedAvailability = await AvailabilityModel.update(updatePayload, {
+                where: {
+                    emp_id: servicepId,
+                    date: data.feesPaidDateTime
+                }
+            });
+
+            if (!updatedAvailability) {
+                return res.status(400).json({ error: true, message: 'Failed to update availability!' });
+            }
+        }
+
+        res.status(200).json({ status: 200, message: "Assign Successful!" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: true, message: "Internal Server Error" });
+    }
+};
+
+const MonthlyServiceUnHold = async (req, res) => {
+    try {
+        const orderID = req.params.id;
+        const data = req.body;
+
+        // Fetch the monthly service
+        const isService = await MonthlyServiceModel.findOne({
+            where: {
+                orderNo: orderID,
+                feesPaidDateTime: data.feesPaidDateTime
+            }
+        });
+
+        if (!isService) {
+            return res.status(400).json({ error: true, message: 'Service not found!' });
+        }
+
+        // Fetch the service provider
+        const serviceProviders = isService.service_provider;
+
+
+        if (!serviceProviders) {
+            return res.status(400).json({ error: true, message: 'Service provider not found!' });
+        }
+        const serviceProviderNames = Array.isArray(serviceProviders) ? serviceProviders : serviceProviders.split(',');
+
+        // Iterate over each service provider
+        for (const serviceProviderName of serviceProviderNames) {
+
+        // Fetch the service provider ID
+        const serviceProviderRecord = await ServiceProviderModel.findOne({
+            attributes: ['id'],
+            where: {
+                name: serviceProviderName
+            }
+        });
+
+        if (!serviceProviderRecord) {
+            return res.status(400).json({ error: true, message: 'Service provider not found!' });
+        }
+
+
+        const servicepId = serviceProviderRecord.id;
+
+       
+        // Update the monthly service
+        const isUpdated = await MonthlyServiceModel.update(data, {
+            where: {
+                orderNo: orderID,
+                feesPaidDateTime: data.feesPaidDateTime
+            }
+        });
+
+        if (!isUpdated) {
+            return res.status(400).json({ error: true, message: 'Updation Failed! Try again' });
+        }
+
+        // Fetch the existing availability record
+        const existing = await AvailabilityModel.findOne({
+            where: { emp_id: servicepId, date: data.feesPaidDateTime }
+        });
+
+      
+        if (!existing) {
+            return res.status(400).json({ error: true, message: 'Availability record not found!' });
+        }
+
+        // Get the selected time slots from the request body
+        const selectedTimeSlots = isService.selectedTimeSlot; // Assuming `selectedTimeSlots` is an array or comma-separated string'
+
+        // Convert selectedTimeSlots to an array if it's a comma-separated string
+        const timeSlotsArray = Array.isArray(selectedTimeSlots) ? selectedTimeSlots : selectedTimeSlots.split(',');
+
+
+        // Validate each selected time slot
+        for (const slot of timeSlotsArray) {
+            if (!AllTimeSlots.includes(slot.trim())) {
+                return res.status(400).json({ error: true, message: `Invalid time slot selected: ${slot}` });
+            }
+
+            // Check if the selected time slot exists in the availability record
+            if (!existing[slot.trim()]) {
+                return res.status(400).json({ error: true, message: `Selected time slot does not exist in availability: ${slot}` });
+            }
+        }
+
+        // Update each selected time slot in the availability record
+        const updatePayload = {};
+        for (const slot of timeSlotsArray) {
+            updatePayload[slot.trim()] = `${isService.serviceType}-MonthlyService-${isService.cust_name}`;
+        }
+
+        const updatedAvailability = await AvailabilityModel.update(updatePayload, {
+            where: {
+                emp_id: servicepId,
+                date: data.feesPaidDateTime
+            }
+        });
+
+        if (!updatedAvailability) {
+            return res.status(400).json({ error: true, message: 'Failed to update availability!' });
+        }
+    }
+        res.status(200).json({ status: 200, message: "Assign Successful!" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: true, message: "Internal Server Error" });
+    }
+};
+
+
 module.exports = {
 	AddMonthlyService,
 	GetAllMonthlyService,
@@ -695,5 +1124,8 @@ module.exports = {
 	MonthlyServiceAssign,
 	MonthlyServiceSchedule,
 	GetSingleMonthlyService,
-    MonthlyServiceCheckOut
+    MonthlyServiceCheckOut,
+    MonthlyServiceCheckIn,
+    MonthlyServiceHold,
+    MonthlyServiceUnHold
 }
