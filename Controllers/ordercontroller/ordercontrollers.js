@@ -213,6 +213,59 @@ async function calculateSlots2(allot_time_range, approx_duration) {
     return AllTimeSlots.slice(startIndex, maxIndex + 1);
 }
 
+function convertTo24Hour(time) {
+    const [timePart, modifier] = time.split(' ');
+    let [hours, minutes] = timePart.split(':');
+
+    if (modifier === 'PM' && hours !== '12') {
+        hours = parseInt(hours, 10) + 12;
+    }
+    if (modifier === 'AM' && hours === '12') {
+        hours = '00';
+    }
+
+    return `${hours}:${minutes}`;
+}
+
+// Helper function to convert 12-hour slot to 24-hour slot
+function convertSlotTo24Hour(slot) {
+    const [start, end] = slot.split('-');
+
+    const startModifier = parseInt(start.split(':')[0], 10) >= 12 ? 'PM' : 'AM';
+    const endModifier = parseInt(end.split(':')[0], 10) >= 12 ? 'PM' : 'AM';
+
+    const start24 = convertTo24Hour(`${start} ${startModifier}`);
+    const end24 = convertTo24Hour(`${end} ${endModifier}`);
+
+    return `${start24}-${end24}`;
+}
+
+function getTimeSlots(checkintime, currentTime) {
+
+    const checkinDate = new Date(checkintime);
+    const currentDate = new Date(currentTime);
+
+    const AllTimeSlots = [];
+    let tempTime = new Date(checkinDate);
+    tempTime.setMinutes(Math.floor(tempTime.getMinutes() / 30) * 30, 0, 0);
+
+    while (tempTime <= currentDate) {
+        let startHour = tempTime.getHours().toString().padStart(2, '0');
+        let startMin = tempTime.getMinutes().toString().padStart(2, '0');
+
+        let endTime = new Date(tempTime);
+        endTime.setMinutes(tempTime.getMinutes() + 30);
+        let endHour = endTime.getHours().toString().padStart(2, '0');
+        let endMin = endTime.getMinutes().toString().padStart(2, '0');
+
+        AllTimeSlots.push(`${startHour}:${startMin}-${endHour}:${endMin}`);
+        tempTime = endTime;
+    }
+
+    return AllTimeSlots;
+}
+
+
 
 
 function checkTimeRange(timeSlot) {
@@ -764,7 +817,7 @@ const GetByStatus = async (req, res) => {
 				},
 			],
 			
-			order: [['id', 'DESC']],
+			order: [['bookdate', 'DESC']],
 			where: {
 				pending: status
 			}
@@ -1267,53 +1320,66 @@ const GetTotalSummary = async (req, res) => {
         // Parse and validate date inputs
         from = !from || isNaN(new Date(from)) ? new Date(0) : new Date(from);
         to = !to || isNaN(new Date(to)) ? new Date() : new Date(to);
-        to.setHours(23, 59, 59, 999); // Set to end of the day
 
+        // Check if from and to are the same date
+        const isSameDate = from.toISOString().split('T')[0] === to.toISOString().split('T')[0];
+
+        const updateFrom = from.toISOString().slice(0, 10);
+        const updateTo = to.toISOString().slice(0, 10);
+        
+        console.log("updateFrom---",updateFrom)
+        // Define date filters
         const dateFilter = {
-            createdAt: {
-                [Op.between]: [from, to]
-            }
+            createdAt: isSameDate
+                ? { [Op.eq]: updateFrom } // Use Op.eq for exact date match
+                : { [Op.between]: [updateFrom, updateTo] } // Use Op.between for date range
         };
 
-        // Fetching all necessary data in parallel
-        const [orders, monthlyServices, TotalAcount,TotalExpenses ] = await Promise.all([
-            OrderModel.findAll({ where: dateFilter }),
-			 MonthlyServiceModel.findAll({
-				where: dateFilter,
-                  attributes: [
-                    [Sequelize.fn('DISTINCT', Sequelize.col('orderNo')) ,'orderNo'],
-                    'piadamt'
-                  ]
-			  }),
-			AccountModel.findAll({
-				attributes: [
-					[sequelize.fn('SUM', sequelize.col('amount')), 'total_amount'],
-					[sequelize.fn('SUM', sequelize.literal("CASE WHEN payment_mode = 'Cash' THEN amount ELSE 0 END")), 'total_cash'],
-					[sequelize.fn('SUM', sequelize.literal("CASE WHEN payment_mode = 'Online' THEN amount ELSE 0 END")), 'total_online']
-				],
-				where: {
-					type_payment: 0,
-					date: {
-						[Op.between]: [from, to]
-					}
-				}
-			}),
-			AccountModel.findAll({
-				attributes: [
-					[sequelize.fn('SUM', sequelize.col('amount')), 'total_expense'],
-				],
-				where: {
-					type_payment: 1,
-					date: {
-						[Op.between]: [from, to]
-					}
-				}
-			})
+        const date = {
+            bookdate: isSameDate
+                ? updateFrom // Use Op.eq for exact date match
+                : { [Op.between]: [updateFrom, updateTo] } // Use Op.between for date range
+        };
 
+        console.log(date);
+        // Fetching all necessary data in parallel
+        const [orders, monthlyServices, TotalAcount, TotalExpenses] = await Promise.all([
+            OrderModel.findAll({ where: date }),
+            MonthlyServiceModel.findAll({
+                where: dateFilter,
+                attributes: [
+                    [Sequelize.fn('DISTINCT', Sequelize.col('orderNo')), 'orderNo'],
+                    'piadamt'
+                ]
+            }),
+            AccountModel.findAll({
+                attributes: [
+                    [sequelize.fn('SUM', sequelize.col('amount')), 'total_amount'],
+                    [sequelize.fn('SUM', sequelize.literal("CASE WHEN payment_mode = 'Cash' THEN amount ELSE 0 END")), 'total_cash'],
+                    [sequelize.fn('SUM', sequelize.literal("CASE WHEN payment_mode = 'Online' THEN amount ELSE 0 END")), 'total_online']
+                ],
+                where: {
+                    type_payment: 0,
+                    date: isSameDate
+                        ? { [Op.eq]: from } // Use Op.eq for exact date match
+                        : { [Op.between]: [from, to] } // Use Op.between for date range
+                }
+            }),
+            AccountModel.findAll({
+                attributes: [
+                    [sequelize.fn('SUM', sequelize.col('amount')), 'total_expense'],
+                ],
+                where: {
+                    type_payment: 1,
+                    date: isSameDate
+                        ? { [Op.eq]: from } // Use Op.eq for exact date match
+                        : { [Op.between]: [from, to] } // Use Op.between for date range
+                }
+            })
         ]);
 
         // Calculating totals
-        const totalOrders = parseInt(orders.length)+parseInt(monthlyServices.length);
+        const totalOrders = parseInt(orders.length) + parseInt(monthlyServices.length);
         const totalCompleted = orders.filter(order => order.pending === 3).length;
         const totalCancel = orders.filter(order => order.pending === 5).length;
         const totalHold = orders.filter(order => order.pending === 1).length;
@@ -1324,9 +1390,8 @@ const GetTotalSummary = async (req, res) => {
         const totalMonthlyService = monthlyServices.length;
         const TotalserviceFees = monthlyServices.reduce((total, service) => total + parseFloat(service.piadamt), 0);
 
-		const Netbalance = TotalAcount[0]?.dataValues?.total_cash + TotalAcount[0]?.dataValues?.total_online  - TotalExpenses[0]?.dataValues?.total_expense
-        
-        
+        const Netbalance = TotalAcount[0]?.dataValues?.total_cash + TotalAcount[0]?.dataValues?.total_online - TotalExpenses[0]?.dataValues?.total_expense;
+
         // Constructing summary object
         const summary = {
             totalOrders,
@@ -1337,11 +1402,11 @@ const GetTotalSummary = async (req, res) => {
             totalMonthlyService,
             TotalserviceFees,
             TotalExpenses: TotalExpenses[0]?.dataValues?.total_expense || 0,
-			TotalCash: TotalAcount[0]?.dataValues?.total_cash || 0,
-			TotalBank: TotalAcount[0]?.dataValues?.total_online || 0,
-			totalRunning,
-			totalDue,
-			Netbalance,
+            TotalCash: TotalAcount[0]?.dataValues?.total_cash || 0,
+            TotalBank: TotalAcount[0]?.dataValues?.total_online || 0,
+            totalRunning,
+            totalDue,
+            Netbalance,
             monthlyServices
         };
 
@@ -1353,7 +1418,6 @@ const GetTotalSummary = async (req, res) => {
         res.status(500).json({ error: "Internal Server Error" });
     }
 };
-
 const GetTimeSlot = async (req, res) => {
 	try {
 		const timeSlots = await TimeSlotModel.findAll({
@@ -1756,46 +1820,46 @@ const OrderCheckIn = async (req, res) => {
         const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
         const empIds = await getServiceProviderIds(serviceProviderNames);
 
-        const allOrders = await Promise.all(
-            empIds.map(async ({ id, name }) => {
-                const orders = await OrderModel.findAll({
-                    include: {
-                        model: OrderServiceProviders,
-                        include: { model: ServiceProviderModel, attributes: ['id', 'name'] },
-                        where: { service_provider_id: id },
-                    },
-                    attributes: ['order_no', 'bookdate', 'checkintime', 'checkouttime'],
-                    where: { bookdate: currentDate, pending: 4 }
-                });
+        // const allOrders = await Promise.all(
+        //     empIds.map(async ({ id, name }) => {
+        //         const orders = await OrderModel.findAll({
+        //             include: {
+        //                 model: OrderServiceProviders,
+        //                 include: { model: ServiceProviderModel, attributes: ['id', 'name'] },
+        //                 where: { service_provider_id: id },
+        //             },
+        //             attributes: ['order_no', 'bookdate', 'checkintime', 'checkouttime'],
+        //             where: { bookdate: currentDate, pending: 4 }
+        //         });
         
-                const pendingCheckouts = orders
-                    .filter(order => order.checkouttime === null)
-                    .map(order => `${name} service provider has not checked out from order ${order.order_no}. Please check out first.`);
+        //         const pendingCheckouts = orders
+        //             .filter(order => order.checkouttime === null)
+        //             .map(order => `${name} service provider has not checked out from order ${order.order_no}. Please check out first.`);
         
-                return {
-                    serviceProvider: name,
-                    orders,
-                    messages: pendingCheckouts
-                };
-            })
-        );
+        //         return {
+        //             serviceProvider: name,
+        //             orders,
+        //             messages: pendingCheckouts
+        //         };
+        //     })
+        // );
         
-        // Flatten messages and filter out empty ones
-        const pendingMessages = allOrders.flatMap(order => order.messages).filter(msg => msg.length > 0);
+        // // Flatten messages and filter out empty ones
+        // const pendingMessages = allOrders.flatMap(order => order.messages).filter(msg => msg.length > 0);
         
-        // If there are pending checkouts, concatenate names and return message
-        if (pendingMessages.length > 0) {
-            const names = allOrders
-                .filter(order => order.messages.length > 0)
-                .map(order => order.serviceProvider)
-                .join(', ');
+        // // If there are pending checkouts, concatenate names and return message
+        // if (pendingMessages.length > 0) {
+        //     const names = allOrders
+        //         .filter(order => order.messages.length > 0)
+        //         .map(order => order.serviceProvider)
+        //         .join(', ');
         
-            await transaction.rollback();
-            return res.status(202).json({
-                error: true,
-                message: pendingMessages
-            });
-        }
+        //     await transaction.rollback();
+        //     return res.status(202).json({
+        //         error: true,
+        //         message: pendingMessages
+        //     });
+        // }
 
         const isUpdated = await OrderModel.update(
             { pending: 4, checkintime: data.checkintime },
@@ -1953,6 +2017,19 @@ const AssignServiceProviderAvailability = async (req, res) => {
     }
 };
 
+function convertTo12Hour(time) {
+    let [hours, minutes] = time.split(":").map(Number);
+    hours = hours % 12 || 12; // Convert 0 to 12 for 12 AM, and 13+ to 1,2,3...
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+}
+
+function convertSlotsTo12Hour(slots) {
+    return slots.map(slot => {
+        const [start, end] = slot.split("-");
+        return `${convertTo12Hour(start)}-${convertTo12Hour(end)}`;
+    });
+}
+
 
 const AddCheckInCheckOutLateTime = async (req, res) => {
     const transaction = await sequelize.transaction();
@@ -1980,7 +2057,7 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
 
         if (!orders || orders.length === 0) {
             await transaction.rollback();
-            return res.status(202).json({ status: 404, message: "No orders found." });
+            return res.status(404).json({ status: false, message: "No orders found." });
         }
 
         // Group orders by order_no
@@ -1998,69 +2075,112 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
         }, {});
 
         const response = Object.values(groupedOrders);
-        const orderUpdate = []
+        const orderUpdate = [];
+        const errorLogs = []; // Store errors for logging
+        const currentDateTime = moment().format("DD/MM/YYYY, hh:mm A");
 
         // Handle all orders asynchronously using Promise.all()
         await Promise.all(
             response.map(async (item) => {
-                const serviceProviderIds = item.orderserviceprovider.map(provider => provider.service_provider_id);
+                try {
+                    const serviceProviderIds = item.orderserviceprovider.map(provider => provider.service_provider_id);
 
-                if (serviceProviderIds && Array.isArray(serviceProviderIds)) {
-                    const slots = await calculateSlots2(item.allot_time_range, item.approx_duration);
+                    if (!serviceProviderIds || serviceProviderIds.length === 0) {
+                        throw new Error(`No service providers found for order: ${item.order_no}`);
+                    }
 
-                    orderUpdate.push({
-                        slots,
-                        order_no: item.order_no,
-                        bookdate: item.bookdate,
-                        service_name: item.service_name,
-                        orderserviceprovider: item.orderserviceprovider,
-                        allot_time_range: item.allot_time_range,
-                        approx_duration: item.approx_duration,
-                    })
+                    let updatedOrder = await clearAvailability(item.order_no, transaction);
+                    if (!updatedOrder) {
+                        throw new Error(`Order ${item.order_no} not updated`);
+                    }
+
+                    // Format time
+                    const formattedTime = moment(item.checkintime, "MM/DD/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
+                    const formattedOrders = getTimeSlots(formattedTime, currentDateTime);
+                    const slots = convertSlotsTo12Hour(formattedOrders);
 
                     const updatedSlots = slots.reduce((acc, slot) => {
                         acc[slot] = `${item.service_name}-${item.order_no}`;
                         return acc;
                     }, {});
 
+                    orderUpdate.push({
+                        updatedSlots,
+                        order_no: item.order_no,
+                        bookdate: item.bookdate,
+                        service_name: item.service_name,
+                        orderserviceprovider: item.orderserviceprovider,
+                        allot_time_range: item.allot_time_range,
+                        approx_duration: item.approx_duration,
+                    });
 
-                    // Process each service provider
+                    // Process each service provider without breaking on errors
                     await Promise.all(
                         serviceProviderIds.map(async (providerId) => {
-                            const serviceProvider = await ServiceProviderModel.findOne({
-                                where: { id: providerId },
-                                transaction
-                            });
+                            try {
+                                const serviceProvider = await ServiceProviderModel.findOne({
+                                    where: { id: providerId },
+                                    transaction
+                                });
 
-                            if (!serviceProvider) {
-                                throw new Error(`Service Provider with ID ${providerId} not found`);
-                            }
-
-                            const existingAvailability = await Availability.findOne({
-                                where: { date: item.bookdate, emp_id: providerId },
-                                transaction
-                            });
-
-                            // Update existing record or create a new one
-                            if (existingAvailability) {
-                                if (existingAvailability[item.allot_time_range]) {
-                                    await existingAvailability.update(updatedSlots, { transaction });
-                                } else {
-                                    throw new Error("Service Provider Not Available");
+                                if (!serviceProvider) {
+                                    throw new Error(`Service Provider with ID ${providerId} not found`);
                                 }
-                            } 
+
+                                let existingAvailability = await Availability.findOne({
+                                    where: { date: item.bookdate, emp_id: providerId },
+                                    transaction
+                                });
+
+                                if (!existingAvailability) {
+                                    // If no record exists, create a new one
+                                    await Availability.create(
+                                        {
+                                            date: item.bookdate,
+                                            emp_id: providerId,
+                                            ...updatedSlots
+                                        },
+                                        { transaction }
+                                    );
+                                } else {
+                                    await existingAvailability.update(updatedSlots, { transaction });
+                                }
+                            } catch (serviceProviderError) {
+                                console.error(`⚠️ Error processing Service Provider ${providerId}: ${serviceProviderError.message}`);
+                                errorLogs.push({
+                                    order_no: item.order_no,
+                                    provider_id: providerId,
+                                    error: serviceProviderError.message
+                                });
+                            }
                         })
                     );
+
+                } catch (orderProcessingError) {
+                    console.error(`⚠️ Error processing order ${item.order_no}: ${orderProcessingError.message}`);
+                    errorLogs.push({
+                        order_no: item.order_no,
+                        error: orderProcessingError.message
+                    });
                 }
             })
         );
 
         await transaction.commit();
-        return res.status(200).json({ orders: orderUpdate });
+        return res.status(200).json({
+            success: true,
+            orders: orderUpdate,
+            errors: errorLogs.length > 0 ? errorLogs : "No errors encountered"
+        });
 
     } catch (error) {
+        console.error("🚨 Transaction failed:", error.message);
         await transaction.rollback();
-        return res.status(202).json({ status: false, message: "Internal Error", error: error.message });
+        return res.status(500).json({ status: false, message: "Internal Server Error", error: error.message });
+    } finally {
+        if (transaction.finished !== "commit") {
+            await transaction.rollback();
+        }
     }
 };
 
