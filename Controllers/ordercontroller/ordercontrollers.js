@@ -2056,8 +2056,8 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
         });
 
         if (!orders || orders.length === 0) {
-            await transaction.rollback();
-            return res.status(404).json({ status: false, message: "No orders found." });
+            // await transaction.rollback();
+            return res.status(202).json({ status: false, message: "No orders found." });
         }
 
         // Group orders by order_no
@@ -2089,10 +2089,10 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
                         throw new Error(`No service providers found for order: ${item.order_no}`);
                     }
 
-                    let updatedOrder = await clearAvailability(item.order_no, transaction);
-                    if (!updatedOrder) {
-                        throw new Error(`Order ${item.order_no} not updated`);
-                    }
+                    // let updatedOrder = await clearAvailability(item.order_no, transaction);
+                    // if (!updatedOrder) {
+                    //     throw new Error(`Order ${item.order_no} not updated`);
+                    // }
 
                     // Format time
                     const formattedTime = moment(item.checkintime, "MM/DD/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
@@ -2105,6 +2105,8 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
                     }, {});
 
                     orderUpdate.push({
+                        formattedTime, 
+                        currentDateTime,
                         updatedSlots,
                         order_no: item.order_no,
                         bookdate: item.bookdate,

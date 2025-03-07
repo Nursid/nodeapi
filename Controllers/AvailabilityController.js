@@ -56,8 +56,11 @@ const GetAllAvailability = async (req, res) => {
             targetDate = new Date(filterDate);
             whereConditions.date = filterDate;
         } else {
-            targetDate = new Date();
-            whereConditions.date = targetDate.toISOString().split('T')[0];
+            let date = new Date();
+            const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
+            const targetDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+            // targetDate = new Date();
+            whereConditions.date = targetDate.split('T')[0];
         }
 
         const providersWithAvailabilities = await ServiceProvider.findAll({
