@@ -9,6 +9,7 @@ const sequelize = require('../../config/sequalize');
 const SupervisorAvailability = db.SupervisorAvailability
 const AvailabilityModel= db.Availability
 
+
 const AddServiceProviderAttendance = async (req, res) => {
   try {
     const data = req.body

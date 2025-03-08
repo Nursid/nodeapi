@@ -15,7 +15,7 @@ const Availability = db.Availability
 const SupervisorAvailability = db.SupervisorAvailability;
 const moment = require('moment');
 const AvailabilityModel = db.Availability
-
+const moment2 = require('moment-timezone');
 
 const AllTimeSlots = [ 
     '07:00-07:30', '07:30-08:00', '08:00-08:30', '08:30-09:00', '09:00-09:30',
@@ -2077,7 +2077,7 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
         const response = Object.values(groupedOrders);
         const orderUpdate = [];
         const errorLogs = []; // Store errors for logging
-        const currentDateTime = moment().format("DD/MM/YYYY, hh:mm A");
+        const currentDateTime = moment2().tz("Asia/Kolkata").format("DD/MM/YYYY, hh:mm A");
 
         // Handle all orders asynchronously using Promise.all()
         await Promise.all(
