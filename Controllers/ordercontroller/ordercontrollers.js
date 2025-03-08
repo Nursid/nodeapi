@@ -2077,7 +2077,7 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
         const response = Object.values(groupedOrders);
         const orderUpdate = [];
         const errorLogs = []; // Store errors for logging
-        const currentDateTime = moment().format("DD/MM/YYYY, hh:mm A");
+      
 
         // Handle all orders asynchronously using Promise.all()
         await Promise.all(
@@ -2088,6 +2088,8 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
                     if (!serviceProviderIds || serviceProviderIds.length === 0) {
                         throw new Error(`No service providers found for order: ${item.order_no}`);
                     }
+
+		     const currentDateTime = moment().format("DD/MM/YYYY, hh:mm A");
 
                     // let updatedOrder = await clearAvailability(item.order_no, transaction);
                     // if (!updatedOrder) {
