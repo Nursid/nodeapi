@@ -2089,6 +2089,8 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
                         throw new Error(`No service providers found for order: ${item.order_no}`);
                     }
 
+		     const currentDateTime = moment().format("DD/MM/YYYY, hh:mm A");
+
                     // let updatedOrder = await clearAvailability(item.order_no, transaction);
                     // if (!updatedOrder) {
                     //     throw new Error(`Order ${item.order_no} not updated`);
