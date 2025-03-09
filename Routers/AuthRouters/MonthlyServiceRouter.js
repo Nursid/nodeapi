@@ -37,6 +37,7 @@ router.put("/hold/:id", MonthlyServiceController.MonthlyServiceHold)
 router.put("/un-hold/:id", MonthlyServiceController.MonthlyServiceUnHold)
 router.get("/get-daily-schedule", MonthlyServiceController.MonthlyServiceSchedule)
 router.post("/get-monthlyservice", MonthlyServiceController.GetSingleMonthlyService)
+router.get("/addCheckInCheckOutLateTime", MonthlyServiceController.AddCheckInCheckOutLateTime)
 
 
 
