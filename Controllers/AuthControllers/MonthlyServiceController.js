@@ -913,7 +913,7 @@ const MonthlyServiceCheckIn = async (req, res) => {
 
             const updatePayload = {};
             for (const slot of timeSlotsArray) {
-                updatePayload[slot.trim()] = `${isService.serviceType}-MonthlyService-${isService.cust_name}-pending`;
+                updatePayload[slot.trim()] = `p`;
             }
 
             await AvailabilityModel.update(updatePayload, {
