@@ -2119,7 +2119,7 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
                     // }
 
                     // Format time
-                    const formattedTime = moment(item.checkintime, "MM/DD/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
+                    const formattedTime = moment(item.checkintime, "DD/MM/YYYY, h:mm A").format("DD/MM/YYYY, hh:mm A");
                     const formattedOrders = getTimeSlots(formattedTime, currentDateTime);
                     const slots = convertSlotsTo12Hour(formattedOrders);
 
