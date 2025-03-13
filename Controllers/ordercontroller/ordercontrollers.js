@@ -2111,7 +2111,7 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
                         throw new Error(`No service providers found for order: ${item.order_no}`);
                     }
 
-                    const currentDateTime = moment2().tz("Asia/Kolkata").format("DD/MM/YYYY, hh:mm A");
+                    const currentDateTime = moment2().tz("Asia/Kolkata").format("MM/DD/YYYY, hh:mm A");
 
                     // let updatedOrder = await clearAvailability(item.order_no, transaction);
                     // if (!updatedOrder) {
@@ -2119,7 +2119,7 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
                     // }
 
                     // Format time
-                    const formattedTime = moment(item.checkintime, "DD/MM/YYYY, h:mm A").format("DD/MM/YYYY, hh:mm A");
+                    const formattedTime = moment(item.checkintime, "DD/MM/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
                     const formattedOrders = getTimeSlots(formattedTime, currentDateTime);
                     const slots = convertSlotsTo12Hour(formattedOrders);
 
