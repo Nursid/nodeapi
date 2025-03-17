@@ -1263,6 +1263,361 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
 };
 
 
+const MasterUpdateMonthlyService = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    const data = req.body;
+    const { orderNo } = req.params;
+    console.log(data)
+
+    try {
+        const isService = await MonthlyServiceModel.findAll({
+            where: { orderNo: orderNo }
+        });
+
+        if (!isService || isService.length === 0) {
+            return res.status(201).json({ status: false, message: "No orders found." });
+        }
+        let slotsUpdates = []
+
+        await Promise.all(
+            isService.map(async (item) => {
+                const providerNamesBefore = item.service_provider.split(',').map(item => item.trim());
+
+                await Promise.all(
+                    providerNamesBefore.map(async (serviceProviderName) => {
+                        const serviceProviderRecord = await ServiceProviderModel.findOne({
+                            attributes: ['id'],
+                            where: { name: serviceProviderName.trim() }
+                        });
+
+                        if (!serviceProviderRecord) {
+                            throw new Error(`Service provider not found: ${serviceProviderName}`);
+                        }
+
+                        const servicepId = serviceProviderRecord.id;
+
+                        const existing = await AvailabilityModel.findOne({
+                            where: { emp_id: servicepId, date: item.feesPaidDateTime }
+                        });
+
+                        // if (!existing) {
+                        //     throw new Error(`Availability record not found for: ${serviceProviderName}`);
+                        // }
+
+                        const selectedTimeSlots = Array.isArray(item.selectedTimeSlot)
+                            ? item.selectedTimeSlot
+                            : item.selectedTimeSlot.split(',');
+
+                        const updatePayload = {};
+
+                        for (const slot of selectedTimeSlots) {
+                            if (!AllTimeSlots.includes(slot.trim())) {
+                                throw new Error(`Invalid time slot selected: ${slot}`);
+                            }
+
+                            // if (!existing[slot.trim()]) {
+                            //     throw new Error(`Selected time slot does not exist in availability: ${slot}`);
+                            // }
+
+                            updatePayload[slot.trim()] = null;
+                        }
+
+                        slotsUpdates.push({
+                            updatePayload,
+                            serviceProviderName,
+                            feesPaidDateTime: item.feesPaidDateTime
+                        });
+
+                        const updatedAvailability = await AvailabilityModel.update(updatePayload, {
+                            where: {
+                                emp_id: servicepId,
+                                date: item.feesPaidDateTime
+                            }
+                        });
+
+                        if (!updatedAvailability) {
+                            throw new Error('Failed to update availability!');
+                        }
+                    })
+                );
+            })
+        );
+
+        // Handle file uploads
+        if (req.files) {
+            const { before_cleaning, after_cleaning } = req.files;
+            data.before_cleaning = before_cleaning?.[0]?.filename || null;
+            data.after_cleaning = after_cleaning?.[0]?.filename || null;
+        }
+
+        // Fetch customer ID
+        const user = await CustomerModel.findOne({ where: { mobileno: data.mobile_no } });
+        if (!user){
+          await transaction.rollback();
+         return res.status(201).json({ status: false, message: "This Customer does not exist" });
+        }
+        data.user_id = user.id;
+
+        const { 
+            serviceServeType, 
+            service_provider, 
+            serviceType, 
+            selectedTimeSlot, 
+            supervisor 
+        } = data;
+
+        const selectedTimeSlots = selectedTimeSlot.split(',').map(item => item.trim());;
+        const providerNames = service_provider.split(',').map(item => item.trim());
+
+        // Fetch service provider IDs
+        const serviceProviderIds = await Promise.all(
+            providerNames.map(async name => {
+                const provider = await ServiceProviderModel.findOne({ where: { name } });
+                return provider?.id || null;
+            })
+        );
+
+        const validProviderIds = serviceProviderIds.filter(Boolean);
+        if (validProviderIds.length === 0) {
+            return res.status(201).json({ status: false, message: "This Service Provider does not exist" });
+        }
+
+        // Fetch supervisor data
+        const supervisorData = await EmployeeModel.findOne({ where: { name: supervisor } });
+
+        if (!supervisorData) {
+            return res.status(201).json({ status: false, message: "Supervisor does not exist" });
+        }
+
+        const availabilityEntries = [];
+        const supervisorEntries = [];
+        const monthlyEntries = [];
+
+        await Promise.all(
+            isService.map(async (item) => {
+
+                validProviderIds.forEach(servicepId => {
+                    selectedTimeSlots.forEach(slot => {
+                        availabilityEntries.push({
+                            emp_id: servicepId,
+                            date: item.feesPaidDateTime,
+                            [slot]: `${serviceType}-MonthlyService-${data.cust_name}-${orderNo}`
+                        });
+                    });
+                });
+
+                selectedTimeSlots.forEach(slot => {
+                    supervisorEntries.push({
+                        emp_id: supervisorData.emp_id,
+                        date: item.feesPaidDateTime,
+                        [slot]: `${serviceType}-MonthlyService-${data.cust_name}-${orderNo}`
+                    });
+                });
+
+                monthlyEntries.push({
+                    ...data,
+                    serviceType: serviceType,
+                    feesPaidDateTime: item.feesPaidDateTime,
+                    orderNo: orderNo,
+                });
+            }))
+
+
+            const mergedServiceProviderEntries = availabilityEntries.reduce((acc, curr) => {
+				const { emp_id, date, ...slots } = curr;
+			  
+				// Check if an entry for the same emp_id and date already exists
+				const existingEntry = acc.find(
+				  (entry) => entry.emp_id === emp_id && entry.date === date
+				);
+			  
+				if (existingEntry) {
+				  // Merge the slot data into the existing entry
+				  Object.assign(existingEntry, slots);
+				} else {
+				  // Add a new entry to the result array
+				  acc.push({ emp_id, date, ...slots });
+				}
+			  
+				return acc;
+			  }, []);
+
+			const mergedSupervisorEntries = supervisorEntries.reduce((acc, curr) => {
+			const { emp_id, date, ...slots } = curr;
+			
+			// Check if an entry for the same emp_id and date already exists
+			const existingEntry = acc.find(
+				(entry) => entry.emp_id === emp_id && entry.date === date
+			);
+			
+			if (existingEntry) {
+				// Merge the slot data into the existing entry
+				Object.assign(existingEntry, slots);
+			} else {
+				// Add a new entry to the result array
+				acc.push({ emp_id, date, ...slots });
+			}
+			
+			return acc;
+			}, []);
+
+
+              // Update availability entries
+              await Promise.all(
+                mergedServiceProviderEntries.map(async entry => {
+                    const existing = await AvailabilityModel.findOne({
+                        where: { emp_id: entry.emp_id, date: entry.date },
+                        transaction
+                    });
+
+                    if (existing) {
+                        await existing.update(entry, { transaction });
+                    } else {
+                        await AvailabilityModel.create(entry, { transaction });
+                    }
+                })
+            );
+
+            await Promise.all(
+                mergedSupervisorEntries.map(async entry => {
+                    const existing = await SupervisorAvailability.findOne({
+                        where: { emp_id: entry.emp_id, date: entry.date },
+                        transaction
+                    });
+
+                    if (existing) {
+                        await existing.update(entry, { transaction });
+                    } else {
+                        await SupervisorAvailability.create(entry, { transaction });
+                    }
+                })
+            );
+
+            // Update monthly service entries
+            await Promise.all(
+                monthlyEntries.map(async entry => {
+                    const existing = await MonthlyServiceModel.findOne({
+                        where: { orderNo: orderNo, feesPaidDateTime: entry.feesPaidDateTime },
+                        transaction
+                    });
+
+                    if (existing) {
+                        await existing.update(entry, { transaction });
+                    } else {
+                        await MonthlyServiceModel.create(entry, { transaction });
+                    }
+                })
+            );
+
+            await transaction.commit();
+            return res.status(200).json({ status: true, message: 'Monthly Service Updated!', slotsUpdates });
+
+    } catch (error) {
+        console.error(error);
+        await transaction.rollback();
+        return res.status(500).json({ status: false, message: "Internal Server Error", error });
+    }
+};
+
+
+const MasterDeleteMonthlyService = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    const data = req.body;
+    const { orderNo } = req.params;
+    console.log(data);
+
+    try {
+        const isService = await MonthlyServiceModel.findAll({
+            where: { orderNo: orderNo }
+        });
+
+        if (!isService || isService.length === 0) {
+            await transaction.rollback();
+            return res.status(404).json({ status: false, message: "No orders found." });
+        }
+
+        let slotsUpdates = [];
+
+        await Promise.all(
+            isService.map(async (item) => {
+                try {
+                    const providerNamesBefore = item.service_provider.split(',').map(sp => sp.trim());
+
+                    await Promise.all(
+                        providerNamesBefore.map(async (serviceProviderName) => {
+                            try {
+                                const serviceProviderRecord = await ServiceProviderModel.findOne({
+                                    attributes: ['id'],
+                                    where: { name: serviceProviderName }
+                                });
+
+                                if (!serviceProviderRecord) {
+                                    throw new Error(`Service provider not found: ${serviceProviderName}`);
+                                }
+
+                                const servicepId = serviceProviderRecord.id;
+
+                                const existing = await AvailabilityModel.findOne({
+                                    where: { emp_id: servicepId, date: item.feesPaidDateTime }
+                                });
+
+                                const selectedTimeSlots = Array.isArray(item.selectedTimeSlot)
+                                    ? item.selectedTimeSlot
+                                    : item.selectedTimeSlot.split(',');
+
+                                const updatePayload = {};
+
+                                for (const slot of selectedTimeSlots) {
+                                    if (!AllTimeSlots.includes(slot.trim())) {
+                                        throw new Error(`Invalid time slot selected: ${slot}`);
+                                    }
+                                    updatePayload[slot.trim()] = null;
+                                }
+
+                                slotsUpdates.push({
+                                    updatePayload,
+                                    serviceProviderName,
+                                    feesPaidDateTime: item.feesPaidDateTime
+                                });
+
+                                const updatedAvailability = await AvailabilityModel.update(updatePayload, {
+                                    where: {
+                                        emp_id: servicepId,
+                                        date: item.feesPaidDateTime
+                                    }
+                                });
+
+                                if (!updatedAvailability) {
+                                    throw new Error('Failed to update availability!');
+                                }
+                            } catch (innerError) {
+                                console.error(`Error updating provider ${serviceProviderName}:`, innerError.message);
+                                throw innerError;
+                            }
+                        })
+                    );
+                } catch (serviceError) {
+                    console.error(`Error processing service ${item.id}:`, serviceError.message);
+                    throw serviceError;
+                }
+            })
+        );
+
+        await MonthlyServiceModel.destroy({ where: { orderNo: orderNo } });
+
+        await transaction.commit();
+        return res.status(200).json({ status: true, message: 'Monthly Service Updated!', orderNo: orderNo });
+
+    } catch (error) {
+        console.error("Transaction failed:", error.message);
+        await transaction.rollback();
+        return res.status(500).json({ status: false, message: "Internal Server Error", error: error.message });
+    }
+};
+
+
+
+
 
 module.exports = {
 	AddMonthlyService,
@@ -1276,5 +1631,7 @@ module.exports = {
     MonthlyServiceCheckIn,
     MonthlyServiceHold,
     MonthlyServiceUnHold,
-    AddCheckInCheckOutLateTime
+    AddCheckInCheckOutLateTime,
+    MasterUpdateMonthlyService,
+    MasterDeleteMonthlyService
 }

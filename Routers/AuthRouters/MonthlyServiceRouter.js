@@ -38,6 +38,8 @@ router.put("/un-hold/:id", MonthlyServiceController.MonthlyServiceUnHold)
 router.get("/get-daily-schedule", MonthlyServiceController.MonthlyServiceSchedule)
 router.post("/get-monthlyservice", MonthlyServiceController.GetSingleMonthlyService)
 router.get("/addCheckInCheckOutLateTime", MonthlyServiceController.AddCheckInCheckOutLateTime)
+router.put("/master-update/:orderNo", MonthlyServiceController.MasterUpdateMonthlyService)
+router.delete("/master-delete/:orderNo", MonthlyServiceController.MasterDeleteMonthlyService)
 
 
 
