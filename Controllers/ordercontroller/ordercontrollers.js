@@ -422,11 +422,7 @@ async function handleServiceProviders(servicep_providers, order, formdata, trans
         });
 
         if (existingAvailability) {
-            if (existingAvailability[formdata.allot_time_range] === 'p') {
-                await existingAvailability.update(updatedSlots, { transaction });
-            } else {
-                throw new Error('Service Provider Not Available');
-            }
+            await existingAvailability.update(updatedSlots, { transaction });
         }
     }));
 }
