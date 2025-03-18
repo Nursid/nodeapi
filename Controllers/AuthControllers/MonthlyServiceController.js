@@ -811,8 +811,12 @@ const MonthlyServiceCheckOut = async (req, res) => {
             const servicepId = serviceProviderRecord.id;
 
             // Generate time slots
-            const formattedTime = moment(isService.checkintime, "MM/DD/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
-            const currentDateTime = moment().tz("Asia/Kolkata").format("DD/MM/YYYY, hh:mm A");
+            // const formattedTime = moment(isService.checkintime, "MM/DD/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
+
+            const formattedTime = moment(isService.checkintime, "DD/MM/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
+
+            // const currentDateTime = moment().tz("Asia/Kolkata").format("DD/MM/YYYY, hh:mm A");
+            const currentDateTime = moment2().tz("Asia/Kolkata").format("MM/DD/YYYY, hh:mm A");
             const formattedOrders = getTimeSlots(formattedTime, currentDateTime);
             const slots = convertSlotsTo12Hour(formattedOrders);
 
