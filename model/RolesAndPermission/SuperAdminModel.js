@@ -138,6 +138,10 @@ module.exports = (sequelize) => {
       type: DataTypes.BOOLEAN,
       allowNull: true,
     },
+    Earning: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,

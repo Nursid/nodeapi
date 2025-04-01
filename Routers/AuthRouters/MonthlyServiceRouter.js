@@ -2,6 +2,7 @@ const router = require('express').Router()
 
 const { Router } = require('express')
 const MonthlyServiceController=require("../../Controllers/AuthControllers/MonthlyServiceController")
+const AuthenticateToken = require('../../Middleware/AuthenticateToken')
 
 const multer = require('multer');
 
@@ -23,7 +24,7 @@ router.post("/add",upload.fields([
   ]), MonthlyServiceController.AddMonthlyService);
 
 router.get("/getall",MonthlyServiceController.GetAllMonthlyService);
-router.delete("/delete/:id",MonthlyServiceController.DeleteMonthlyService);
+router.delete("/delete/:id", MonthlyServiceController.DeleteMonthlyService);
 router.post("/update/:id",upload.fields([
     { name: 'before_cleaning', maxCount: 1 },
     { name: 'after_cleaning', maxCount: 1 }
@@ -39,7 +40,7 @@ router.get("/get-daily-schedule", MonthlyServiceController.MonthlyServiceSchedul
 router.post("/get-monthlyservice", MonthlyServiceController.GetSingleMonthlyService)
 router.get("/addCheckInCheckOutLateTime", MonthlyServiceController.AddCheckInCheckOutLateTime)
 router.put("/master-update/:orderNo", MonthlyServiceController.MasterUpdateMonthlyService)
-router.delete("/master-delete/:orderNo", MonthlyServiceController.MasterDeleteMonthlyService)
+router.delete("/master-delete/:orderNo", AuthenticateToken, MonthlyServiceController.MasterDeleteMonthlyService)
 
 
 
