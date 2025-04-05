@@ -145,6 +145,7 @@ const clearAvailability = async (orderID, feesPaidDateTime, transaction) => {
 const AddMonthlyService = async (req, res) => {
     const transaction = await sequelize.transaction();
     const data = req.body;
+ 
 
     try {
         // Handle file uploads
@@ -169,6 +170,8 @@ const AddMonthlyService = async (req, res) => {
             supervisor 
         } = data;
 
+        
+       
         const selectedTimeSlots = selectedTimeSlot.split(',').map(item => item.trim());
         const providerNames = service_provider.split(',').map(item => item.trim());
 
@@ -206,23 +209,22 @@ const AddMonthlyService = async (req, res) => {
                 Alternative: 2,
                 Daily: 1
             }[serviceServeType] || 0;
-
-            const orderNumber = await getNextOrderNumber();
+            
+            let orderNumber = data.orderNo || await getNextOrderNumber();
             let cycleCount = 0;
             for (let i = 0; i < 30; i += incrementDays) {
                 const formattedDate = currentDate.toISOString().split('T')[0];
 
-
-                  // Determine the specific service for the day
-        let serviceForTheDay = serviceType;
-        if (serviceType === "Car Washing/Dusting" && serviceServeType === "Alternative") {                    
-            if (cycleCount % 3 === 2) { // Every 3rd cycle (e.g., 6th day, 12th day, etc.)
-                serviceForTheDay = "Car Washing";
-            } else { // For the other two cycles
-                serviceForTheDay = "Car Dusting";
-            }
-            cycleCount++; // Increment the cycle counter
-        }
+                // Determine the specific service for the day
+                let serviceForTheDay = serviceType;
+                if (serviceType === "Car Washing/Dusting" && serviceServeType === "Alternative") {                    
+                    if (cycleCount % 3 === 2) { // Every 3rd cycle (e.g., 6th day, 12th day, etc.)
+                        serviceForTheDay = "Car Washing";
+                    } else { // For the other two cycles
+                        serviceForTheDay = "Car Dusting";
+                    }
+                    cycleCount++; // Increment the cycle counter
+                }
 
                 validProviderIds.forEach(servicepId => {
                     selectedTimeSlots.forEach(slot => {
@@ -253,47 +255,45 @@ const AddMonthlyService = async (req, res) => {
                 currentDate.setDate(currentDate.getDate() + incrementDays);
             }
 
+            const mergedServiceProviderEntries = availabilityEntries.reduce((acc, curr) => {
+                const { emp_id, date, ...slots } = curr;
+                
+                // Check if an entry for the same emp_id and date already exists
+                const existingEntry = acc.find(
+                  (entry) => entry.emp_id === emp_id && entry.date === date
+                );
+                
+                if (existingEntry) {
+                    // Merge the slot data into the existing entry
+                    Object.assign(existingEntry, slots);
+                } else {
+                    // Add a new entry to the result array
+                    acc.push({ emp_id, date, ...slots });
+                }
+                
+                return acc;
+            }, []);
 
-			const mergedServiceProviderEntries = availabilityEntries.reduce((acc, curr) => {
-				const { emp_id, date, ...slots } = curr;
-			  
-				// Check if an entry for the same emp_id and date already exists
-				const existingEntry = acc.find(
-				  (entry) => entry.emp_id === emp_id && entry.date === date
-				);
-			  
-				if (existingEntry) {
-				  // Merge the slot data into the existing entry
-				  Object.assign(existingEntry, slots);
-				} else {
-				  // Add a new entry to the result array
-				  acc.push({ emp_id, date, ...slots });
-				}
-			  
-				return acc;
-			  }, []);
+            const mergedSupervisorEntries = supervisorEntries.reduce((acc, curr) => {
+                const { emp_id, date, ...slots } = curr;
+                
+                // Check if an entry for the same emp_id and date already exists
+                const existingEntry = acc.find(
+                  (entry) => entry.emp_id === emp_id && entry.date === date
+                );
+                
+                if (existingEntry) {
+                    // Merge the slot data into the existing entry
+                    Object.assign(existingEntry, slots);
+                } else {
+                    // Add a new entry to the result array
+                    acc.push({ emp_id, date, ...slots });
+                }
+                
+                return acc;
+            }, []);
 
-			const mergedSupervisorEntries = supervisorEntries.reduce((acc, curr) => {
-			const { emp_id, date, ...slots } = curr;
-			
-			// Check if an entry for the same emp_id and date already exists
-			const existingEntry = acc.find(
-				(entry) => entry.emp_id === emp_id && entry.date === date
-			);
-			
-			if (existingEntry) {
-				// Merge the slot data into the existing entry
-				Object.assign(existingEntry, slots);
-			} else {
-				// Add a new entry to the result array
-				acc.push({ emp_id, date, ...slots });
-			}
-			
-			return acc;
-			}, []);
-			  
-
-            // // Bulk create or update availability entries
+            // Bulk create or update availability entries
             await Promise.all(
                 mergedServiceProviderEntries.map(async entry => {
                     const existing = await AvailabilityModel.findOne({
@@ -324,11 +324,11 @@ const AddMonthlyService = async (req, res) => {
                 })
             );
 
-            // // Bulk insert monthly service entries
+            // Bulk insert monthly service entries
             await MonthlyServiceModel.bulkCreate(monthlyEntries, { transaction });
             await transaction.commit();
 
-            return res.status(200).json({ status: true, message: 'Monthly Service Added!', orderNo: orderNumber , availabilityEntries});
+            return res.status(200).json({ status: true, message: 'Monthly Service Added!', orderNo: orderNumber, availabilityEntries });
         }
     } catch (error) {
         console.error(error);
@@ -1619,9 +1619,40 @@ const MasterDeleteMonthlyService = async (req, res) => {
     }
 };
 
+const GetLatestMonthlyServices = async (req, res) => {
+    try {
+        // Get all unique order numbers
+        const orderNumbers = await MonthlyServiceModel.findAll({
+            attributes: [
+                [sequelize.fn('DISTINCT', sequelize.col('orderNo')), 'orderNo']
+            ]
+        });
 
+        // For each order number, get the latest record
+        const result = await Promise.all(
+            orderNumbers.map(async ({ orderNo }) => {
+                const latestRecord = await MonthlyServiceModel.findOne({
+                    where: { orderNo },
+                    order: [['feesPaidDateTime', 'DESC']]
+                });
+                return latestRecord;
+            })
+        );
 
-
+        return res.status(200).json({ 
+            status: 200, 
+            count: result.length,
+            data: result 
+        });
+    } catch (error) {
+        console.error("Error fetching latest monthly services:", error);
+        return res.status(500).json({ 
+            status: 500, 
+            message: "Internal Server Error", 
+            error: error.message 
+        });
+    }
+};
 
 module.exports = {
 	AddMonthlyService,
@@ -1637,5 +1668,6 @@ module.exports = {
     MonthlyServiceUnHold,
     AddCheckInCheckOutLateTime,
     MasterUpdateMonthlyService,
-    MasterDeleteMonthlyService
+    MasterDeleteMonthlyService,
+    GetLatestMonthlyServices
 }
