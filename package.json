@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js",
-    "dev": "nodemon index.js"
+    "start": "nodemon --legacy-watch index.js",
+     "dev": "nodemon --legacy-watch index.js"
   },
   "author": "",
   "license": "ISC",

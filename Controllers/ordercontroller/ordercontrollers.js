@@ -1815,6 +1815,10 @@ const OrderCheckIn = async (req, res) => {
           
         const serviceProviderNames = data.serviceProvider.split(',').map(name => name.trim());
         const empIds = await getServiceProviderIds(serviceProviderNames);
+        let updatedOrder = await clearAvailability(data?.order_no, transaction);
+        if (!updatedOrder) {
+            throw new Error(`Order ${data?.order_no} not updated`);
+        }
 
         // const allOrders = await Promise.all(
         //     empIds.map(async ({ id, name }) => {
@@ -1868,7 +1872,7 @@ const OrderCheckIn = async (req, res) => {
         }
 
         await transaction.commit();
-        res.status(200).json({ status: true, message: "Availability Check-In Successfully!", response });
+        res.status(200).json({ status: true, message: "Availability Check-In Successfully!", updatedOrder });
 
     } catch (error) {
         if (transaction) {
@@ -2045,7 +2049,7 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
       let timeParts = kolkataTime.split(', ')[1].split(':');
       let hours = parseInt(timeParts[0]);
       let minutes = parseInt(timeParts[1]);     
-      // let hours = 7
+    //   let hours = 7
       // let minutes = 40 
 
       // Check if the time is between 6:00 PM and 6:00 AM
@@ -2109,10 +2113,7 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
 
                     const currentDateTime = moment2().tz("Asia/Kolkata").format("MM/DD/YYYY, hh:mm A");
 
-                    // let updatedOrder = await clearAvailability(item.order_no, transaction);
-                    // if (!updatedOrder) {
-                    //     throw new Error(`Order ${item.order_no} not updated`);
-                    // }
+                    
 
                     // Format time
                     const formattedTime = moment(item.checkintime, "DD/MM/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
