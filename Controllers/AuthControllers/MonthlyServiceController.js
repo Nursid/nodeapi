@@ -157,7 +157,7 @@ const AddMonthlyService = async (req, res) => {
 
         // Fetch customer ID
         const user = await CustomerModel.findOne({ where: { mobileno: data.mobile_no } });
-        if (!user) return res.status(201).json({ status: false, message: "This Customer does not exist" });
+        if (!user) return res.status(500).json({ status: false, message: "This Customer does not exist" });
 
         data.user_id = user.id;
 
@@ -185,7 +185,7 @@ const AddMonthlyService = async (req, res) => {
 
         const validProviderIds = serviceProviderIds.filter(Boolean);
         if (validProviderIds.length === 0) {
-            return res.status(201).json({ status: false, message: "This Service Provider does not exist" });
+            return res.status(500).json({ status: false, message: "This Service Provider does not exist, please check the service provider in Manage Service Provider" });
         }
 
         // Fetch supervisor data
