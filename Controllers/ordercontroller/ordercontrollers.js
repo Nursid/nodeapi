@@ -2206,6 +2206,110 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
         }
     }
 };
+const GetEarningByServices = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        // const { period = 'day' } = req.query; // day, week, or month
+        const period = 'day'; // day, week, or month
+        // const { Order, ServiceProvider } = req.models;
+        
+        // Calculate date range based on period
+        let startDate, endDate = new Date();
+        
+        switch(period) {
+            case 'day':
+                startDate = new Date();
+                startDate.setHours(0, 0, 0, 0);
+                break;
+            case 'week':
+                startDate = new Date();
+                startDate.setDate(startDate.getDate() - startDate.getDay()); // Start of week (Sunday)
+                startDate.setHours(0, 0, 0, 0);
+                break;
+            case 'month':
+                startDate = new Date();
+                startDate.setDate(1);
+                startDate.setHours(0, 0, 0, 0);
+                break;
+            default:
+                startDate = new Date(0); // All time if no period specified
+        }
+        
+        // Get completed orders within the period
+        const orders = await OrderModel.findAll({
+            where: {
+                pending: 3,
+                bookdate: {
+                    [Sequelize.Op.between]: [startDate, endDate]
+                }
+            },
+            include: {
+                model: OrderServiceProviders,
+                include:{
+                    model: ServiceProviderModel,
+                    attributes: ['name']
+                }
+            },
+            transaction
+        });
+
+
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ status: 404, message: "No orders found." });
+        }
+
+        // Group orders by order_no
+        const groupedOrders = orders.reduce((acc, current) => {
+            const orderNo = current.order_no;
+
+            if (!acc[orderNo]) {
+                acc[orderNo] = {
+                    ...current.dataValues,
+                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
+                };
+            } else {
+                // If the order_no already exists, merge orderserviceprovider
+                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+            }
+
+            return acc;
+        }, {});
+
+
+
+        // Convert grouped object to array
+        const response = Object.values(groupedOrders);
+
+        const earningsByServiceProvider = {};
+
+        response.forEach(order => {
+            const serviceProviderName = order.orderserviceprovider[0].service_provider.name.trim();
+            const amountPaid = parseFloat(order.piadamt);
+
+            if (!earningsByServiceProvider[serviceProviderName]) {
+                earningsByServiceProvider[serviceProviderName] = {
+                    total_service: 0,
+                    total_amount: 0
+                };
+            }
+
+            earningsByServiceProvider[serviceProviderName].total_service += 1;
+            earningsByServiceProvider[serviceProviderName].total_amount += amountPaid;
+        });
+
+        console.log(earningsByServiceProvider);
+
+        return res.status(200).json({ status: 200, data: earningsByServiceProvider });
+    } catch (error) {
+        console.error("🚨 Transaction failed:", error.message);
+        await transaction.rollback();
+        return res.status(500).json({ 
+            status: false, 
+            message: "Internal Server Error", 
+            error: error.message 
+        });
+    }
+};
 
 
 
@@ -2240,5 +2344,6 @@ module.exports = {
 	GetOrderReports,
 	OrderCheckIn,
 	AssignServiceProviderAvailability,
-    AddCheckInCheckOutLateTime
+    AddCheckInCheckOutLateTime,
+    GetEarningByServices
 }
