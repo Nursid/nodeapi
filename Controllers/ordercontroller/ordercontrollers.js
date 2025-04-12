@@ -2209,32 +2209,19 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
 const GetEarningByServices = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
-        // const { period = 'day' } = req.query; // day, week, or month
-        const period = 'day'; // day, week, or month
-        // const { Order, ServiceProvider } = req.models;
-        
-        // Calculate date range based on period
-        let startDate, endDate = new Date();
-        
-        switch(period) {
-            case 'day':
-                startDate = new Date();
-                startDate.setHours(0, 0, 0, 0);
-                break;
-            case 'week':
-                startDate = new Date();
-                startDate.setDate(startDate.getDate() - startDate.getDay()); // Start of week (Sunday)
-                startDate.setHours(0, 0, 0, 0);
-                break;
-            case 'month':
-                startDate = new Date();
-                startDate.setDate(1);
-                startDate.setHours(0, 0, 0, 0);
-                break;
-            default:
-                startDate = new Date(0); // All time if no period specified
+        const { from, to } = req.body; // Extract from and to dates from request body
+
+        if (!from || !to) {
+            return res.status(400).json({ status: 400, message: "From and To dates are required." });
         }
-        
+
+        const startDate = new Date(from);
+        startDate.setHours(0, 0, 0, 0);
+
+        const endDate = new Date(to);
+        endDate.setHours(23, 59, 59, 999);
+      
+
         // Get completed orders within the period
         const orders = await OrderModel.findAll({
             where: {
@@ -2252,7 +2239,6 @@ const GetEarningByServices = async (req, res) => {
             },
             transaction
         });
-
 
         if (!orders || orders.length === 0) {
             return res.status(404).json({ status: 404, message: "No orders found." });
@@ -2275,15 +2261,13 @@ const GetEarningByServices = async (req, res) => {
             return acc;
         }, {});
 
-
-
         // Convert grouped object to array
         const response = Object.values(groupedOrders);
 
         const earningsByServiceProvider = {};
 
         response.forEach(order => {
-            const serviceProviderName = order.orderserviceprovider[0].service_provider.name.trim();
+            const serviceProviderName = order.orderserviceprovider[0].service_provider?.name.trim();
             const amountPaid = parseFloat(order.piadamt);
 
             if (!earningsByServiceProvider[serviceProviderName]) {
@@ -2297,8 +2281,7 @@ const GetEarningByServices = async (req, res) => {
             earningsByServiceProvider[serviceProviderName].total_amount += amountPaid;
         });
 
-        console.log(earningsByServiceProvider);
-
+       
         return res.status(200).json({ status: 200, data: earningsByServiceProvider });
     } catch (error) {
         console.error("🚨 Transaction failed:", error.message);
