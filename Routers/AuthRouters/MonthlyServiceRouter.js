@@ -42,6 +42,7 @@ router.get("/addCheckInCheckOutLateTime", MonthlyServiceController.AddCheckInChe
 router.put("/master-update/:orderNo", MonthlyServiceController.MasterUpdateMonthlyService)
 router.delete("/master-delete/:orderNo", AuthenticateToken, MonthlyServiceController.MasterDeleteMonthlyService)
 router.get("/getLatestMonthlyServices", MonthlyServiceController.GetLatestMonthlyServices)
+router.get("/GetLatestMonthlyServiceByOrderNo/:orderNo/:date", MonthlyServiceController.GetLatestMonthlyServiceByOrderNo)
 
 
 

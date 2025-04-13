@@ -1654,6 +1654,51 @@ const GetLatestMonthlyServices = async (req, res) => {
     }
 };
 
+
+const GetLatestMonthlyServiceByOrderNo = async (req, res) => {
+    try {
+        const { orderNo, date } = req.params;
+
+        // Validate the orderNo parameter
+        if (!orderNo) {
+            return res.status(400).json({ status: 400, message: "Order number is required" });
+        }
+
+        // Get the latest record for the given order number
+        const latestRecord = await MonthlyServiceModel.findOne({
+            where: { orderNo },
+            order: [['feesPaidDateTime', 'DESC']]
+        });
+
+        if (!latestRecord) {
+            return res.status(404).json({ status: 404, message: "No record found for the given order number" });
+        }
+
+        // Compare the provided date with the latest record's feesPaidDateTime
+        const isDateEqual = latestRecord.feesPaidDateTime === date;
+        if(isDateEqual){
+            return res.status(200).json({ 
+                status: 200, 
+                isDateEqual: isDateEqual 
+            });
+        }else{
+            return res.status(201).json({ 
+                status: 200, 
+                isDateEqual: isDateEqual 
+            });
+        }
+
+     
+    } catch (error) {
+        console.error("Error fetching latest monthly service by order number:", error);
+        return res.status(500).json({ 
+            status: 500, 
+            message: "Internal Server Error", 
+            error: error.message 
+        });
+    }
+};
+
 module.exports = {
 	AddMonthlyService,
 	GetAllMonthlyService,
@@ -1669,5 +1714,6 @@ module.exports = {
     AddCheckInCheckOutLateTime,
     MasterUpdateMonthlyService,
     MasterDeleteMonthlyService,
-    GetLatestMonthlyServices
+    GetLatestMonthlyServices,
+    GetLatestMonthlyServiceByOrderNo
 }
