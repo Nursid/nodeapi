@@ -589,12 +589,12 @@ const GetOrderUpdate = async (req, res) => {
                     });
             
                     if (existingAvailability) {
-                        if (existingAvailability[updateData.allot_time_range]) {
+                        // if (existingAvailability[updateData.allot_time_range]) {
                             // Update the existing availability record with new slots
                             await existingAvailability.update(updatedSlots, { transaction });
-                        } else {
-                            throw new Error('Service Provider Not Available');
-                        }
+                        // } else {
+                        //     throw new Error('Service Provider Not Available');
+                        // }
                     } else {
                         // If availability record doesn't exist, create a new one
                         await Availability.create(
@@ -1740,6 +1740,7 @@ const GetOrderReports = async (req, res) => {
 	  res.status(500).json({ error: "Internal Error" }); // Changed to 500 for server errors
 	}
 };
+
 const OrderCheckIn = async (req, res) => {
     const transaction = await sequelize.transaction(); // Start a transaction
 
@@ -1750,8 +1751,27 @@ const OrderCheckIn = async (req, res) => {
         }
         data.pending = 4;
 
-        // let date = new Date();
+        let date = new Date();
         // let currentDate = date.toISOString().split('T')[0]; 
+        // let date = new Date();
+
+        // Convert the date to Kolkata time zone (IST) without milliseconds
+        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
+  
+        // Extract the hours and minutes
+        let timeParts = kolkataTime.split(', ')[1].split(':');
+        let hours = parseInt(timeParts[0]);
+        let minutes = parseInt(timeParts[1]);     
+        //   let hours = 7
+        // let minutes = 40 
+  
+        // Check if the time is between 6:00 PM and 6:00 AM
+        let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
+        let isBeforeSixAM = (hours < 6); // 6 AM is less than 6 in 24-hour format
+  
+        if (isAfterSixPM || isBeforeSixAM) {
+            return  res.status(202).json({status: false, message: "Invailid Time To Check In" });
+        }
 
         const today = new Date();
         const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
@@ -1789,12 +1809,6 @@ const OrderCheckIn = async (req, res) => {
 
         const orderDetails = response[0]; // Access first object
 
-        // const checkInTime = checkTimeRange(orderDetails.allot_time_range);
-        // if(checkInTime){
-        //     await transaction.rollback();
-        //     return res.status(202).json({ error: true, message: checkInTime });
-        // }
-
         if (orderDetails.bookdate !== currentDate) {
             await transaction.rollback();
             return res.status(202).json({ status: false, message: "Invalid Date To Check-In" });
@@ -1820,46 +1834,46 @@ const OrderCheckIn = async (req, res) => {
             throw new Error(`Order ${data?.order_no} not updated`);
         }
 
-        // const allOrders = await Promise.all(
-        //     empIds.map(async ({ id, name }) => {
-        //         const orders = await OrderModel.findAll({
-        //             include: {
-        //                 model: OrderServiceProviders,
-        //                 include: { model: ServiceProviderModel, attributes: ['id', 'name'] },
-        //                 where: { service_provider_id: id },
-        //             },
-        //             attributes: ['order_no', 'bookdate', 'checkintime', 'checkouttime'],
-        //             where: { bookdate: currentDate, pending: 4 }
-        //         });
+        const allOrders = await Promise.all(
+            empIds.map(async ({ id, name }) => {
+                const orders = await OrderModel.findAll({
+                    include: {
+                        model: OrderServiceProviders,
+                        include: { model: ServiceProviderModel, attributes: ['id', 'name'] },
+                        where: { service_provider_id: id },
+                    },
+                    attributes: ['order_no', 'bookdate', 'checkintime', 'checkouttime'],
+                    where: { bookdate: currentDate, pending: 4 }
+                });
         
-        //         const pendingCheckouts = orders
-        //             .filter(order => order.checkouttime === null)
-        //             .map(order => `${name} service provider has not checked out from order ${order.order_no}. Please check out first.`);
+                const pendingCheckouts = orders
+                    .filter(order => order.checkouttime === null)
+                    .map(order => `${name} service provider has not checked out from order ${order.order_no}. Please check out first.`);
         
-        //         return {
-        //             serviceProvider: name,
-        //             orders,
-        //             messages: pendingCheckouts
-        //         };
-        //     })
-        // );
+                return {
+                    serviceProvider: name,
+                    orders,
+                    messages: pendingCheckouts
+                };
+            })
+        );
         
-        // // Flatten messages and filter out empty ones
-        // const pendingMessages = allOrders.flatMap(order => order.messages).filter(msg => msg.length > 0);
+        // Flatten messages and filter out empty ones
+        const pendingMessages = allOrders.flatMap(order => order.messages).filter(msg => msg.length > 0);
         
-        // // If there are pending checkouts, concatenate names and return message
-        // if (pendingMessages.length > 0) {
-        //     const names = allOrders
-        //         .filter(order => order.messages.length > 0)
-        //         .map(order => order.serviceProvider)
-        //         .join(', ');
+        // If there are pending checkouts, concatenate names and return message
+        if (pendingMessages.length > 0) {
+            const names = allOrders
+                .filter(order => order.messages.length > 0)
+                .map(order => order.serviceProvider)
+                .join(', ');
         
-        //     await transaction.rollback();
-        //     return res.status(202).json({
-        //         error: true,
-        //         message: pendingMessages
-        //     });
-        // }
+            await transaction.rollback();
+            return res.status(202).json({
+                error: true,
+                message: pendingMessages
+            });
+        }
 
         const isUpdated = await OrderModel.update(
             { pending: 4, checkintime: data.checkintime },
@@ -2293,7 +2307,6 @@ const GetEarningByServices = async (req, res) => {
         });
     }
 };
-
 
 
 
