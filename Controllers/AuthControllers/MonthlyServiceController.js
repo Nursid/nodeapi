@@ -759,8 +759,8 @@ const MonthlyServiceCheckOut = async (req, res) => {
 
 
         // Extract the current date without time
-        const currentDate = date.toLocaleDateString("en-US", { timeZone: "Asia/Kolkata" });
-        const kolkataDate = moment(currentDate).format("YYYY-MM-DD");
+        const currentDate = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+        const kolkataDate = moment(currentDate, "YYYY-MM-DD").format("YYYY-MM-DD");
 
         // Compare the dates
         if (kolkataDate > data.feesPaidDateTime) {
