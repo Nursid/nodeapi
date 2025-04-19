@@ -2223,7 +2223,7 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
 const GetEarningByServices = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
-        const { from, to } = req.body; // Extract from and to dates from request body
+        const { from, to, serviceProvider } = req.body; // Extract from, to dates and serviceProvider from request body
 
         if (!from || !to) {
             return res.status(400).json({ status: 400, message: "From and To dates are required." });
@@ -2278,11 +2278,23 @@ const GetEarningByServices = async (req, res) => {
         // Convert grouped object to array
         const response = Object.values(groupedOrders);
 
-        const earningsByServiceProvider = {};
+        let earningsByServiceProvider = {};
 
         response.forEach(order => {
-            const serviceProviderName = order.orderserviceprovider[0].service_provider?.name.trim();
-            const amountPaid = parseFloat(order.piadamt);
+            // Check if orderserviceprovider exists and has valid service_provider
+            if (!order.orderserviceprovider || 
+                !order.orderserviceprovider[0] || 
+                !order.orderserviceprovider[0].service_provider) {
+                return; // Skip this order if service_provider is missing
+            }
+            
+            const serviceProviderName = order.orderserviceprovider[0].service_provider.name.trim();
+            const amountPaid = parseFloat(order.piadamt) || 0;
+
+            // If a specific service provider is requested, skip others
+            if (serviceProvider && serviceProviderName !== serviceProvider) {
+                return;
+            }
 
             if (!earningsByServiceProvider[serviceProviderName]) {
                 earningsByServiceProvider[serviceProviderName] = {
