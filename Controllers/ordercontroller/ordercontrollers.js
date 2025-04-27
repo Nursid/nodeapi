@@ -1536,7 +1536,7 @@ const GetOrderByOrderNo = async (req, res) => {
 		const order_no = req.params.order_no
 
 		const orders = await OrderModel.findOne({
-			attributes: ['pending','service_name'],
+			attributes: ['pending','service_name', 'piadamt'],
 			include: {
 				model: NewCustomerModel,
 				attributes: ['name']
@@ -2220,105 +2220,7 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
         }
     }
 };
-const GetEarningByServices = async (req, res) => {
-    const transaction = await sequelize.transaction();
-    try {
-        const { from, to, serviceProvider } = req.body; // Extract from, to dates and serviceProvider from request body
 
-        if (!from || !to) {
-            return res.status(400).json({ status: 400, message: "From and To dates are required." });
-        }
-
-        const startDate = new Date(from);
-        startDate.setHours(0, 0, 0, 0);
-
-        const endDate = new Date(to);
-        endDate.setHours(23, 59, 59, 999);
-      
-
-        // Get completed orders within the period
-        const orders = await OrderModel.findAll({
-            where: {
-                pending: 3,
-                bookdate: {
-                    [Sequelize.Op.between]: [startDate, endDate]
-                }
-            },
-            include: {
-                model: OrderServiceProviders,
-                include:{
-                    model: ServiceProviderModel,
-                    attributes: ['name']
-                }
-            },
-            transaction
-        });
-
-        if (!orders || orders.length === 0) {
-            return res.status(404).json({ status: 404, message: "No orders found." });
-        }
-
-        // Group orders by order_no
-        const groupedOrders = orders.reduce((acc, current) => {
-            const orderNo = current.order_no;
-
-            if (!acc[orderNo]) {
-                acc[orderNo] = {
-                    ...current.dataValues,
-                    orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
-                };
-            } else {
-                // If the order_no already exists, merge orderserviceprovider
-                acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
-            }
-
-            return acc;
-        }, {});
-
-        // Convert grouped object to array
-        const response = Object.values(groupedOrders);
-
-        let earningsByServiceProvider = {};
-
-        response.forEach(order => {
-            // Check if orderserviceprovider exists and has valid service_provider
-            if (!order.orderserviceprovider || 
-                !order.orderserviceprovider[0] || 
-                !order.orderserviceprovider[0].service_provider) {
-                return; // Skip this order if service_provider is missing
-            }
-            
-            const serviceProviderName = order.orderserviceprovider[0].service_provider.name.trim();
-            const amountPaid = parseFloat(order.piadamt) || 0;
-
-            // If a specific service provider is requested, skip others
-            if (serviceProvider && serviceProviderName !== serviceProvider) {
-                return;
-            }
-
-            if (!earningsByServiceProvider[serviceProviderName]) {
-                earningsByServiceProvider[serviceProviderName] = {
-                    total_service: 0,
-                    total_amount: 0
-                };
-            }
-
-            earningsByServiceProvider[serviceProviderName].total_service += 1;
-            earningsByServiceProvider[serviceProviderName].total_amount += amountPaid;
-        });
-
-       
-        return res.status(200).json({ status: 200, data: earningsByServiceProvider });
-    } catch (error) {
-        console.error("🚨 Transaction failed:", error.message);
-        await transaction.rollback();
-        return res.status(500).json({ 
-            status: false, 
-            message: "Internal Server Error", 
-            error: error.message 
-        });
-    }
-};
 
 
 
@@ -2353,5 +2255,4 @@ module.exports = {
 	OrderCheckIn,
 	AssignServiceProviderAvailability,
     AddCheckInCheckOutLateTime,
-    GetEarningByServices
 }
