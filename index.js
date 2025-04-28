@@ -53,7 +53,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 // Routes section
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
   res.status(200).json({message: "Welcome to the API"});
@@ -82,6 +82,6 @@ app.use("/complain",complain)
 app.use("/attendance",Attendance)
 
 // Start the server
-app.listen(5000, () => {
-  console.log(`Server started at port 5000`);
+app.listen(3000, () => {
+  console.log(`Server started at port 3000`);
 });
