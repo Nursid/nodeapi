@@ -66,6 +66,7 @@ db.SupervisorAttendance = require("./AttendanceModels/SupervisorAttendance")(seq
 
 db.ServiceProviderAttendance = require("./AttendanceModels/ServiceProviderAttendance")(sequelize, DataTypes)
 db.SupervisorAvailability = require("./SupervisorAvailability")(sequelize, DataTypes)
+db.FeedbackModel = require("./FeedBackModel")(sequelize, DataTypes)
 
 
 

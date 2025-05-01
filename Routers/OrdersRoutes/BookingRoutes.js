@@ -26,7 +26,8 @@ const {
 	OrderAssingSupervisor,
 	GetOrderReports,
 	AssignServiceProviderAvailability,
-	AddCheckInCheckOutLateTime
+	AddCheckInCheckOutLateTime,
+	MostBooKService
 } = require("../../Controllers/ordercontroller/ordercontrollers");
 
 const AuthenticateToken = require('../../Middleware/AuthenticateToken')
@@ -63,5 +64,6 @@ router.put("/check-in", OrderCheckIn)
 router.put("/check-out", OrderCheckOut)
 router.put("/assign-service-provider", AssignServiceProviderAvailability)
 router.get("/addcheckincheckoutlatetime", AddCheckInCheckOutLateTime)
+router.get("/mostbookservice", MostBooKService)
 
 module.exports = router;

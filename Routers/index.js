@@ -5,6 +5,8 @@ const AvailabilityController = require("../Controllers/AvailabilityController")
 const LocationModel = require("../Controllers/misc/LocationController")
 const supervisorAvailabilityController = require("../Controllers/SupervisorAvailabilityController")
 
+const FeedbackController = require("../Controllers/FeedBackConctroller")
+
 
 router.get('/account-listing',AccountController.ListingAccount);
 router.post('/add-balance',AccountController.AddBalance);
@@ -32,6 +34,9 @@ router.post("/supervisor-availability/attendance/:empId", supervisorAvailability
 //  Location API
 
 router.get("/location-listing",LocationModel.ListingLocation )
+
+router.post("/feedback", FeedbackController.AddFeedback)
+router.get("/feedback", FeedbackController.GetAllFeedback)
 
 
     

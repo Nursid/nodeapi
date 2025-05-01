@@ -2044,7 +2044,6 @@ function convertSlotsTo12Hour(slots) {
     });
 }
 
-
 const AddCheckInCheckOutLateTime = async (req, res) => {
     const transaction = await sequelize.transaction();
     try {
@@ -2221,6 +2220,33 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
     }
 };
 
+const MostBooKService = async (req, res) => {
+    try {
+        const mostBookedServices = await OrderModel.findAll({
+            attributes: [
+                'service_name',
+                [Sequelize.fn('COUNT', Sequelize.col('service_name')), 'service_count']
+            ],
+            group: ['service_name'],
+            order: [[Sequelize.literal('service_count'), 'DESC']],
+            limit: 10
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: mostBookedServices
+        });
+    } catch (error) {
+        console.error("Error fetching most booked services:", error.message);
+        return res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+            error: error.message
+        });
+    }
+}
+
+
 
 
 
@@ -2255,4 +2281,5 @@ module.exports = {
 	OrderCheckIn,
 	AssignServiceProviderAvailability,
     AddCheckInCheckOutLateTime,
+    MostBooKService
 }
