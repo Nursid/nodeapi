@@ -52,13 +52,14 @@ const GetAllAvailability = async (req, res) => {
             const startDate = new Date(from);
             const endDate = new Date(to);
             whereConditions.date = { [Op.between]: [startDate, endDate] };
+            targetDate = from; // Use from date as targetDate for date range
         } else if (filterDate) {
             targetDate = new Date(filterDate);
             whereConditions.date = filterDate;
         } else {
             let date = new Date();
             const options = { timeZone: "Asia/Kolkata", year: 'numeric', month: '2-digit', day: '2-digit' };
-            const targetDate = new Intl.DateTimeFormat('en-CA', options).format(date);
+            targetDate = new Intl.DateTimeFormat('en-CA', options).format(date);
             // targetDate = new Date();
             whereConditions.date = targetDate.split('T')[0];
         }
@@ -86,13 +87,28 @@ const GetAllAvailability = async (req, res) => {
             '05:00-05:30', '05:30-06:00'
         ];
 
+        // Convert targetDate to string format if it's a Date object
+        const dateStr = typeof targetDate === 'object' ? 
+            targetDate.toISOString().split('T')[0] : 
+            (whereConditions.date && typeof whereConditions.date !== 'object' ? 
+                whereConditions.date : 
+                targetDate);
+
         const providers = providersWithAvailabilities.map(provider => {
             const plainProvider = provider.get({ plain: true });
+            
+            // Add date to all providers regardless of availability status
+            plainProvider.date = dateStr;
         
             if (plainProvider.availabilities.length === 0) {
                 plainProvider.status = 'free';
             } else {
                 const availability = plainProvider.availabilities[0];
+                
+                // If there's a specific availability date, use that instead
+                if (availability.date) {
+                    plainProvider.date = availability.date;
+                }
         
                 if (timeSlots.every(slot => availability[slot] === 'Full day Leave')) {
                     plainProvider.status = 'leave';
