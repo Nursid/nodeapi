@@ -1619,6 +1619,126 @@ const MasterDeleteMonthlyService = async (req, res) => {
     }
 };
 
+const MasterHoldMonthlyService = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    const { orderNo } = req.params;
+
+    try {
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date();
+        const formattedToday = today.toISOString().split('T')[0];
+
+        // Find all service entries for the order number with date today or later
+        const isService = await MonthlyServiceModel.findAll({
+            where: { 
+                orderNo: orderNo,
+                feesPaidDateTime: {
+                    [db.Sequelize.Op.gte]: formattedToday
+                }
+            }
+        });
+
+        if (!isService || isService.length === 0) {
+            await transaction.rollback();
+            return res.status(404).json({ status: false, message: "No future orders found." });
+        }
+
+        let slotsUpdates = [];
+
+        await Promise.all(
+            isService.map(async (item) => {
+                try {
+                    const providerNamesBefore = item.service_provider.split(',').map(sp => sp.trim());
+
+                    await Promise.all(
+                        providerNamesBefore.map(async (serviceProviderName) => {
+                            try {
+                                const serviceProviderRecord = await ServiceProviderModel.findOne({
+                                    attributes: ['id'],
+                                    where: { name: serviceProviderName }
+                                });
+
+                                if (!serviceProviderRecord) {
+                                    throw new Error(`Service provider not found: ${serviceProviderName}`);
+                                }
+
+                                const servicepId = serviceProviderRecord.id;
+
+                                const existing = await AvailabilityModel.findOne({
+                                    where: { emp_id: servicepId, date: item.feesPaidDateTime }
+                                });
+
+                                const selectedTimeSlots = Array.isArray(item.selectedTimeSlot)
+                                    ? item.selectedTimeSlot
+                                    : item.selectedTimeSlot.split(',');
+
+                                const updatePayload = {};
+
+                                for (const slot of selectedTimeSlots) {
+                                    if (!AllTimeSlots.includes(slot.trim())) {
+                                        throw new Error(`Invalid time slot selected: ${slot}`);
+                                    }
+                                    updatePayload[slot.trim()] = null;
+                                }
+
+                                slotsUpdates.push({
+                                    updatePayload,
+                                    serviceProviderName,
+                                    feesPaidDateTime: item.feesPaidDateTime
+                                });
+
+                                const updatedAvailability = await AvailabilityModel.update(updatePayload, {
+                                    where: {
+                                        emp_id: servicepId,
+                                        date: item.feesPaidDateTime
+                                    }
+                                });
+
+                                if (!updatedAvailability) {
+                                    throw new Error('Failed to update availability!');
+                                }
+                            } catch (innerError) {
+                                console.error(`Error updating provider ${serviceProviderName}:`, innerError.message);
+                                throw innerError;
+                            }
+                        })
+                    );
+                } catch (serviceError) {
+                    console.error(`Error processing service ${item.id}:`, serviceError.message);
+                    throw serviceError;
+                }
+            })
+        );
+
+        // Update pending status to 1 instead of destroying records
+        await MonthlyServiceModel.update(
+            { pending: 1 },
+            { 
+                where: { 
+                    orderNo: orderNo,
+                    feesPaidDateTime: {
+                        [db.Sequelize.Op.gte]: formattedToday
+                    }
+                },
+                transaction 
+            }
+        );
+
+        await transaction.commit();
+        return res.status(200).json({ 
+            status: true, 
+            message: 'Monthly Service placed on hold!', 
+            orderNo: orderNo,
+            affectedDates: isService.map(item => item.feesPaidDateTime)
+        });
+
+    } catch (error) {
+        console.error("Transaction failed:", error.message);
+        await transaction.rollback();
+        return res.status(500).json({ status: false, message: "Internal Server Error", error: error.message });
+    }
+};
+
 const GetLatestMonthlyServices = async (req, res) => {
     try {
         // Get all unique order numbers
@@ -1715,5 +1835,6 @@ module.exports = {
     MasterUpdateMonthlyService,
     MasterDeleteMonthlyService,
     GetLatestMonthlyServices,
-    GetLatestMonthlyServiceByOrderNo
+    GetLatestMonthlyServiceByOrderNo,
+    MasterHoldMonthlyService
 }

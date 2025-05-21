@@ -45,6 +45,12 @@ router.get("/getLatestMonthlyServices", MonthlyServiceController.GetLatestMonthl
 router.get("/GetLatestMonthlyServiceByOrderNo/:orderNo/:date", MonthlyServiceController.GetLatestMonthlyServiceByOrderNo)
 
 
+router.put("/master-hold/:orderNo", MonthlyServiceController.MasterHoldMonthlyService)
+
+
+
+
+
 
 
 module.exports = router;
