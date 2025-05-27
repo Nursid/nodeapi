@@ -763,17 +763,17 @@ const MonthlyServiceCheckOut = async (req, res) => {
         const kolkataDate = moment(currentDate, "YYYY-MM-DD").format("YYYY-MM-DD");
 
         // Compare the dates
-        if (kolkataDate > data.feesPaidDateTime) {
-            await MonthlyServiceModel.update(data, {
-                where: {
-                    orderNo: orderID,
-                    feesPaidDateTime: data.feesPaidDateTime
-                },
-                transaction
-            });
-            await transaction.commit();
-            return res.status(200).json({ status: 200, message: "Checkout Successful!" });
-        }
+        // if (kolkataDate > data.feesPaidDateTime) {
+        //     await MonthlyServiceModel.update(data, {
+        //         where: {
+        //             orderNo: orderID,
+        //             feesPaidDateTime: data.feesPaidDateTime
+        //         },
+        //         transaction
+        //     });
+        //     await transaction.commit();
+        //     return res.status(200).json({ status: 200, message: "Checkout Successful!" });
+        // }
 
         // Fetch the monthly service
         const isService = await MonthlyServiceModel.findOne({
@@ -813,10 +813,16 @@ const MonthlyServiceCheckOut = async (req, res) => {
             // Generate time slots
             // const formattedTime = moment(isService.checkintime, "MM/DD/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
 
-            const formattedTime = moment(isService.checkintime, "DD/MM/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
+            // const formattedTime = moment(isService.checkintime, "DD/MM/YYYY, h:mm A").format("MM/DD/YYYY, hh:mm A");
+            const formattedTime = "2025-05-27, 07:00 AM";
+
+            console.log(formattedTime);
 
             // const currentDateTime = moment().tz("Asia/Kolkata").format("DD/MM/YYYY, hh:mm A");
-            const currentDateTime = moment2().tz("Asia/Kolkata").format("MM/DD/YYYY, hh:mm A");
+            // const currentDateTime = moment2().tz("Asia/Kolkata").format("MM/DD/YYYY, hh:mm A");
+            const currentDateTime = "2025-05-27, 08:00 AM";
+
+
             const formattedOrders = getTimeSlots(formattedTime, currentDateTime);
             const slots = convertSlotsTo12Hour(formattedOrders);
 
@@ -824,6 +830,8 @@ const MonthlyServiceCheckOut = async (req, res) => {
                 acc[slot] = `${isService.serviceType}-MonthlyService-${isService.cust_name}-completed`;
                 return acc;
             }, {});
+
+            console.log(JSON.stringify(updatedSlots));
 
             // Update the monthly service
             await MonthlyServiceModel.update(data, {
