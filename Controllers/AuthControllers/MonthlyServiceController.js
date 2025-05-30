@@ -7,7 +7,8 @@ const ServiceProviderModel = db.ServiceProviderModel
 const EmployeeModel = db.EmployeeModel
 const sequelize = require('../../config/sequalize');
 const moment2 = require('moment-timezone');
-const moment = require('moment');
+const moment = require('moment')
+const { Op, Sequelize } = require('sequelize');;
 
   // Define all time slots
 const AllTimeSlots = [
@@ -57,6 +58,31 @@ function convertSlotsTo12Hour(slots) {
     });
 }
 
+
+const getNextOrderNumber = async () => {
+	try {
+		const lastOrder = await MonthlyServiceModel.findOne({
+			order: [
+				[Sequelize.literal("CAST(SUBSTRING(orderNo, 7) AS UNSIGNED)"), 'DESC']
+			],
+			attributes: ['orderNo']
+		});
+
+		if (lastOrder && lastOrder.orderNo) {
+			const lastOrderNumber = lastOrder.orderNo; // e.g., MORDN-0035
+			const numericPart = parseInt(lastOrderNumber.split('-')[1], 10); // Extract 35
+			const nextOrderNumber = numericPart + 1;
+
+			return `MORDN-${String(nextOrderNumber).padStart(4, '0')}`; // e.g., MORDN-0036
+		}
+
+		// If no orders found
+		return 'MORDN-0001';
+	} catch (error) {
+		console.error('Error generating next order number:', error);
+		throw error;
+	}
+};
 
 
 const clearAvailability = async (orderID, feesPaidDateTime, transaction) => {
@@ -210,7 +236,13 @@ const AddMonthlyService = async (req, res) => {
                 Daily: 1
             }[serviceServeType] || 0;
             
-            let orderNumber = data.orderNo || await getNextOrderNumber();
+            let orderNumber;
+            if (data.orderNo) {
+                orderNumber = data.orderNo;
+            } else {
+                orderNumber = await getNextOrderNumber();
+            }
+
             let cycleCount = 0;
             for (let i = 0; i < 30; i += incrementDays) {
                 const formattedDate = currentDate.toISOString().split('T')[0];
@@ -348,7 +380,9 @@ const GetAllMonthlyService = async (req, res) => {
             date = new Date(dateParam);
         } else if (!customer || customer === "undefined" || customer === "null") {
             // If customer is null or undefined, set the date to the current date
-            date = new Date();
+            // Use Kolkata timezone for date
+           
+            date = new Date(moment().tz("Asia/Kolkata").format('YYYY-MM-DD'));
         }
 
         // Build query object
@@ -579,23 +613,6 @@ const UpdateMonthlyService = async (req, res) => {
 };
 
 
-const getNextOrderNumber = async () => {
-	const lastOrder = await MonthlyServiceModel.findOne({
-		order: [
-			['id', 'DESC']
-		],
-		attributes: ['orderNo']
-	});
-
-	if (lastOrder && lastOrder.orderNo) {
-		const lastOrderNumber = lastOrder.orderNo;
-		const orderNumberPart = parseInt(lastOrderNumber.split('-')[1]) + 1; // Extract the number and increment
-		return `MORDN-${
-			String(orderNumberPart).padStart(4, '0')
-		}`; // Format to MORDN-XXXX
-	}
-	return 'MORDN-0001'; // If no orders found, start with MORDN-0001
-};
 
 const MonthlyServiceAssign = async (req, res) => {
 	try {
@@ -998,7 +1015,7 @@ const MonthlyServiceHold = async (req, res) => {
             }
 
             // Get the selected time slots from the request body
-            const selectedTimeSlots = isService.selectedTimeSlot; // Assuming `selectedTimeSlots` is an array or comma-separated string
+            const selectedTimeSlots = isService.selectedTimeSlot;
 
             // Convert selectedTimeSlots to an array if it's a comma-separated string
             const timeSlotsArray = Array.isArray(selectedTimeSlots) ? selectedTimeSlots : selectedTimeSlots.split(',');
