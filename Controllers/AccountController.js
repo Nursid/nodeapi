@@ -48,25 +48,25 @@ const AddBalance = async (req, res) => {
 		const data = req.body;
 		data.date = moment(new Date()).format('YYYY-MM-DD');
 
-		// Check if the order_no exists
-		const existingAccount = await AccountModel.findOne({
-			where: { order_no: data?.order_no 
-			}
-			});
+		// // Check if the order_no exists
+		// const existingAccount = await AccountModel.findOne({
+		// 	where: { order_no: data?.order_no 
+		// 	}
+		// 	});
 
-		if (existingAccount) {
-			// If exists, update the existing record
-			await AccountModel.update(data, {
-				where: {
-					order_no: data?.order_no
-				}
-			});
-			return res.status(200).json({ status: true, message: "Amount Updated Successfully!" });
-		} else {
+		// if (existingAccount) {
+		// 	// If exists, update the existing record
+		// 	await AccountModel.update(data, {
+		// 		where: {
+		// 			order_no: data?.order_no
+		// 		}
+		// 	});
+		// 	return res.status(200).json({ status: true, message: "Amount Updated Successfully!" });
+		// } else {
 			// If not exists, create a new record
 			const newAccount = await AccountModel.create(data);
 			return res.status(200).json({ status: true, message: "Amount Added Successfully!" });
-		}
+		// }
 	} catch (error) {
 		console.error('Error:', error); // Log the error for debugging
 		res.status(400).json({ message: "Invalid URL or data" });

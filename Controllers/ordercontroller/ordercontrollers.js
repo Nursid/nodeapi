@@ -334,7 +334,7 @@ const GetOrderNow = async (req, res) => {
         await handleSupervisor(formdata, order, transaction);
 
         await transaction.commit();
-        return res.status(200).json({ status: true, message: 'Order created successfully.' });
+        return res.status(200).json({ status: true, message: 'Order created successfully.', orderNo: orderNumber });
     } catch (error) {
         await transaction.rollback();
         return res.status(500).json({ error: true, message: error.message });
