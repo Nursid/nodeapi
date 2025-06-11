@@ -1291,17 +1291,42 @@ const MasterUpdateMonthlyService = async (req, res) => {
     const transaction = await sequelize.transaction();
     const data = req.body;
     const { orderNo } = req.params;
-    console.log(data)
+    console.log('Request data:', data);
+    console.log('Order No:', orderNo);
 
     try {
+        // Validate required parameters
+        if (!orderNo) {
+            await transaction.rollback();
+            return res.status(400).json({ status: false, message: "Order number is required" });
+        }
+
+        if (!data || Object.keys(data).length === 0) {
+            await transaction.rollback();
+            return res.status(400).json({ status: false, message: "Request body is required" });
+        }
+
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date();
+        const formattedToday = today.toISOString().split('T')[0];
+
         const isService = await MonthlyServiceModel.findAll({
-            where: { orderNo: orderNo }
+            where: { 
+                orderNo: orderNo,
+                feesPaidDateTime: {
+                    [Op.gte]: formattedToday
+                }
+            }
         });
 
         if (!isService || isService.length === 0) {
-            return res.status(201).json({ status: false, message: "No orders found." });
-        }
+            await transaction.rollback();
+            return res.status(404).json({ status: false, message: "No orders found." });
+        }      
+
+
         let slotsUpdates = []
+        console.log('Starting availability cleanup for existing bookings...');
 
         await Promise.all(
             isService.map(async (item) => {
@@ -1315,10 +1340,14 @@ const MasterUpdateMonthlyService = async (req, res) => {
                         });
 
                         if (!serviceProviderRecord) {
-                            throw new Error(`Service provider not found: ${serviceProviderName}`);
+                           return;
                         }
 
                         const servicepId = serviceProviderRecord.id;
+
+                        if (!servicepId) {
+                            return;
+                        }
 
                         const existing = await AvailabilityModel.findOne({
                             where: { emp_id: servicepId, date: item.feesPaidDateTime }
@@ -1375,12 +1404,21 @@ const MasterUpdateMonthlyService = async (req, res) => {
         }
 
         // Fetch customer ID
-        const user = await CustomerModel.findOne({ where: { mobileno: data.mobile_no } });
+        let user;
+        try {
+            user = await CustomerModel.findOne({ where: { mobileno: data.mobile_no } });
+        } catch (dbError) {
+            console.error('Database error while fetching customer:', dbError);
+            await transaction.rollback();
+            return res.status(500).json({ status: false, message: "Database error while fetching customer", error: { message: dbError.message } });
+        }
+        
         if (!user){
           await transaction.rollback();
-         return res.status(201).json({ status: false, message: "This Customer does not exist" });
+         return res.status(404).json({ status: false, message: "This Customer does not exist" });
         }
         data.user_id = user.id;
+        console.log('Customer validation completed, user_id:', data.user_id);
 
         const { 
             serviceServeType, 
@@ -1390,32 +1428,82 @@ const MasterUpdateMonthlyService = async (req, res) => {
             supervisor 
         } = data;
 
-        const selectedTimeSlots = selectedTimeSlot.split(',').map(item => item.trim());;
+        // Validate required fields
+        if (!service_provider) {
+            await transaction.rollback();
+            return res.status(400).json({ status: false, message: "Service provider is required" });
+        }
+
+        if (!serviceType) {
+            await transaction.rollback();
+            return res.status(400).json({ status: false, message: "Service type is required" });
+        }
+
+        if (!selectedTimeSlot) {
+            await transaction.rollback();
+            return res.status(400).json({ status: false, message: "Selected time slot is required" });
+        }
+
+        if (!supervisor) {
+            await transaction.rollback();
+            return res.status(400).json({ status: false, message: "Supervisor is required" });
+        }
+
+        if (!data.mobile_no) {
+            await transaction.rollback();
+            return res.status(400).json({ status: false, message: "Mobile number is required" });
+        }
+
+        if (!data.cust_name) {
+            await transaction.rollback();
+            return res.status(400).json({ status: false, message: "Customer name is required" });
+        }
+
+        const selectedTimeSlots = selectedTimeSlot.split(',').map(item => item.trim());
         const providerNames = service_provider.split(',').map(item => item.trim());
 
+        
+
         // Fetch service provider IDs
-        const serviceProviderIds = await Promise.all(
-            providerNames.map(async name => {
-                const provider = await ServiceProviderModel.findOne({ where: { name } });
-                return provider?.id || null;
-            })
-        );
+        let serviceProviderIds;
+        try {
+            serviceProviderIds = await Promise.all(
+                providerNames.map(async name => {
+                    const provider = await ServiceProviderModel.findOne({ where: { name: name.trim() } });
+                    return provider?.id || null;
+                })
+            );
+        } catch (dbError) {
+            console.error('Database error while fetching service providers:', dbError);
+            await transaction.rollback();
+            return res.status(500).json({ status: false, message: "Database error while fetching service providers", error: { message: dbError.message } });
+        }
 
         const validProviderIds = serviceProviderIds.filter(Boolean);
         if (validProviderIds.length === 0) {
-            return res.status(201).json({ status: false, message: "This Service Provider does not exist" });
+            await transaction.rollback();
+            return res.status(404).json({ status: false, message: "No valid service providers found" });
         }
 
         // Fetch supervisor data
-        const supervisorData = await EmployeeModel.findOne({ where: { name: supervisor } });
+        let supervisorData;
+        try {
+            supervisorData = await EmployeeModel.findOne({ where: { name: supervisor.trim() } });
+        } catch (dbError) {
+            console.error('Database error while fetching supervisor:', dbError);
+            await transaction.rollback();
+            return res.status(500).json({ status: false, message: "Database error while fetching supervisor", error: { message: dbError.message } });
+        }
 
         if (!supervisorData) {
-            return res.status(201).json({ status: false, message: "Supervisor does not exist" });
+            await transaction.rollback();
+            return res.status(404).json({ status: false, message: "Supervisor does not exist" });
         }
 
         const availabilityEntries = [];
         const supervisorEntries = [];
         const monthlyEntries = [];
+        console.log('Starting to build entries for update...');
 
         await Promise.all(
             isService.map(async (item) => {
@@ -1487,59 +1575,85 @@ const MasterUpdateMonthlyService = async (req, res) => {
 
 
               // Update availability entries
-              await Promise.all(
-                mergedServiceProviderEntries.map(async entry => {
-                    const existing = await AvailabilityModel.findOne({
-                        where: { emp_id: entry.emp_id, date: entry.date },
-                        transaction
-                    });
+              try {
+                  await Promise.all(
+                    mergedServiceProviderEntries.map(async entry => {
+                        const existing = await AvailabilityModel.findOne({
+                            where: { emp_id: entry.emp_id, date: entry.date },
+                            transaction
+                        });
 
-                    if (existing) {
-                        await existing.update(entry, { transaction });
-                    } else {
-                        await AvailabilityModel.create(entry, { transaction });
-                    }
-                })
-            );
+                        if (existing) {
+                            await existing.update(entry, { transaction });
+                        } else {
+                            await AvailabilityModel.create(entry, { transaction });
+                        }
+                    })
+                );
+              } catch (dbError) {
+                  console.error('Database error while updating availability entries:', dbError);
+                  throw new Error(`Failed to update availability entries: ${dbError.message}`);
+              }
 
-            await Promise.all(
-                mergedSupervisorEntries.map(async entry => {
-                    const existing = await SupervisorAvailability.findOne({
-                        where: { emp_id: entry.emp_id, date: entry.date },
-                        transaction
-                    });
+              try {
+                await Promise.all(
+                    mergedSupervisorEntries.map(async entry => {
+                        const existing = await SupervisorAvailability.findOne({
+                            where: { emp_id: entry.emp_id, date: entry.date },
+                            transaction
+                        });
 
-                    if (existing) {
-                        await existing.update(entry, { transaction });
-                    } else {
-                        await SupervisorAvailability.create(entry, { transaction });
-                    }
-                })
-            );
+                        if (existing) {
+                            await existing.update(entry, { transaction });
+                        } else {
+                            await SupervisorAvailability.create(entry, { transaction });
+                        }
+                    })
+                );
+              } catch (dbError) {
+                  console.error('Database error while updating supervisor entries:', dbError);
+                  throw new Error(`Failed to update supervisor entries: ${dbError.message}`);
+              }
 
             // Update monthly service entries
-            await Promise.all(
-                monthlyEntries.map(async entry => {
-                    const existing = await MonthlyServiceModel.findOne({
-                        where: { orderNo: orderNo, feesPaidDateTime: entry.feesPaidDateTime },
-                        transaction
-                    });
+            try {
+                await Promise.all(
+                    monthlyEntries.map(async entry => {
+                        const existing = await MonthlyServiceModel.findOne({
+                            where: { orderNo: orderNo, feesPaidDateTime: entry.feesPaidDateTime },
+                            transaction
+                        });
 
-                    if (existing) {
-                        await existing.update(entry, { transaction });
-                    } else {
-                        await MonthlyServiceModel.create(entry, { transaction });
-                    }
-                })
-            );
+                        if (existing) {
+                            await existing.update(entry, { transaction });
+                        } else {
+                            await MonthlyServiceModel.create(entry, { transaction });
+                        }
+                    })
+                );
+            } catch (dbError) {
+                console.error('Database error while updating monthly service entries:', dbError);
+                throw new Error(`Failed to update monthly service entries: ${dbError.message}`);
+            }
 
             await transaction.commit();
+            console.log('Monthly Service Update completed successfully');
             return res.status(200).json({ status: true, message: 'Monthly Service Updated!', slotsUpdates });
 
     } catch (error) {
-        console.error(error);
+        console.error('MasterUpdateMonthlyService Error:', error);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+        
         await transaction.rollback();
-        return res.status(500).json({ status: false, message: "Internal Server Error", error });
+        return res.status(500).json({ 
+            status: false, 
+            message: "Internal Server Error", 
+            error: {
+                message: error.message,
+                stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            }
+        });
     }
 };
 
