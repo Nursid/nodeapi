@@ -398,9 +398,11 @@ const GetAllMonthlyService = async (req, res) => {
         console.log("query-----------", query);
 
         // Query the database with the formatted date
-        const data = await MonthlyServiceModel.findAll({
-            where: query
-        });
+	const data = await MonthlyServiceModel.findAll({
+	    where: query,
+	    order: [['orderNo', 'ASC']]
+	});
+
 
         if (data.length > 0) {
             return res.status(200).json({ status: 200, data, query });
