@@ -399,7 +399,7 @@ async function createOrder(formdata, userId, orderNumber, transaction) {
         throw new Error("Order not placed! Try again");
     }
     return order;
-}
+    }
 
 async function handleServiceProviders(servicep_providers, order, formdata, transaction) {
     if (!servicep_providers || !Array.isArray(servicep_providers)) return;
@@ -412,7 +412,9 @@ async function handleServiceProviders(servicep_providers, order, formdata, trans
 
     await Promise.all(servicep_providers.map(async (providerId) => {
         await OrderServiceProviders.create(
-            { order_no: order.order_no, service_provider_id: providerId },
+            { order_no: order.order_no, service_provider_id: providerId,
+                status: "pending"
+            },
             { transaction }
         );
 
@@ -2246,6 +2248,90 @@ const MostBooKService = async (req, res) => {
     }
 }
 
+// POST /order/provider-response
+const OrderAcceptReject = async (req, res) => {
+    const { order_no, provider_id, action } = req.body; // action = 'accept' or 'reject'
+
+    try {
+        const providerEntry = await OrderServiceProviders.findOne({
+            where: { order_no, service_provider_id: provider_id }
+        });
+
+        if (!providerEntry) {
+            return res.status(404).json({ status: false, message: "No request found" });
+        }
+
+        if (action === "accept") {
+            await providerEntry.update({ status: "accepted" });
+
+            // 👇 Update main order table if required
+            await OrderModel.update(
+                { emp_id: provider_id, emp_status: 1 }, 
+                { where: { order_no } }
+            );
+
+            return res.json({ status: true, message: "Order accepted successfully" });
+        } 
+        else if (action === "reject") {
+            await providerEntry.update({ status: "rejected" });
+            return res.json({ status: true, message: "Order rejected" });
+        } 
+        else {
+            return res.status(400).json({ status: false, message: "Invalid action" });
+        }
+    } catch (err) {
+        return res.status(500).json({ status: false, message: err.message });
+    }
+};
+
+const UpdatePayment = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    const { order_no, piadamt, totalamt, payment_method } = req.body;
+
+    try{
+
+        const balance = totalamt - piadamt;
+
+       const order = await OrderModel.findOne({
+        include: {
+            model: NewCustomerModel,
+            attributes: ["name"]
+        },
+        where: { order_no }
+       })
+
+
+        if(!order){
+            return res.status(404).json({ status: false, message: "Order not found" });
+        }
+
+       await OrderModel.update({ piadamt, totalamt, paymethod:payment_method, netpayamt: balance },{
+        where: { order_no },
+        transaction
+       });
+
+       await AccountModel.create({
+        order_no,
+        person_name: order.NewCustomer.name,
+        about_payment: "Payment for order " + order.order_no,
+        type_payment: true,
+        amount: piadamt,
+        payment_mode: payment_method,
+        balance: balance,
+        date: new Date()
+       },{ transaction });
+
+       await transaction.commit();
+
+       return res.status(200).json({ status: true, message: "Payment updated successfully" });
+    }
+    catch(error){
+        await transaction.rollback();
+        return res.status(500).json({ status: false, message: error.message });
+    }
+
+
+}
 
 
 
@@ -2281,5 +2367,7 @@ module.exports = {
 	OrderCheckIn,
 	AssignServiceProviderAvailability,
     AddCheckInCheckOutLateTime,
-    MostBooKService
+    MostBooKService,
+    OrderAcceptReject,
+    UpdatePayment
 }
