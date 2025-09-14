@@ -385,6 +385,7 @@ async function generateOrderNumber(transaction) {
 
 async function createOrder(formdata, userId, orderNumber, transaction) {
     formdata.pending = 0;
+    formdata.service_status = "pending";
     formdata.order_no = orderNumber;
     formdata.cust_id = userId;
 
@@ -1752,7 +1753,6 @@ const OrderCheckIn = async (req, res) => {
             return res.status(400).json({ error: true, message: 'Order No is required' });
         }
         data.pending = 4;
-
         let date = new Date();
         // let currentDate = date.toISOString().split('T')[0]; 
         // let date = new Date();
@@ -2253,27 +2253,31 @@ const OrderAcceptReject = async (req, res) => {
     const { order_no, provider_id, action } = req.body; // action = 'accept' or 'reject'
 
     try {
-        const providerEntry = await OrderServiceProviders.findOne({
-            where: { order_no, service_provider_id: provider_id }
-        });
+        // const providerEntry = await OrderServiceProviders.findOne({
+        //     where: { order_no, service_provider_id: provider_id }
+        // });
 
-        if (!providerEntry) {
-            return res.status(404).json({ status: false, message: "No request found" });
-        }
+        // if (!providerEntry) {
+        //     return res.status(404).json({ status: false, message: "No request found" });
+        // }
 
         if (action === "accept") {
-            await providerEntry.update({ status: "accepted" });
+                // await providerEntry.update({ status: "accepted" });
 
             // 👇 Update main order table if required
             await OrderModel.update(
-                { emp_id: provider_id, emp_status: 1 }, 
+                {service_status: "accepted" }, 
                 { where: { order_no } }
             );
 
             return res.json({ status: true, message: "Order accepted successfully" });
         } 
         else if (action === "reject") {
-            await providerEntry.update({ status: "rejected" });
+            await OrderModel.update(
+                {service_status: "rejected" }, 
+                { where: { order_no } }
+            );
+            // await providerEntry.update({ status: "rejected" });
             return res.json({ status: true, message: "Order rejected" });
         } 
         else {
