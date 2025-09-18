@@ -4,7 +4,7 @@ const EmployeeModel = db.EmployeeModel
 const ServiceProvider = db.ServiceProviderModel
 const moment = require('moment');
 const { Op } = require('sequelize');
-
+const { hours , minutes } = require("../helpers/datefive");
 
 
 var AllLeaveSlots = {
@@ -370,17 +370,6 @@ const AddAttendance = async (req, res) => {
     try {
 
         let date = new Date();
-
-        // Convert the date to Kolkata time zone (IST) without milliseconds
-        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
-
-        // Extract the hours and minutes
-        let timeParts = kolkataTime.split(', ')[1].split(':');
-        let hours = parseInt(timeParts[0]);
-        let minutes = parseInt(timeParts[1]);
-        // let hours = 7
-        // let minutes = 40
-
 
         // Check if the time is between 6:00 PM and 6:00 AM
         let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format

@@ -9,6 +9,7 @@ const sequelize = require('../../config/sequalize');
 const moment2 = require('moment-timezone');
 const moment = require('moment')
 const { Op, Sequelize } = require('sequelize');;
+const { hours, minutes } = require("../../helpers/datefive");
 
   // Define all time slots
 const AllTimeSlots = [
@@ -394,14 +395,11 @@ const GetAllMonthlyService = async (req, res) => {
         if (customer && customer !== "undefined" && customer !== "null") {
             query.cust_name = customer;
         }
-
-        console.log("query-----------", query);
-
         // Query the database with the formatted date
-	const data = await MonthlyServiceModel.findAll({
-	    where: query,
-	    order: [['orderNo', 'ASC']]
-	});
+        const data = await MonthlyServiceModel.findAll({
+            where: query,
+            order: [['orderNo', 'ASC']]
+        });
 
 
         if (data.length > 0) {
@@ -757,16 +755,6 @@ const MonthlyServiceCheckOut = async (req, res) => {
         const data = req.body;
 
         let date = new Date();
-
-        // Convert the date to Kolkata time zone (IST) without milliseconds
-        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
-  
-        // Extract the hours and minutes
-        let timeParts = kolkataTime.split(', ')[1].split(':');
-        let hours = parseInt(timeParts[0]);
-        let minutes = parseInt(timeParts[1]);     
-        // let hours = 7
-        // let minutes = 40 
   
         // // Check if the time is between 6:00 PM and 6:00 AM
         // let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
@@ -1164,16 +1152,6 @@ const AddCheckInCheckOutLateTime = async (req, res) => {
         const formattedDate = new Intl.DateTimeFormat("en-CA", options).format(today);
 
         let date = new Date();
-
-        // Convert the date to Kolkata time zone (IST) without milliseconds
-        let kolkataTime = date.toLocaleString("en-US", { timeZone: "Asia/Kolkata", hour12: false });
-  
-        // Extract the hours and minutes
-        let timeParts = kolkataTime.split(', ')[1].split(':');
-        let hours = parseInt(timeParts[0]);
-        let minutes = parseInt(timeParts[1]);     
-        // let hours = 7
-        // let minutes = 40 
   
         // Check if the time is between 6:00 PM and 6:00 AM
         let isAfterSixPM = (hours >= 18); // 6 PM is 18 in 24-hour format
