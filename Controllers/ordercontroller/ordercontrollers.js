@@ -1289,27 +1289,74 @@ const GetOrderAssingwithStatus = async (req, res) => {
 		}
 
 		const orders = await OrderModel.findAll({
-			include: [{
-				model: NewCustomerModel,
-				attributes: ['name', 'email', 'mobileno'],
-				include: {
-					model: CustomerModel,
-					attributes: ['age', 'address', 'member_id'],
-				}
-			}],
+			include: [
+				{
+					model: NewCustomerModel,
+					attributes: ['name', 'email', 'mobileno'],
+					include: {
+						model: CustomerModel,
+						attributes: [
+							'user_id', 'gender', 'age', 'address', 'land_mark',
+							'location', 'tel_no', 'office_no', 'alternate_no',
+							'aadhar_no', 'occupation', 'designation', 'own_house',
+							'dob', 'doa', 'spouse_name', 'spouse_name1',
+							'spouse_dob1', 'spouse_name2', 'spouse_dob2',
+							'spouse_dob', 'image', 'service', 'service1',
+							'service2', 'service3', 'service4', 'service5',
+							'username', 'reference', 'familyMember', 'membership',
+							'is_approved', 'member_id', 'is_block', 'todate',
+							'validtodate', 'createdAt',
+						],
+					},
+				},
+				{
+					model: OrderServiceProviders,
+					include:{
+						model: ServiceProviderModel,
+						attributes: ['name'],
+						where: {
+							service_provider_id: sup_id
+						}
+					}
+				},
+			],
 			where: {
-				servicep_id: isServiceProvider.name,
 				pending: status_id
 			},
-			order: [
-				['id', 'DESC']
-			]
+			order: [['bookdate', 'DESC']],
 		});
 
-		res.status(200).json({status: 200, data: orders})
+		// Check if orders exist
+		if (!orders || orders.length === 0) {
+			return res.status(404).json({ status: 404, message: "No orders found." });
+		}
+
+		// Group orders by order_no
+		const groupedOrders = orders.reduce((acc, current) => {
+			const orderNo = current.order_no;
+
+			if (!acc[orderNo]) {
+				acc[orderNo] = {
+					...current.dataValues,
+					orderserviceprovider: [current.orderserviceprovider], // Initialize as an array
+				};
+			} else {
+				// If the order_no already exists, merge orderserviceprovider
+				acc[orderNo].orderserviceprovider.push(current.orderserviceprovider);
+			}
+
+			return acc;
+		}, {});
+
+		// Convert grouped object to array
+		const response = Object.values(groupedOrders);
+
+		// Respond with grouped orders data
+		res.status(200).json({ status: 200, data: response });
 
 	} catch (error) {
-		res.status(200).json("Internal Server Error");
+		console.error("Error in GetOrderAssingwithStatus:", error.message);
+		res.status(500).json({ status: 500, error: "Internal Server Error" });
 	}
 }
 
