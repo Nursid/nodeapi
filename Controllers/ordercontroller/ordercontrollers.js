@@ -1311,10 +1311,10 @@ const GetOrderAssingwithStatus = async (req, res) => {
 					include:{
 						model: ServiceProviderModel,
 						attributes: ['name'],
-						where: {
+					},
+					where: {
 							service_provider_id: sup_id
 						}
-					}
 				},
 			],
 			where: {
