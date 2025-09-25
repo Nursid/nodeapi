@@ -83,5 +83,5 @@ app.use("/attendance",Attendance)
 
 // Start the server
 app.listen(5000, () => {
-  console.log(`Server started at port 3000`);
+  console.log(`Server started at port 5000`);
 });

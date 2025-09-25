@@ -266,9 +266,6 @@ function getTimeSlots(checkintime, currentTime) {
     return AllTimeSlots;
 }
 
-
-
-
 function checkTimeRange(timeSlot) {
     console.log("Time Slot:", timeSlot);
     const now = new Date();
