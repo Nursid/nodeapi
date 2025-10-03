@@ -166,6 +166,10 @@ module.exports = (sequelize) => {
           start_time: {
             type: DataTypes.NUMBER,
             allowNull: true
+          },
+          fcm_token: {
+            type: DataTypes.STRING,
+            allowNull: true
           }
         }, {
         timestamps: true, // If you don't want createdAt and updatedAt columns
