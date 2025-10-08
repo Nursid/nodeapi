@@ -4,11 +4,29 @@ const axios = require("axios");
 const db = require("../model/index");
 const ServiceProviderModel = db.ServiceProviderModel;
 
+
+
+const serviceAccount = {
+  type: process.env.GOOGLE_TYPE,
+  project_id: process.env.GOOGLE_PROJECT_ID,
+  private_key_id: process.env.GOOGLE_PRIVATE_KEY_ID,
+  private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  client_email: process.env.GOOGLE_CLIENT_EMAIL,
+  client_id: process.env.GOOGLE_CLIENT_ID,
+  auth_uri: process.env.GOOGLE_AUTH_URI,
+  token_uri: process.env.GOOGLE_TOKEN_URI,
+  auth_provider_x509_cert_url: process.env.GOOGLE_AUTH_PROVIDER_X509_CERT_URL,
+  client_x509_cert_url: process.env.GOOGLE_CLIENT_X509_CERT_URL,
+  universe_domain: process.env.GOOGLE_UNIVERSE_DOMAIN,
+};
+
+
+
 // Get access token
 async function getAccessToken() {
   const client = new JWT({
-    email: process.env.client_email,
-    key: process.env.private_key,
+    email: serviceAccount.client_email,
+    key: serviceAccount.private_key,
     scopes: ["https://www.googleapis.com/auth/firebase.messaging"]
   });
 
@@ -43,7 +61,7 @@ async function sendNotification(token, order_no, service_name, serviceProviderId
   try {
     const accessToken = await getAccessToken();
 
-    const url = `https://fcm.googleapis.com/v1/projects/${process.env.project_id}/messages:send`;
+    const url = `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`;
 
     const message = {
     //   message: {
