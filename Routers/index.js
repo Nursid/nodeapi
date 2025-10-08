@@ -7,6 +7,8 @@ const supervisorAvailabilityController = require("../Controllers/SupervisorAvail
 
 const FeedbackController = require("../Controllers/FeedBackConctroller")
 
+const { sendNotificationToServiceProvider } = require("../helpers/fcp_token");
+
 
 router.get('/account-listing',AccountController.ListingAccount);
 router.post('/add-balance',AccountController.AddBalance);
@@ -37,6 +39,16 @@ router.get("/location-listing",LocationModel.ListingLocation )
 
 router.post("/feedback", FeedbackController.AddFeedback)
 router.get("/feedback", FeedbackController.GetAllFeedback)
+
+
+
+router.post("/send-notification",
+   async function(req, res){
+        // const response = await sendNotificationToServiceProvider(req.body.serviceProviderId, req.body.title, req.body.body);
+        const response = await sendNotificationToServiceProvider(req.body.serviceProviderId, req.body.order_no, req.body.service_name);
+        res.status(200).json({message: "Notification sent successfully", response: response});
+    }
+)
 
 
     
