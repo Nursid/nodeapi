@@ -1,17 +1,12 @@
 // fcp_token.js - Firebase Cloud Messaging (FCM) integration for service providers
 const { JWT } = require("google-auth-library");
 const axios = require("axios");
-const fs = require("fs");
-const path = require("path");
 const db = require("../model/index");
 const ServiceProviderModel = db.ServiceProviderModel;
 
 
-// Path to your Firebase service account JSON key
-const SERVICE_ACCOUNT_KEY_PATH = path.join(__dirname, "service", "serviceAccountKey.json");
-
 // Load service account JSON
-const serviceAccount = JSON.parse(fs.readFileSync(SERVICE_ACCOUNT_KEY_PATH, "utf8"));
+const serviceAccount =  JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
 
 // Get access token
 async function getAccessToken() {
