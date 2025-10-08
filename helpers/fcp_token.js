@@ -4,15 +4,11 @@ const axios = require("axios");
 const db = require("../model/index");
 const ServiceProviderModel = db.ServiceProviderModel;
 
-
-// Load service account JSON
-const serviceAccount =  JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_KEY);
-
 // Get access token
 async function getAccessToken() {
   const client = new JWT({
-    email: serviceAccount.client_email,
-    key: serviceAccount.private_key,
+    email: process.env.client_email,
+    key: process.env.private_key,
     scopes: ["https://www.googleapis.com/auth/firebase.messaging"]
   });
 
@@ -47,7 +43,7 @@ async function sendNotification(token, order_no, service_name, serviceProviderId
   try {
     const accessToken = await getAccessToken();
 
-    const url = `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`;
+    const url = `https://fcm.googleapis.com/v1/projects/${process.env.project_id}/messages:send`;
 
     const message = {
     //   message: {
