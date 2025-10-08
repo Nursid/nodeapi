@@ -17,6 +17,7 @@ const moment = require('moment');
 const AvailabilityModel = db.Availability
 const moment2 = require('moment-timezone');
 const { hours, minutes } = require("../../helpers/datefive");
+const { sendNotificationToServiceProvider } = require("../../helpers/fcp_token");
 
 const AllTimeSlots = [ 
     '07:00-07:30', '07:30-08:00', '08:00-08:30', '08:30-09:00', '09:00-09:30',
@@ -417,6 +418,8 @@ async function handleServiceProviders(servicep_providers, order, formdata, trans
             { transaction }
         );
 
+        await sendNotificationToServiceProvider(providerId, order.order_no, order.service_name);
+
         const existingAvailability = await Availability.findOne({
             where: { date: formdata.bookdate, emp_id: providerId },
             transaction
@@ -583,6 +586,8 @@ const GetOrderUpdate = async (req, res) => {
                         { order_no: orderID, service_provider_id: providerId },
                         { transaction }
                     );
+
+                    await sendNotificationToServiceProvider(providerId, orderID, updateData.service_name);
 
                     const existingAvailability = await Availability.findOne({
                         where: { date: updateData.bookdate, emp_id: providerId },
