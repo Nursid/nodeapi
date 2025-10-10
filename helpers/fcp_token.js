@@ -42,14 +42,11 @@ async function getFCMTokenByServiceProviderId(serviceProviderId) {
     });
     
     if (!serviceProvider) {
-      throw new Error(`Service provider with ID ${serviceProviderId} not found`);
+      console.warn(`Service provider with ID ${serviceProviderId} not found`);
+      return null;
     }
-    
-    if (!serviceProvider.fcm_token) {
-      throw new Error(`FCM token not found for service provider ID ${serviceProviderId}`);
-    }
-    
-    return serviceProvider.fcm_token;
+
+    return serviceProvider.fcm_token || null; // Return null if not found
   } catch (error) {
     console.error("Error fetching FCM token:", error);
     throw error;
@@ -113,6 +110,10 @@ async function sendNotificationToServiceProvider(serviceProviderId, order_no, se
 
   try {
     const fcmToken = await getFCMTokenByServiceProviderId(serviceProviderId);
+    if (!fcmToken || fcmToken === -1) {
+      console.log(`No FCM token found for Service Provider ID: ${serviceProviderId}. Skipping notification.`);
+      return; // Simply exit, do not throw or send
+    }
     return await sendNotification(fcmToken, order_no, service_name, serviceProviderId);
   } catch (error) {
     console.error("Error sending notification to service provider:", error);
